@@ -1,58 +1,66 @@
 #!/usr/bin/env python3
 
+"""
+module implementing the core classes used for representing a discrete NDF.
+
+These classes are the top level Grid class and the lower level Section class.
+A Grid is a connected amount of sections. The sections are defined by their
+lower and upper boundaries (minimum, maximum), the pivot point and the number
+of particles within the section.
+"""
+
 from collections import deque
-import numpy as np
 import scipy.integrate as spint
 import matplotlib.pyplot as plt
 
 
-# TODO: documentation!
-# TODO: unit testing! --> revisit fancy testig framework!!!
 def zero(x):
-    """always return zero.
+    """Function always returning zero.
+
+    This function acts mainly as a placeholder and default value for arbitrary
+    function objects that have to be specified.
+
+    :param x: function parameter.
+    :return: always 0.
     """
     return 0
 
 
 class Section:
-    """
-    Section class representing a bin for the semi open interval [min, max)
-    (minimum included, maximum NOT included in the interval).
-    It includes a fixed pivot within the sections boundaries
-    (min <= pivot < max). The default pivot position is right in the middle
-    between the min and max boundaries (pivot = min + size / 2). The length
-    of the section is called size and is calculated by (size = max - min).
-    Additionally the class contains a field for the total number of particles
-    in the section.
+    """Section class representing a discrete bin.
 
-               (particles) N
-            (particle density) n
-             \                /
-              min (pivot) max
-    ... -o-----+-----o-----+-----o- ...
-              v_i  (x_i)  v_i+1
-               |^^^^^^^^^^^|
-               |  section  |
+    It represents the semi open interval [min, max). (minimum included,
+    maximum NOT included in the interval). The class includes a fixed pivot
+    within the sections boundaries (min <= pivot < max). The default pivot
+    position is right in the middle between the min and max boundaries
+    (pivot = min + size / 2). The length of the section (max - min) is called
+    size. Additionally the class contains a field for the total number of
+    particles in the section and the derived value of the mean particle
+    density.
     """
     def __init__(self, minimum, maximum, particles=0.):
         """Initializer.
 
         :param minimum: inclusive minimum of the section (v_i).
         :param maximum: exclusive maximum of the section (v_i+1).
-        :param particles: total number of particles in the section (N).
+        :param particles: total number of particles in the section (N_i).
+        :raises: ValueError if minimum >= maximum.
+        :raises: ValueError if particles < 0.
         """
-        assert particles >= 0
-        self._particles = particles
-        if minimum < maximum:
-            self._minimum = minimum
-            self._maximum = maximum
-            self._pivot = minimum + (maximum - minimum) / 2
-        else:
+        if particles < 0:
+            raise ValueError("particles '{}' must be >= 0!".format(particles))
+        elif minimum >= maximum:
             raise ValueError(
                 "minimum '{min}' must be < maximum '{max}'".format(
                     min=minimum,
                     max=maximum
-                ))
+                )
+            )
+        else:
+            self._particles = particles
+            self._minimum = minimum
+            self._maximum = maximum
+            self._pivot = minimum + (maximum - minimum) / 2
 
     def __str__(self):
         """String representation.
@@ -61,93 +69,118 @@ class Section:
         """
         return "<{cls} @ {id}: min={min:.3e}, max={max:.3e}, " \
                "size={size:.3e}, piv={piv:.3e}, part={part:.3e}>".format(
-                cls=self.__class__.__name__,
-                id=hex(id(self)),
-                min=self.minimum,
-                max=self.maximum,
-                size=self.size,
-                piv=self.pivot,
-                part=self.particles
-                )
+            cls=self.__class__.__name__,
+            id=hex(id(self)),
+            min=self.minimum,
+            max=self.maximum,
+            size=self.size,
+            piv=self.pivot,
+            part=self.particles
+        )
 
     @property
     def minimum(self):
-        """Getter for minimum.
+        """Getter for minimum property (v_i).
 
-        :return: inclusive minimum of bucket range.
+        :return: inclusive minimum of the section.
         """
         return self._minimum
 
     @minimum.setter
     def minimum(self, new_min):
-        """Setter for minimum.
+        """Setter for minimum property (v_i).
 
-        :param new_min: new inclusive minimum of bucket range.
+        :param new_min: new inclusive minimum of the section.
+        :raises: ValueError if minimum >= maximum.
         """
-        if new_min < self.maximum:
-            self._minimum = new_min
-            self._center_pivot()
-        else:
+        if new_min >= self.maximum:
             raise ValueError(
-                "minimum '{min}' must be smaller than maximum '{max}'".format(
+                "minimum '{min}' must be < maximum '{max}'".format(
                     min=self.minimum,
                     max=self.maximum
                 )
             )
+        else:
+            self._minimum = new_min
+            self._center_pivot()
 
     @property
     def maximum(self):
-        """Getter for maximum.
+        """Getter for maximum property (v_i+1).
 
-        :return: exclusive maximum of bucket range.
+        :return: exclusive maximum of the section.
         """
         return self._maximum
 
     @maximum.setter
     def maximum(self, new_max):
-        """Setter for maximum.
+        """Setter for maximum property (v_i+1).
 
-        :param new_max: new exclusive maximum of bucket range.
+        :param new_max: new exclusive maximum of the section.
+        :raises: ValueError if minimum >= maximum.
         """
-        if new_max > self.minimum:
+        if new_max <= self.minimum:
+            raise ValueError(
+                "maximum '{max}' must be > minimum '{min}'".format(
+                    max=self.maximum,
+                    min=self.minimum
+                )
+            )
+        else:
             self._maximum = new_max
             self._center_pivot()
-        else:
+
+    @property
+    def range(self):
+        """Getter for range property (v_i, v_i+1).
+
+        :return: tuple containing minimum and maximum value of the section.
+        """
+        return self.minimum, self.maximum
+
+    @range.setter
+    def range(self, new_range):
+        """Setter for range property (v_i, v_i+1).
+
+        :param new_range: tuple with new minimum and maximum values.
+        :raises: IndexError if len(new_range) < 2.
+        :raises: TypeError [] operator is not supported.
+        :raises: ValueError if new_minimum >= new_maximum.
+        """
+        try:
+            new_minimum = new_range[0]
+            new_maximum = new_range[1]
+        except IndexError:
+            raise IndexError(
+                "range '{}' must be a tuple of at least two elements!".format(
+                    new_range
+                )
+            )
+        except TypeError:
+            raise TypeError(
+                "range '{}' must be a tuple of at least two elements!".format(
+                    new_range
+                )
+            )
+        if new_minimum >= new_maximum:
             raise ValueError(
                 "maximum '{max}' must be greater than minimum '{min}'".format(
                     max=self.maximum,
                     min=self.minimum
                 )
             )
-
-    @property
-    def range(self):
-        return self.minimum, self.maximum
-
-    @range.setter
-    def range(self, new_range):
-        try:
-            minimum = new_range[0]
-            maximum = new_range[1]
-        except IndexError:
-            raise IndexError(
-                "range '{rng}' must be a tuple of at least two items!".format(
-                    rng=new_range
-                )
-            )
-        if minimum < maximum:
-            self.minimum = minimum
-            self.maximum = maximum
         else:
-            raise ValueError(
-                "maximum '{max}' must be greater than minimum '{min}'".format(
-                    max=self.maximum,
-                    min=self.minimum)
-            )
+            if new_maximum >= self.maximum:  # expand or shift to the right
+                self.maximum = new_maximum
+                self.minimum = new_minimum
+            else:
+                self.minimum = new_minimum
+                self.maximum = new_maximum
+            self._center_pivot()
 
     @property
     def pivot(self):
-        """Getter for pivot.
+        """Getter for pivot property (x_i).
 
         :return: sections pivot point.
         """
@@ -155,7 +188,7 @@ class Section:
 
     @property
     def size(self):
-        """Getter for section size.
+        """Getter for size property (v_i+1 - v_i).
 
         :return: section size (max - min).
         """
@@ -163,7 +196,7 @@ class Section:
 
     @property
     def particles(self):
-        """Getter for total number of particles in the section.
+        """Getter for total number of particles property (N_i).
 
         :return: total number of particles in the section.
         """
@@ -171,48 +204,39 @@ class Section:
 
     @particles.setter
     def particles(self, new_particles):
-        """Setter for total number of particles in the section.
+        """Setter for total number of particles property (N_i).
 
-        :param new_particles: new number of particles.
+        :param new_particles: new number of particles in the section.
         """
-        if new_particles >= 0:
-            self._particles = new_particles
+        if new_particles < 0:
+            raise ValueError("number of particles '{}' must be >= 0!".format(
+                    self.particles
+            ))
         else:
-            raise ValueError(
-                "number of particles '{par}' must be >= 0!".format(
-                    par=self.particles
-                )
-            )
+            self._particles = new_particles
 
     @property
     def particle_density(self):
-        """Getter for the mean particle density in the section.
+        """Getter for the mean particle density property (n_i).
 
         :return: mean particle density in the section.
         """
         return self.particles / self.size
 
     def _center_pivot(self):
-        """Center pivot between minimum and maximum.
+        """Center the pivot point between minimum and maximum.
         """
         self._pivot = self.minimum + self.size / 2
 
 
 class Grid:
-    """
-    Grid class for representing an arbitrary grid of connected sections. The
-    grid bins are represented by a "list" of sections with arbitrary ranges.
-    The seamless connection of the buckets (max(bucket i) = min(bucket(i+1))
-    is guaranteed by checks to catch numerical inaccuracy issues.
+    """Grid class for representing an arbitrary grid of connected sections.
 
-                                (particles)
-                             (particle density)
-                             \                /
-                              min (pivot) max
-    ---+-----o-----+-----o-----+-----o-----+-----o-----+--->
-      ...         i-1  (i-1)   i    (i)   i+1  (i+1)  i+2
-       |           |           |^^^^^^^^^^^|           |
-       |           |           |  section  |           |
+    The grid bins are represented by a list (actually a double ended queue) of
+    sections with arbitrary ranges. The seamless connection of the buckets
+    (max(bucket i) = min(bucket(i+1)) is guaranteed by the simple
+    implementation of the classes methods. If changes are made to the Sections
+    "by hand" the seamlessness has to be checked.
     """
     def __init__(self, minimum=0, maximum=1, particles=0.):
         """Initializer.
@@ -256,72 +280,77 @@ class Grid:
 
     @property
     def minimum(self):
+        """Getter for grid minimum property.
+
+        :return: minimum of the grid.
+        """
         return self._sections[0].minimum  # first section minimum
 
     @property
     def maximum(self):
-        return self._sections[-1].maximum  # last section maximum
+        """Getter for grid maximum property.
 
-    # single/boundary element operations:
-    # =========================================================================
+        :return: maximum of the grid.
+        """
+        return self._sections[-1].maximum  # last section maximum
 
     def add_left(self, size, particles=0.):
         """Add new section to the left.
 
-        :param size: range of the new section (max - min).
+        :param size: range of the new section (maximum - minimum).
+        :param particles: total number of particles in the new section.
+        :raises: ValueError if size <= 0.
         """
-        assert particles >= 0
-        if size > 0:
+        if size <= 0:
+            raise ValueError("size must be > 0!")
+        else:
             current_left_section = self._sections[0]
             new_max = current_left_section.minimum
             new_min = new_max - size
             new_left_section = Section(minimum=new_min, maximum=new_max,
                                        particles=particles)
             self._sections.appendleft(new_left_section)
-        else:
-            raise ValueError("size must be > 0!")
 
     def add_right(self, size, particles=0.):
         """Add new section to the right.
 
-        :param size: range of the new section (max - min).
+        :param size: range of the new section (maximum - minimum).
+        :param particles: total number of particles in the new section.
+        :raises: ValueError if size <= 0.
         """
-        assert particles >= 0
-        if size > 0:
+        if size <= 0:
+            raise ValueError("size must be > 0!")
+        else:
             current_right_section = self._sections[-1]
             new_min = current_right_section.maximum
             new_max = new_min + size
             new_right_section = Section(minimum=new_min, maximum=new_max,
                                         particles=particles)
             self._sections.append(new_right_section)
-        else:
-            raise ValueError("size must be > 0!")
 
     def remove_left(self):
         """Remove section on the left.
 
         :return: removed section.
+        :raises: ValueError if len
         """
-        if len(self._sections) > 1:
-            return self._sections.popleft()
-        else:
+        if len(self) == 1:
             raise IndexError("Can not remove last section!")
+        else:
+            return self._sections.popleft()
 
     def remove_right(self):
         """Remove section on the right.
 
         :return: removed section.
         """
-        if len(self._sections) > 1:
-            return self._sections.pop()
-        else:
+        if len(self) == 1:
             raise IndexError("Can not remove last section!")
-
-    # multi element operations:
-    # =========================================================================
+        else:
+            return self._sections.pop()
 
     def coarsen(self, start, end):
-        """Coarsen grid by combining buckets in the index range.
+        """Coarsen grid by combining sections in the index range.
 
         :param start: inclusive start of index range.
         :param end: inclusive end of index range.
@@ -407,8 +436,20 @@ class Grid:
                 )
             )
 
-    # helpers:
-    # =========================================================================
+    def _find_seams(self):
+        """Find seams between sections by checking every pair in the grid.
+
+        :return: list of section pairs that are not properly connected.
+        """
+        seams = []
+        for index, section in enumerate(self):
+            print(index, section)
+            if index < len(self) - 1:
+                left_max = self._sections[index].maximum
+                right_min = self._sections[index+1].minimum
+                if left_max != right_min:
+                    seams.append((index, index+1))
+        return seams
 
     def info(self):
         """print info about the class to console.
@@ -418,12 +459,16 @@ class Grid:
             print(index, sections)
 
     def plot(self):
-        """Plot grids particle number values using matplotlib.
+        """Plot grids total particle number values using matplotlib.
         """
         plt.plot(self.pivots(), self.particles(), "ro")
         plt.show()
 
     def boundaries(self):
+        """return the list of boundary values.
+
+        :return: boundary list.
+        """
         boundary_list = []
         for section in self:
             boundary_list.append(section.minimum)
@@ -431,79 +476,59 @@ class Grid:
         return boundary_list
 
     def pivots(self):
+        """return the list of pivots.
+
+        :return: pivot list.
+        """
         pivot_list = []
         for section in self:
             pivot_list.append(section.pivot)
         return pivot_list
 
     def particles(self):
+        """return the list of particle numbers.
+
+        :return: particle number list.
+        """
         particle_list = []
         for section in self:
             particle_list.append(section.particles)
         return particle_list
 
     def particle_densities(self):
+        """return the list of particle density values.
+
+        :return: particle density list.
+        """
         particle_density_list = []
         for section in self:
             particle_density_list.append(section.particle_density)
         return particle_density_list
 
-    # factory methods:
-    # =========================================================================
-    '''
     @staticmethod
-    def create_uniform(minimum, size, amount, func=zero):
+    def create_uniform(minimum, maximum, amount, func=zero):
         """Create a uniform grid.
 
         :param minimum: inclusive minimum of the grid (leftmost section).
-        :param size: constant range of all the sections.
+        :param maximum: exclusive maximum of the grid (rightmost section).
         :param amount: total number of sections in the grid.
+        :param func: number density function for calculating particle numbers.
         :return: equidistant Grid object.
         """
-        return Grid.create_geometric(minimum=minimum, size=size, factor=1,
-                                     amount=amount, func=func)
-    '''
-    @staticmethod
-    def create_uniform(minimum, maximum, amount, func=zero):
         size = (maximum - minimum) / amount
         return Grid.create_geometric(minimum=minimum, maximum=maximum,
                                      factor=1, amount=amount, func=func)
 
-    '''
     @staticmethod
-    def create_geometric(minimum, size, factor, amount, func=zero):
+    def create_geometric(minimum, maximum, amount, factor, func=zero):
         """Create a geometric grid.
 
         :param minimum: inclusive minimum of the grid (leftmost section).
-        :param size: leftmost buckets range.
+        :param maximum: exclusive maximum of the grid (rightmost section).
+        :param amount: number of sections in the corresponding uniform grid.
         :param factor: factor for size change.
-        :param amount: total number of sections in the grid.
         :return: geometric Grid object.
         """
-        if size <= 0:
-            raise ValueError("size '{s}' must be > 0!".format(s=size))
-        elif amount <= 0:
-            raise ValueError("amount '{a}' must be > 0!".format(a=amount))
-        elif factor < 1:
-            raise ValueError("factor '{f}' must be >= 1!".format(f=factor))
-        else:
-            # create initial grid:
-            first_max = minimum + size
-            particles = spint.quad(func, minimum, first_max)[0]
-            grid = Grid(minimum, first_max, particles)
-            # add sections to the grid:
-            current_size = size
-            while len(grid) < amount:
-                current_size *= factor
-                last_section = grid._sections[-1]
-                lower = last_section.maximum
-                upper = last_section.maximum + current_size
-                particles = spint.quad(func, lower, upper)[0]
-                grid.add_right(size=current_size, particles=particles)
-            return grid
-    '''
-    @staticmethod
-    def create_geometric(minimum, maximum, amount, factor, func=zero):
         if minimum >= maximum:
             raise ValueError(
                 "minimum '{min}' must be < maximum '{max}'".format(
@@ -534,16 +559,13 @@ class Grid:
                 grid.add_right(size=current_size, particles=particles)
             return grid
 
-    # possible future additions:
-    # =========================================================================
-
     @staticmethod
     def from_boundaries(boundaries):
         """Create grid from list of range boundaries.
         """
-        raise NotImplementedError
+        raise NotImplementedError  # TODO: maybe implement in the future
 
     def smooth(self, start, end):
         """Smooth grid by averaging the section sizes in the range
         """
-        raise NotImplementedError
+        raise NotImplementedError  # TODO: maybe implement in the future

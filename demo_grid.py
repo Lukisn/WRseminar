@@ -12,6 +12,7 @@ def demo():
         return (N0/v0) * (v/v0) * np.exp(-v/v0)
 
     uniform = Grid.create_uniform(0, 20, 40, func=f)
+    print(uniform._find_seams())
     geometric = Grid.create_geometric(0, 20, 40, 1.15, func=f)
 
     analytic_pivots = np.linspace(0, 10, 1000)

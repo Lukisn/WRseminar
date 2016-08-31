@@ -3,6 +3,9 @@
 import unittest
 from WR.grid import Section, Grid
 
+# TODO: checkout Property Based Testing
+# https://hypothesis.readthedocs.io/en/latest/index.html
+
 
 class TestSection(unittest.TestCase):
 
@@ -37,8 +40,13 @@ class TestSection(unittest.TestCase):
         self.assertEquals(s.range, (-2, 3))
         with self.assertRaises(IndexError):
             s.range = (-2,)
+        with self.assertRaises(TypeError):
+            s.range = 2
         with self.assertRaises(ValueError):
             s.range = (4, -2)
+        s.range = (0, 1)
+        s.range = (2, 3)
+        s.range = (-2, -1)
 
     def test_particle_getters_setters(self):
         s = Section(0, 1, particles=100)
@@ -91,8 +99,8 @@ class TestGrid(unittest.TestCase):
         self.assertEquals(g.maximum, 7)
         self.assertRaises(ValueError, g.add_left, -1)
         self.assertRaises(ValueError, g.add_right, -1)
-        self.assertRaises(AssertionError, g.add_left, 1, -1)
-        self.assertRaises(AssertionError, g.add_right, 1, -1)
+        self.assertRaises(ValueError, g.add_left, 1, -1)
+        self.assertRaises(ValueError, g.add_right, 1, -1)
         g.remove_left()
         self.assertEquals(g.minimum, 4)
         self.assertEquals(g.maximum, 7)
@@ -136,3 +144,7 @@ class TestGrid(unittest.TestCase):
         self.assertRaises(ValueError, g.refine, 1, 0)
         self.assertRaises(ValueError, g.refine, -1, 1)
         self.assertRaises(ValueError, g.refine, 1, 99)
+
+
+if __name__ == "__main__":
+    unittest.main()
