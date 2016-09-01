@@ -9,9 +9,17 @@ lower and upper boundaries (minimum, maximum), the pivot point and the number
 of particles within the section.
 """
 
+from itertools import tee
 from collections import deque
 from scipy.integrate import quad
 import matplotlib.pyplot as plt
+
+
+def pairwise(iterable):
+    "s -> (s0,s1), (s1,s2), (s2, s3), ..."
+    a, b = tee(iterable)
+    next(b, None)
+    return zip(a, b)
 
 
 def zero(x):
@@ -368,7 +376,8 @@ class Grid:
         else:
             return self._sections.pop()
 
-    def coarsen(self, start, end):
+    # TODO: look at grid manipulation after implemented simple method!
+    def coarsen_range(self, start, end):
         """Coarsen grid by combining sections in the index range.
 
         :param start: inclusive start of index range.
@@ -398,7 +407,14 @@ class Grid:
                     coarsened = True
         self._sections = new_sections
 
-    def refine(self, start, end):
+    def coarsen(self, times=1):
+        for _ in range(times):
+            index = 0
+            while index < len(self) - 1:
+                self.coarsen_range(index, index + 1)
+                index += 1
+
+    def refine_range(self, start, end):
         """Refine the grid by splitting the sections in the index range.
 
         :param start: inclusive start of index range.
@@ -424,6 +440,10 @@ class Grid:
                 new_sections.append(left_section)
                 new_sections.append(right_section)
         self._sections = new_sections
+
+    def refine(self, times=1):
+        for _ in range(times):
+            self.refine_range(0, len(self) - 1)
 
     def boundaries(self):
         """return the list of boundary values.
