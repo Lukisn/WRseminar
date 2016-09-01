@@ -70,22 +70,32 @@ class TestGrid(unittest.TestCase):
 
     def test_factory_creation(self):
         # uniform:
-        u = Grid.create_uniform(minimum=0, maximum=10, amount=1)
+        u = Grid.create_uniform(minimum=0, maximum=10, amount=3)
         self.assertEquals(u.minimum, 0)
         self.assertEquals(u.maximum, 10)
         with self.assertRaises(ValueError):
             Grid.create_uniform(minimum=0, maximum=-10, amount=1)
         self.assertRaises(ValueError, Grid.create_uniform, 0, 1, amount=-1)
-        # geometric:
-        g = Grid.create_geometric(minimum=0, maximum=10, factor=1, amount=1)
+        # geometric step:
+        g = Grid.create_geometric_step(minimum=0, maximum=10, factor=1, amount=3)
         self.assertEquals(u.minimum, 0)
         self.assertEquals(u.maximum, 10)
         with self.assertRaises(ValueError):
-            Grid.create_geometric(0, maximum=-10, factor=1, amount=10)
+            Grid.create_geometric_step(0, maximum=-10, factor=1, amount=10)
         with self.assertRaises(ValueError):
-            Grid.create_geometric(0, maximum=10, factor=-1, amount=10)
+            Grid.create_geometric_step(0, maximum=10, factor=-1, amount=10)
         with self.assertRaises(ValueError):
-            Grid.create_geometric(0, maximum=10, factor=1, amount=-10)
+            Grid.create_geometric_step(0, maximum=10, factor=1, amount=-10)
+        # geometric maximum:
+        g = Grid.create_geometric_maximum(minimum=0, maximum=10, factor=1.1, amount=3)
+        self.assertEquals(u.minimum, 0)
+        self.assertEquals(u.maximum, 10)
+        with self.assertRaises(ValueError):
+            Grid.create_geometric_maximum(0, maximum=-10, factor=1, amount=10)
+        with self.assertRaises(ValueError):
+            Grid.create_geometric_maximum(0, maximum=10, factor=-1, amount=10)
+        with self.assertRaises(ValueError):
+            Grid.create_geometric_maximum(0, maximum=10, factor=1, amount=-10)
 
     def test_add_remove(self):
         g = Grid(4, 5)

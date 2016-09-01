@@ -26,6 +26,32 @@ def zero(x):
     return 0
 
 
+def find_initial_step(start, end, steps, factor, max_err=1e-12, max_iter=1000):
+    assert start < end
+    assert steps > 0
+    assert factor >= 1
+    assert max_err > 0
+    assert max_iter > 0
+
+    size = end - start  # total length of the range
+    step = size / steps  # uniform step size for number of steps
+
+    initial_step = step
+    diff = max_err + 1
+    for _ in range(max_iter):
+        current_step = initial_step
+        current_size = 0
+        for index in range(steps):
+            current_size += current_step
+            current_step *= factor
+        diff = abs(size - current_size)
+        if diff < max_err:
+            break
+        else:
+            initial_step *= size / current_size
+    return initial_step
+
+
 class Section:
     """Section class representing a discrete bin.
 
@@ -505,26 +531,31 @@ class Grid:
             particle_density_list.append(section.particle_density)
         return particle_density_list
 
+    # TODO: simplify grid creation!
     @staticmethod
     def create_uniform(minimum, maximum, amount, func=zero):
         """Create a uniform grid.
 
-        :param minimum: inclusive minimum of the grid (leftmost section).
-        :param maximum: exclusive maximum of the grid (rightmost section).
+        :param minimum: inclusive minimum of the grid.
+        :param maximum: exclusive maximum of the grid.
         :param amount: total number of sections in the grid.
         :param func: number density function for calculating particle numbers.
         :return: equidistant Grid object.
         """
         size = (maximum - minimum) / amount
-        return Grid.create_geometric(minimum=minimum, maximum=maximum,
-                                     factor=1, amount=amount, func=func)
+        return Grid.create_geometric_step(minimum=minimum, maximum=maximum,
+                                          factor=1, amount=amount, func=func)
 
     @staticmethod
-    def create_geometric(minimum, maximum, amount, factor, func=zero):
+    def create_geometric_step(minimum, maximum, amount, factor, func=zero):
         """Create a geometric grid.
 
-        :param minimum: inclusive minimum of the grid (leftmost section).
-        :param maximum: exclusive maximum of the grid (rightmost section).
+        The grid is created by using the same initial step size as the
+        corresponding uniform grid (step = (maximum - minimum) / amount). This
+        method does NOT achieve the same maximum boundary.
+
+        :param minimum: inclusive minimum of the grid.
+        :param maximum: exclusive maximum of the corresponding uniform grid.
         :param amount: number of sections in the corresponding uniform grid.
         :param factor: factor for size change.
         :return: geometric Grid object.
@@ -557,6 +588,91 @@ class Grid:
                 upper = last_section.maximum + current_size
                 particles = spint.quad(func, lower, upper)[0]
                 grid.add_right(size=current_size, particles=particles)
+            # clean up last section(s):
+            last_section = grid._sections[-1]
+            last_min = last_section.minimum
+            last_max = last_section.maximum
+            left = maximum - last_min
+            right = last_max - maximum
+            if left > right:  # shift last max left
+                last_section.maximum = maximum
+                lower = last_section.maximum
+                upper = last_section.maximum + current_size
+                particles = spint.quad(func, lower, upper)[0]
+                last_section.particles = particles
+            else:  # delete last section and shift last max right
+                grid.remove_right()
+                last_section = grid._sections[-1]
+                last_section.maximum = maximum
+                lower = last_section.maximum
+                upper = last_section.maximum + current_size
+                particles = spint.quad(func, lower, upper)[0]
+                last_section.particles = particles
+            return grid
+
+    @staticmethod
+    def create_geometric_maximum(minimum, maximum, amount, factor, func=zero):
+        """Create a geometric grid.
+
+        The grid is created by choosing an initial step size so the maximum
+        boundary is the same as for the corresponding uniform grid.
+
+        :param minimum: inclusive minimum of the grid.
+        :param maximum: exclusive maximum of the grid.
+        :param amount: number of sections in the corresponding uniform grid.
+        :param factor: factor for size change.
+        :return: geometric Grid object.
+        """
+        if minimum >= maximum:
+            raise ValueError(
+                "minimum '{min}' must be < maximum '{max}'".format(
+                    min=minimum,
+                    max=maximum
+                )
+            )
+        elif amount <= 0:
+            raise ValueError("amount '{a}' must be > 0!".format(a=amount))
+        elif factor < 1:
+            raise ValueError("factor '{f}' must be >= 1!".format(f=factor))
+        else:
+            # find initial step size:
+            size = find_initial_step(minimum, maximum, amount, factor)
+            # create initial grid:
+            first_max = minimum + size
+            particles = spint.quad(func, minimum, first_max)[0]
+            grid = Grid(minimum, first_max, particles)
+            # add sections to the grid:
+            current_size = size
+            current_max = first_max
+            #while current_max < maximum:
+            for index in range(amount-1):
+                current_size *= factor
+                current_max += current_size
+                last_section = grid._sections[-1]
+                lower = last_section.maximum
+                upper = last_section.maximum + current_size
+                particles = spint.quad(func, lower, upper)[0]
+                grid.add_right(size=current_size, particles=particles)
+            # clean up last section(s):
+            last_section = grid._sections[-1]
+            last_min = last_section.minimum
+            last_max = last_section.maximum
+            left = maximum - last_min
+            right = last_max - maximum
+            if left > right:  # shift last max left
+                last_section.maximum = maximum
+                lower = last_section.maximum
+                upper = last_section.maximum + current_size
+                particles = spint.quad(func, lower, upper)[0]
+                last_section.particles = particles
+            else:  # delete last section and shift last max right
+                grid.remove_right()
+                last_section = grid._sections[-1]
+                last_section.maximum = maximum
+                lower = last_section.maximum
+                upper = last_section.maximum + current_size
+                particles = spint.quad(func, lower, upper)[0]
+                last_section.particles = particles
             return grid
 
     @staticmethod
