@@ -26,29 +26,55 @@ def zero(x):
     return 0
 
 
-def find_initial_step(start, end, steps, factor, max_err=1e-12, max_iter=1000):
+def find_initial_step(start, end, steps, factor, max_err=1e-14, max_iter=100):
+    """Find initial step size for geometric grid with given parameters.
+
+    The Function tries to figure out an initial step size for a geometric grid
+    with the given paramters (start, end, steps, factor). Its initial guess is
+    the step size of the corresponding uniform grid. Further guesses are
+    calculated from the ratio of the resulting and the desired length. The
+    method converges very fast and is therefore slowed down by averaging to
+    approach the solution slowly and achieving a more stable result.
+
+    :param start: start of the grid.
+    :param end: end of the grid.
+    :param steps: number of steps.
+    :param factor: geometric grid factor.
+    :param max_err: maximum allowed iteration error.
+    :param max_iter: maximum allowed number of iterations.
+    :return: initial step size (first cell) for the geometric grid.
+    """
     assert start < end
     assert steps > 0
     assert factor >= 1
     assert max_err > 0
     assert max_iter > 0
 
-    size = end - start  # total length of the range
-    step = size / steps  # uniform step size for number of steps
+    length = end - start  # total length of the range
+    step = length / steps  # uniform step size for number of steps
 
-    initial_step = step
-    diff = max_err + 1
+    initial_step = step  # initial guess for the initial step size
+    previous_step = step
+    diff = max_err + 1  # difference between current iteration and total length
     for _ in range(max_iter):
+        # sum individual step sizes to get total length of the geometric grid:
         current_step = initial_step
-        current_size = 0
+        current_length = 0
         for index in range(steps):
-            current_size += current_step
+            current_length += current_step
             current_step *= factor
-        diff = abs(size - current_size)
+        # check difference and adjust initial step size:
+        diff = abs(length - current_length)
         if diff < max_err:
             break
         else:
-            initial_step *= size / current_size
+            previous_step = initial_step
+            initial_step *= length / current_length
+            # slow down converging by averaging with previous guess:
+            mean_step = (initial_step + previous_step) / 2
+            phi = 0.75  # weight combining mean and current best guess
+            initial_step = phi * initial_step + (1-phi) * mean_step
+
     return initial_step
 
 

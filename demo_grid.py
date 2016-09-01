@@ -12,8 +12,8 @@ def demo():
         return (N0/v0) * (v/v0) * np.exp(-v/v0)
 
     uniform = Grid.create_uniform(0, 20, 13, func=f)
-    geom_step = Grid.create_geometric_step(0, 20, 13, 1.15, func=f)
-    geom_max = Grid.create_geometric_maximum(0, 20, 13, 1.15, func=f)
+    geom_step = Grid.create_geometric_step(0, 20, 13, 1.35, func=f)
+    geom_max = Grid.create_geometric_maximum(0, 20, 13, 1.35, func=f)
 
     analytic_pivots = np.linspace(0, 10, 1000)
     analytic_densities = f(analytic_pivots)
