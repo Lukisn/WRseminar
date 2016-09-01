@@ -70,12 +70,12 @@ class TestGrid(unittest.TestCase):
 
     def test_factory_creation(self):
         # uniform:
-        u = Grid.create_uniform(minimum=0, maximum=10, amount=3)
+        u = Grid.create_uniform(start=0, end=10, steps=3)
         self.assertEquals(u.start, 0)
         self.assertEquals(u.end, 10)
         with self.assertRaises(AssertionError):
-            Grid.create_uniform(minimum=0, maximum=-10, amount=1)
-        self.assertRaises(AssertionError, Grid.create_uniform, 0, 1, amount=-1)
+            Grid.create_uniform(start=0, end=-10, steps=1)
+        self.assertRaises(AssertionError, Grid.create_uniform, 0, 1, steps=-1)
         # geometric step:
         g = Grid.create_geometric_step(start=0, end=10, factor=1, steps=3)
         self.assertEquals(u.start, 0)
@@ -87,15 +87,15 @@ class TestGrid(unittest.TestCase):
         with self.assertRaises(AssertionError):
             Grid.create_geometric_step(0, end=10, factor=1, steps=-10)
         # geometric maximum:
-        g = Grid.create_geometric_maximum(start=0, end=10, factor=1.1, steps=3)
+        g = Grid.create_geometric_end(start=0, end=10, factor=1.1, steps=3)
         self.assertEquals(u.start, 0)
         self.assertEquals(u.end, 10)
         with self.assertRaises(AssertionError):
-            Grid.create_geometric_maximum(0, end=-10, factor=1, steps=10)
+            Grid.create_geometric_end(0, end=-10, factor=1, steps=10)
         with self.assertRaises(AssertionError):
-            Grid.create_geometric_maximum(0, end=10, factor=-1, steps=10)
+            Grid.create_geometric_end(0, end=10, factor=-1, steps=10)
         with self.assertRaises(AssertionError):
-            Grid.create_geometric_maximum(0, end=10, factor=1, steps=-10)
+            Grid.create_geometric_end(0, end=10, factor=1, steps=-10)
 
     def test_add_remove(self):
         g = Grid(4, 5)
@@ -122,7 +122,7 @@ class TestGrid(unittest.TestCase):
         self.assertRaises(IndexError, g.remove_right)
 
     def test_coarsening_refining(self):
-        g = Grid.create_uniform(minimum=1, maximum=10, amount=9)
+        g = Grid.create_uniform(start=1, end=10, steps=9)
         self.assertEquals(g.start, 1)
         self.assertEquals(g.end, 10)
         self.assertEquals(len(g), 9)
