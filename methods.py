@@ -4,10 +4,20 @@ from copy import copy
 from scipy.integrate import quad
 
 
-# TODO: implement basic skeleton and implement breakage
+def kronecker_delta(i, j):
+    if i == j:
+        return 1
+    else:
+        return 0
+
+
+# TODO: refactoring
+# TODO: documentaion
 class FixedPivot:
 
-    def __init__(self, primary, secondary, initial_ndf, break_freq, child_number):
+    def __init__(self, initial_ndf, break_freq, child_number, agg_freq,
+                 primary=0, secondary=1, breakage=True, aggregation=True,
+                 growth=True, nucleation=False):
         self.primary = primary  # primary preserved moment "zeta" usually zeta=0 (preservation of numbers)
         self.secondary = secondary  # secondary preserved moment "nu" usually nu=1 (preservation of mass)
         self.initial_ndf = initial_ndf
@@ -15,7 +25,15 @@ class FixedPivot:
         self.previous_ndf = copy(initial_ndf)
         self.break_freq = break_freq  # breakage frequency function "Gamma"
         self.child_number = child_number  # function for number of child particles formed due to breakage
+        self.agg_freq = agg_freq  # aggregation frequency function "Q"
+        self.breakage = breakage
+        self.aggregation = aggregation
+        self.growth = growth
+        self.nucleation = nucleation
 
+    # TODO: implement toggles for switching single calculations on and off
+
+    # TODO: implement results output with options.
     def simulate(self, end_time, steps):
         start_time = 0
         time_step = (end_time - start_time) / steps
@@ -30,36 +48,48 @@ class FixedPivot:
 
             # calculate terms of the PBE:
             self.previous_ndf = copy(self.current_ndf)
-            self.calc_breakage(time_step)
-            #self.calc_aggregration()
-            #self.calc_growth()
-            #self.calc_nucleation()
+            if self.breakage:
+                self.calc_breakage(time_step)
+            if self.aggregation:
+                self.calc_aggregration(time_step)
+            if self.growth:
+                self.calc_growth(time_step)
+            if self.nucleation:
+                self.calc_nucleation(time_step)
+
+            # TODO: write out intermediate result
+
+        # TODO: write out final result
 
     def calc_breakage(self, time_step):
         """calculate breakage.
         """
-        for i, section_i in enumerate(self.current_ndf):
-            print("i=", i, "section_i=", section_i)
+        zeta = self.primary
+        nu = self.secondary
+        beta = self.child_number
 
-            if i == 0 or i == len(self.current_ndf) - 1:
-                continue
+        for i, section_i in enumerate(self.previous_ndf):
+            print("i=", i, "section_i=", section_i)
 
             xi = section_i.pivot
             Ni = section_i.particles
             gammai = self.break_freq(xi)
 
-            xip1 = self.current_ndf.section(i+1).pivot
-            xim1 = self.current_ndf.section(i-1).pivot
-
-            zeta = self.primary
-            nu = self.secondary
-            beta = self.child_number
+            # TODO: find out what to do with the ghost sections!?
+            try:
+                xip1 = self.current_ndf.section(i+1).pivot
+            except AssertionError:
+                xip1 = None
+            try:
+                xim1 = self.current_ndf.section(i-1).pivot
+            except AssertionError:
+                xim1 = None
 
             # calculate birth:
             birth = 0
-            for k, section_k in enumerate(self.current_ndf):
+            for k, section_k in enumerate(self.previous_ndf):
                 if k >= i:
-                    print("k=", k, "section_k=", section_k)
+                    #print("k=", k, "section_k=", section_k)
 
                     xk = section_k.pivot
                     Nk = section_k.particles
@@ -68,21 +98,27 @@ class FixedPivot:
                     # calculate n_i,k:
                     def func_primary(v):
                         return v**zeta * beta(v, xk)
-                    Bzeta = quad(func_primary, xi, xip1)[0]
-                    Bzetam1 = quad(func_primary, xim1, xi)[0]
 
                     def func_secondary(v):
                         return v**nu * beta(v, xk)
-                    Bnu = quad(func_secondary, xi, xip1)[0]
-                    Bnum1 = quad(func_secondary, xim1, xi)[0]
 
-                    first_nom = Bzeta * xip1**nu - Bnu * xip1**zeta
-                    first_denum = xi**zeta * xip1**nu - xi**nu * xip1**zeta
-                    first_term =  first_nom / first_denum
+                    if xip1 is None:
+                        first_term = 0
+                    else:
+                        Bzeta = quad(func_primary, xi, xip1)[0]
+                        Bnu = quad(func_secondary, xi, xip1)[0]
+                        first_num = Bzeta * xip1 ** nu - Bnu * xip1 ** zeta
+                        first_denom = xi ** zeta * xip1 ** nu - xi ** nu * xip1 ** zeta
+                        first_term = first_num / first_denom
 
-                    second_nom = Bzetam1 * xim1**nu - Bnum1 * xim1**zeta
-                    second_denum = xi**zeta * xim1**nu - xi**nu * xim1**zeta
-                    second_term = second_nom / second_denum
+                    if xim1 is None:
+                        second_term = 0
+                    else:
+                        Bzetam1 = quad(func_primary, xim1, xi)[0]
+                        Bnum1 = quad(func_secondary, xim1, xi)[0]
+                        second_num = Bzetam1 * xim1**nu - Bnum1 * xim1**zeta
+                        second_denom = xi**zeta * xim1**nu - xi**nu * xim1**zeta
+                        second_term = second_num / second_denom
 
                     nik = first_term + second_term
 
@@ -95,13 +131,90 @@ class FixedPivot:
             # calculate new ndf:
             self.current_ndf.section(i).particles += time_step * (birth - death)
 
-    def calc_aggregration(self):
+    def calc_aggregration(self, time_step):
+        """calculate aggregation.
+        """
+        zeta = self.primary
+        nu = self.secondary
+
+        for i, section_i in enumerate(self.previous_ndf):
+            print("i=", i, "section_i=", section_i)
+
+            xi = section_i.pivot
+            Ni = section_i.particles
+            gammai = self.break_freq(xi)
+
+            # TODO: find out what to do with the ghost sections!?
+            try:
+                xip1 = self.current_ndf.section(i + 1).pivot
+            except AssertionError:
+                xip1 = None
+            try:
+                xim1 = self.current_ndf.section(i - 1).pivot
+            except AssertionError:
+                xim1 = None
+
+            # calculate birth:
+            birth = 0
+            for j, section_j in enumerate(self.previous_ndf):
+                print("j=", j, "section_j=", section_j)
+
+                xj = section_j.pivot
+                Nj = section_j.particles
+
+                for k, section_k in enumerate(self.previous_ndf):
+                    print("k=", k, "section_k=", section_k)
+
+                    xk = section_k.pivot
+                    Nk = section_k.particles
+
+                    v = xj + xk
+                    if j >= k:
+                        if xim1 is None:
+                            num = v ** zeta * xip1 ** nu - v ** nu * xip1 ** zeta
+                            denom = xi ** zeta * xip1 ** nu - xi ** nu * xip1 ** zeta
+                            eta = num / denom
+                        elif xip1 is None:
+                            num = v ** zeta * xim1 ** nu - v ** nu * xim1 ** zeta
+                            denom = xi ** zeta * xim1 ** nu - xi ** nu * xim1 ** zeta
+                            eta = num / denom
+                        elif xim1 <= v <= xip1:
+                            if xi <= v <= xip1:
+                                num = v**zeta * xip1**nu - v**nu * xip1**zeta
+                                denom =xi**zeta * xip1**nu - xi**nu * xip1**zeta
+                                eta = num / denom
+                            elif xim1 <= v <= xi:
+                                num = v**zeta * xim1**nu - v**nu * xim1**zeta
+                                denom =xi**zeta * xim1**nu - xi**nu * xim1 ** zeta
+                                eta = num / denom
+                            else:
+                                raise RuntimeError("unable to calc eta!")
+
+                            djk = kronecker_delta(j, k)
+                            Qjk = self.agg_freq(xj, xk)
+
+                            birth += (1 - .5 * djk) * eta * Qjk * Nj * Nk
+
+            # calculate death:
+            death = 0
+            for k, section_k in enumerate(self.previous_ndf):
+                xk = section_k.pivot
+                Nk = section_k.particles
+                Qik = self.agg_freq(xi, xk)
+                death += Qik * Nk
+            death *= Ni
+
+            # TODO: implement checking of new particle size and issue warning if < 0
+            self.current_ndf.section(i).particles += time_step * (birth - death)
+
+    def calc_growth(self, time_step):
+        """calculate growth.
+        """
         pass
 
-    def calc_growth(self):
-        pass
-
-    def calc_nucleation(self):
+    def calc_nucleation(self, time_step):
+        """calculate nucleation.
+        """
         pass
 
 
@@ -122,12 +235,16 @@ def main():
         return v*v
 
     def beta(v1, v2):
-        """
+        """child number function.
         """
         return 2  #v2/2
-    method = FixedPivot(primary=0, secondary=1, initial_ndf=ini, break_freq=gamma, child_number=beta)
+    def Q(x1, x2):
+        """aggregation frequency function.
+        """
+        return 1
+    method = FixedPivot(initial_ndf=ini, break_freq=gamma, child_number=beta, agg_freq=Q)
 
-    method.simulate(end_time=1, steps=10)
+    method.simulate(end_time=.1, steps=1)
     method.current_ndf._plot(scale="log")
 
 

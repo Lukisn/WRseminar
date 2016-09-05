@@ -646,6 +646,8 @@ class Grid:
         ax2.set_ylabel("density")
         ax1.set_xlabel("size")
         ax1.set_xscale(scale)
+        ax1.set_yscale(scale)
+        ax2.set_yscale(scale)
         ax1.grid()
         plt.show()
 
