@@ -6,7 +6,7 @@ from WR.grid import Grid
 
 
 def f(v, N0=1, v0=1):
-    """initial number density function:
+    """initial number density function.
     """
     return (N0/v0) * (v/v0) * np.exp(-v/v0)
 

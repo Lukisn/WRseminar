@@ -322,6 +322,11 @@ class Grid:
         """
         return self._sections[-1].end  # last section maximum
 
+    def section(self, index):
+        assert index >= 0
+        assert index < len(self)
+        return self._sections[index]
+
     def add_left(self, size, particles=0.):
         """Add new section to the left.
 
@@ -627,10 +632,21 @@ class Grid:
         for index, sections in enumerate(self):
             print(index, sections)
 
-    def _plot(self):
+    def _plot(self, scale="linear"):
         """Plot grids total particle number values using matplotlib.
         """
-        plt.plot(self.pivots(), self.particles(), "ro")
+        pivots = self.pivots()
+        particles = self.particles()
+        densities = self.particle_densities()
+        fig, ax1 = plt.subplots()
+        ax1.plot(pivots, particles, "ro", label="numbers")
+        ax1.set_ylabel("particles")
+        ax2 = ax1.twinx()
+        ax2.plot(pivots, densities, "r-", label="density")
+        ax2.set_ylabel("density")
+        ax1.set_xlabel("size")
+        ax1.set_xscale(scale)
+        ax1.grid()
         plt.show()
 
     # FUTURE IDEAS:
