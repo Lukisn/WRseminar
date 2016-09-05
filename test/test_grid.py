@@ -66,7 +66,18 @@ class TestGrid(unittest.TestCase):
         g._info()
         self.assertEquals(g.start, 0)
         self.assertEquals(g.end, 1)
-        self.assertRaises(AssertionError, Grid, 1, 0)
+        with self.assertRaises(AssertionError):
+            Grid(1, 0)
+
+    def test_section(self):
+        g = Grid.create_uniform(0, 1, 10)
+        self.assertEquals(len(g), 10)
+        print("first:", g.section(0))
+        print("last:", g.section(len(g)-1))
+        with self.assertRaises(AssertionError):
+            g.section(-1)
+        with self.assertRaises(AssertionError):
+            g.section(len(g))
 
     def test_factory_creation(self):
         # uniform:

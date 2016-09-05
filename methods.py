@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from copy import copy
 from scipy.integrate import quad
 
 
@@ -10,7 +11,8 @@ class FixedPivot:
         self.primary = primary  # primary preserved moment "zeta" usually zeta=0 (preservation of numbers)
         self.secondary = secondary  # secondary preserved moment "nu" usually nu=1 (preservation of mass)
         self.initial_ndf = initial_ndf
-        self.current_ndf = initial_ndf
+        self.current_ndf = copy(initial_ndf)
+        self.previous_ndf = copy(initial_ndf)
         self.break_freq = break_freq  # breakage frequency function "Gamma"
         self.child_number = child_number  # function for number of child particles formed due to breakage
 
@@ -18,7 +20,6 @@ class FixedPivot:
         start_time = 0
         time_step = (end_time - start_time) / steps
         current_time = start_time
-
 
         # apply change to time step:
         step_counter = 0
@@ -28,24 +29,27 @@ class FixedPivot:
             print("step=", step_counter, "current_time=", current_time)
 
             # calculate terms of the PBE:
-            self.calc_breakage()
+            self.previous_ndf = copy(self.current_ndf)
+            self.calc_breakage(time_step)
             #self.calc_aggregration()
             #self.calc_growth()
             #self.calc_nucleation()
 
-
-    def calc_breakage(self):
+    def calc_breakage(self, time_step):
         """calculate breakage.
         """
         for i, section_i in enumerate(self.current_ndf):
             print("i=", i, "section_i=", section_i)
 
+            if i == 0 or i == len(self.current_ndf) - 1:
+                continue
+
             xi = section_i.pivot
             Ni = section_i.particles
             gammai = self.break_freq(xi)
 
-            xip1 = self.current_ndf.section(i+1)
-            xim1 = self.current_ndf.section(i-1)
+            xip1 = self.current_ndf.section(i+1).pivot
+            xim1 = self.current_ndf.section(i-1).pivot
 
             zeta = self.primary
             nu = self.secondary
@@ -54,7 +58,7 @@ class FixedPivot:
             # calculate birth:
             birth = 0
             for k, section_k in enumerate(self.current_ndf):
-                if k >= 1:
+                if k >= i:
                     print("k=", k, "section_k=", section_k)
 
                     xk = section_k.pivot
@@ -85,10 +89,11 @@ class FixedPivot:
                     # calculate actual birth:
                     birth += nik * gammak * Nk
 
-            #calculate death:
+            # calculate death:
             death = gammai * Ni
 
-            #
+            # calculate new ndf:
+            self.current_ndf.section(i).particles += time_step * (birth - death)
 
     def calc_aggregration(self):
         pass
@@ -109,7 +114,7 @@ def main():
         """
         return (N0 / v0) * (v / v0) * np.exp(-v / v0)
     ini = Grid.create_geometric_end(0, 1000, 100, 1.1, f)
-    ini._plot(scale="log")
+    #ini._plot(scale="log")
 
     def gamma(v):
         """breakage frequency function.
@@ -119,10 +124,11 @@ def main():
     def beta(v1, v2):
         """
         """
-        return v2/2
+        return 2  #v2/2
     method = FixedPivot(primary=0, secondary=1, initial_ndf=ini, break_freq=gamma, child_number=beta)
 
     method.simulate(end_time=1, steps=10)
+    method.current_ndf._plot(scale="log")
 
 
 if __name__ == "__main__":
