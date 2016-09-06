@@ -15,13 +15,6 @@ from scipy.integrate import quad
 import matplotlib.pyplot as plt
 
 
-def pairwise(iterable):
-    "s -> (s0,s1), (s1,s2), (s2, s3), ..."
-    a, b = tee(iterable)
-    next(b, None)
-    return zip(a, b)
-
-
 def zero(x):
     """Function always returning zero.
 
@@ -32,6 +25,13 @@ def zero(x):
     :return: always 0.
     """
     return 0
+
+
+def pairwise(iterable):
+    "s -> (s0,s1), (s1,s2), (s2, s3), ..."
+    a, b = tee(iterable)
+    next(b, None)
+    return zip(a, b)
 
 
 def find_initial_step(start, end, steps, factor, max_err=1e-14, max_iter=100):
@@ -492,23 +492,23 @@ class Grid:
         return particle_density_list
 
     @staticmethod
-    def create_uniform(start, end, steps, func=zero, correct=True):
+    def create_uniform(start, end, sections, func=zero, correct=True):
         """Create a uniform grid.
 
         :param start: inclusive minimum of the grid.
         :param end: exclusive maximum of the grid.
-        :param steps: total number of sections in the grid.
+        :param sections: total number of sections in the grid.
         :param func: number density function for calculating particle numbers.
         :param correct: flag for fixing numeric deviations in the last section.
         :return: equidistant Grid object.
         """
         assert start <= end
-        assert steps > 0
-        return Grid.create_geometric_step(start, end, steps,
+        assert sections > 0
+        return Grid.create_geometric_step(start, end, sections,
                                           factor=1, func=func, correct=correct)
 
     @staticmethod
-    def create_geometric_step(start, end, steps, factor, func=zero,
+    def create_geometric_step(start, end, sections, factor, func=zero,
                               correct=True):
         """Create a geometric grid.
 
@@ -518,22 +518,22 @@ class Grid:
 
         :param start: inclusive minimum of the grid.
         :param end: exclusive maximum of the corresponding uniform grid.
-        :param steps: number of sections in the corresponding uniform grid.
+        :param sections: number of sections in the corresponding uniform grid.
         :param factor: factor for size change.
         :param func: particle number density function.
         :param correct: flag for fixing numeric deviations in the last section.
         :return: geometric Grid object.
         """
         assert start <= end
-        assert steps > 0
+        assert sections > 0
         assert factor >= 1
         # use uniform step size as initial step size:
-        initial_step = (end - start) / steps
+        initial_step = (end - start) / sections
         return Grid.create_geometric(start, end, initial_step, factor, func,
                                      correct)
 
     @staticmethod
-    def create_geometric_end(start, end, steps, factor, func=zero,
+    def create_geometric_end(start, end, sections, factor, func=zero,
                              correct=True):
         """Create a geometric grid.
 
@@ -542,17 +542,17 @@ class Grid:
 
         :param start: inclusive minimum of the grid.
         :param end: exclusive maximum of the grid.
-        :param steps: number of sections in the corresponding uniform grid.
+        :param sections: number of sections in the corresponding uniform grid.
         :param factor: factor for size change.
         :param func: particle number density function.
         :param correct: flag for fixing numeric deviations in the last section.
         :return: geometric Grid object.
         """
         assert start <= end
-        assert steps > 0
+        assert sections > 0
         assert factor >= 1
         # calculate initial step size for given parameters:
-        initial_step = find_initial_step(start, end, steps, factor)
+        initial_step = find_initial_step(start, end, sections, factor)
         return Grid.create_geometric(start, end, initial_step, factor, func,
                                      correct)
 
@@ -632,12 +632,43 @@ class Grid:
         for index, sections in enumerate(self):
             print(index, sections)
 
-    def _plot(self, scale="linear"):
+    def _plot_particles(self, xscale="log", yscale="log"):
         """Plot grids total particle number values using matplotlib.
         """
         pivots = self.pivots()
         particles = self.particles()
+
+        fig, ax1 = plt.subplots()
+        ax1.plot(pivots, particles, "ro", label="numbers")
+        ax1.set_ylabel("particles")
+        ax1.set_xlabel("size")
+        ax1.set_xscale(xscale)
+        ax1.set_yscale(yscale)
+        ax1.grid()
+        plt.show()
+
+    def _plot_density(self, xscale="log", yscale="log"):
+        """Plot grids particle densities values using matplotlib.
+        """
+        pivots = self.pivots()
         densities = self.particle_densities()
+
+        fig, ax1 = plt.subplots()
+        ax1.plot(pivots, densities, "r-", label="density")
+        ax1.set_ylabel("density")
+        ax1.set_xlabel("size")
+        ax1.set_xscale(xscale)
+        ax1.set_yscale(yscale)
+        ax1.grid()
+        plt.show()
+
+    def _plot(self, xscale="log", yscale="log"):
+        """Plot grids particle number and densities values using matplotlib.
+        """
+        pivots = self.pivots()
+        particles = self.particles()
+        densities = self.particle_densities()
+
         fig, ax1 = plt.subplots()
         ax1.plot(pivots, particles, "ro", label="numbers")
         ax1.set_ylabel("particles")
@@ -645,9 +676,9 @@ class Grid:
         ax2.plot(pivots, densities, "r-", label="density")
         ax2.set_ylabel("density")
         ax1.set_xlabel("size")
-        ax1.set_xscale(scale)
-        ax1.set_yscale(scale)
-        ax2.set_yscale(scale)
+        ax1.set_xscale(xscale)
+        ax1.set_yscale(yscale)
+        ax2.set_yscale(yscale)
         ax1.grid()
         plt.show()
 
