@@ -1,162 +1,140 @@
 #!/usr/bin/env python3
 
-import numpy as np
-from copy import copy, deepcopy
+"""
+module implementing the fixed pivot technique in a class.
+
+The class handles the main calculation using the fixed pivot technique for
+breakage, aggregation, nucleation and growth. The different kernel functions
+can be arbitrarily defined by the user.
+"""
+
+from numpy import linspace
+from copy import deepcopy
 from scipy.integrate import quad
 
-
-def kronecker_delta(i, j):
-    if i == j:
-        return 1
-    else:
-        return 0
-
-
-def gamma(v):
-    """breakage frequency function.
-    """
-    return v * v
-
-
-def beta(v1, v2):
-    """child number function.
-    """
-    return 2/v2
-
-
-def Q(x1, x2):
-    """aggregation frequency function.
-    """
-    return 1
-
-
-def G(v):
-    """growth rate for particles of size v.
-    """
-    return 1
-
-
-def S(v):
-    """rate of nucleation of particles of size v.
-    """
-    if v < 1:
-        return 1
-    else:
-        return 0
+from WR.util import zero, kronecker
 
 
 # TODO: refactoring and clean up
-# TODO: documentaion
+# TODO: documentation
 class FixedPivot:
 
-    def __init__(self, initial_ndf,
-                 break_freq=gamma, child_number=beta,
-                 agg_freq=Q,
-                 gro_rate=G,
-                 nuc_rate=S,
-                 primary=0, secondary=1,
-                 breakage=True, aggregation=True,
-                 growth=False, nucleation=False):
-        self.primary = primary  # primary preserved moment "zeta" usually zeta=0 (preservation of numbers)
-        self.secondary = secondary  # secondary preserved moment "nu" usually nu=1 (preservation of mass)
+    def __init__(self, initial, primary=0, secondary=1,
+                 bre=True, bre_freq=zero, child=zero,
+                 agg=True, agg_freq=zero,
+                 gro=True, gro_rate=zero,
+                 nuc=True, nuc_rate=zero):
+        """Initializer.
 
-        self.initial_ndf = initial_ndf
-        self.current_ndf = deepcopy(initial_ndf)
-        self.previous_ndf = deepcopy(initial_ndf)
+        :param initial: initial discrete number density function.
+        :param bre: flag for breakage.
+        :param bre_freq: breakage frequency function.
+        :param child: child number function.
+        :param agg: flag for aggregation.
+        :param agg_freq: aggregation frequency function.
+        :param gro: flag for growth.
+        :param gro_rate: growth rate function.
+        :param nuc: flag for nucleation.
+        :param nuc_rate: nucleation rate function.
+        :param primary: primary preserved moment (default: 0 = numbers).
+        :param secondary: secondary preserved moment (default: 1 = mass).
+        """
+        self._initial = initial
+        self._current = deepcopy(initial)
+        self._previous = deepcopy(initial)
 
-        self.breakage = breakage
-        self.break_freq = break_freq  # breakage frequency function "Gamma"
-        self.child_number = child_number  # function for number of child particles formed due to breakage
+        self._primary = primary  # primary preserved moment "zeta"
+        self._secondary = secondary  # secondary preserved moment "nu"
 
-        self.aggregation = aggregation
-        self.agg_freq = agg_freq  # aggregation frequency function "Q"
+        self._breakage = bre  # flag for toggling breakage
+        self._bre_freq = bre_freq  # breakage frequency function "Gamma"
+        self._child = child  # number of child particles formed by breakage
 
-        self.growth = growth
-        self.gro_rate = gro_rate  # growth rate function
+        self._aggregation = agg  # flag for toggling aggregation
+        self._agg_freq = agg_freq  # aggregation frequency function "Q"
 
-        self.nucleation = nucleation
-        self.nuc_rate = nuc_rate  # nucleation rate function
+        self._growth = gro  # flag for toggling growth
+        self._gro_rate = gro_rate  # growth rate function
+
+        self._nucleation = nuc  # flag for toggling nucleation
+        self._nuc_rate = nuc_rate  # nucleation rate function
 
         self.results = {}
 
-    # TODO: implement time steppig in simulate function!?
     # TODO: find a way to handle instability issues (implicit?!?)
     def simulate(self, end_time, steps, start_time=0, write_every=None):
+        """Run simulation on initial number density function.
+
+        :param end_time: end time of the simulation.
+        :param steps: number of time steps to perform.
+        :param start_time: simulation starting time (default: 0).
+        :param write_every: steps betweens intermediate save (default: None).
+        """
         assert start_time < end_time
         assert steps > 0
 
-        if write_every is None:
+        if write_every is None:  # don't write intermediate results
             write_every = steps
 
-        times, step = np.linspace(start_time, end_time, steps, retstep=True)
+        # create time stepping grid and iterate through time steps:
+        times, step = linspace(start_time, end_time, steps, retstep=True)
         for counter, time in enumerate(times):
-            if counter == 0:  # save initial ndf:
-                self.results[start_time] = deepcopy(self.initial_ndf)
+            if counter == 0:  # "zeroth" time step -> save initial ndf:
+                self.results[start_time] = deepcopy(self._initial)
             else:  # calculate time step:
-                print("step=", counter, "time=", time, "step=", step)
+                print("step=", counter, "time=", time)
 
-                # calculate terms of the PBE:
-                self.previous_ndf = copy(self.current_ndf)
-                if self.breakage:
-                    self.calc_breakage(step)
-                if self.aggregation:
-                    self.calc_aggregration(step)
-                if self.growth:
-                    self.calc_growth(step)
-                if self.nucleation:
-                    self.calc_nucleation(step)
+                # save last result for comparison:
+                self._previous = deepcopy(self._current)
+
+                # calculate individial terms of the PBE:
+                if self._breakage:
+                    self._calc_breakage(step)
+                if self._aggregation:
+                    self._calc_aggregration(step)
+                if self._growth:
+                    self._calc_growth(step)
+                if self._nucleation:
+                    self._calc_nucleation(step)
 
                 # write intermediate result:
                 if counter % write_every == 0:
-                    self.results[time] = deepcopy(self.current_ndf)
+                    self.results[time] = deepcopy(self._current)
 
         # write final result:
         if end_time not in self.results:
-            self.results[end_time] = deepcopy(self.current_ndf)
+            self.results[end_time] = deepcopy(self._current)
 
     # TODO: find a method for handling boundary sections!!!
-    def calc_breakage(self, time_step):
+    def _calc_breakage(self, step):
         """calculate breakage.
         """
-        zeta = self.primary
-        nu = self.secondary
-        beta = self.child_number
+        zeta = self._primary
+        nu = self._secondary
+        beta = self._child
 
-        for i, section_i in enumerate(self.previous_ndf):
+        for i, section_i in enumerate(self._previous):
             #print("i=", i, "section_i=", section_i)
+            # use min/max boundaries as pivots?
+            if i == 0 or i == len(self._previous) - 1:
+                continue
 
             xi = section_i.pivot
             Ni = section_i.particles
-            gammai = self.break_freq(xi)
+            gammai = self._bre_freq(xi)
 
-            # use min/max boundaries as pivots?
-            if i == 0 or i == len(self.previous_ndf) - 1:
-                continue
-
-            # TODO: check use of current ndf! here and elsewhere!
-            xip1 = self.current_ndf.section(i + 1).pivot
-            xim1 = self.current_ndf.section(i - 1).pivot
-
-            '''
-            try:
-                xip1 = self.current_ndf.section(i+1).pivot
-            except AssertionError:
-                xip1 = None
-            try:
-                xim1 = self.current_ndf.section(i-1).pivot
-            except AssertionError:
-                xim1 = None
-            '''
+            xip1 = self._previous.section(i + 1).pivot
+            xim1 = self._previous.section(i - 1).pivot
 
             # calculate birth:
             birth = 0
-            for k, section_k in enumerate(self.previous_ndf):
+            for k, section_k in enumerate(self._previous):
                 if k >= i:
                     #print("k=", k, "section_k=", section_k)
 
                     xk = section_k.pivot
                     Nk = section_k.particles
-                    gammak = self.break_freq(xk)
+                    gammak = self._bre_freq(xk)
 
                     # calculate n_i,k:
                     def func_primary(v):
@@ -177,26 +155,6 @@ class FixedPivot:
                     second_denom = xi ** zeta * xim1 ** nu - xi ** nu * xim1 ** zeta
                     second_term = second_num / second_denom
 
-                    '''
-                    if xip1 is None:
-                        first_term = 0
-                    else:
-                        Bzeta = quad(func_primary, xi, xip1)[0]
-                        Bnu = quad(func_secondary, xi, xip1)[0]
-                        first_num = Bzeta * xip1 ** nu - Bnu * xip1 ** zeta
-                        first_denom = xi ** zeta * xip1 ** nu - xi ** nu * xip1 ** zeta
-                        first_term = first_num / first_denom
-
-                    if xim1 is None:
-                        second_term = 0
-                    else:
-                        Bzetam1 = quad(func_primary, xim1, xi)[0]
-                        Bnum1 = quad(func_secondary, xim1, xi)[0]
-                        second_num = Bzetam1 * xim1**nu - Bnum1 * xim1**zeta
-                        second_denom = xi**zeta * xim1**nu - xi**nu * xim1**zeta
-                        second_term = second_num / second_denom
-                    '''
-
                     nik = first_term + second_term
 
                     # calculate actual birth:
@@ -205,81 +163,47 @@ class FixedPivot:
             # calculate death:
             death = gammai * Ni
 
-            # calculate new ndf:
-            # self.current_ndf.section(i).particles += time_step * (birth - death)
-            new_particles = self.current_ndf.section(i).particles + time_step * (birth - death)
-            if new_particles < 0:
-                self.current_ndf.section(i).particles = 0
-                #raise RuntimeWarning("calculated particle number lower than 0!")
+            # calculate new NDF:
+            old_particles = self._previous.section(i).particles
+            new_particles = old_particles + step * (birth - death)
+            if new_particles < 0:  # keep values from getting < 0:
+                #sys.stderr.write("BRE: i={} particles < 0!\n".format(i))
+                self._current.section(i).particles = 0
             else:
-                self.current_ndf.section(i).particles = new_particles
+                self._current.section(i).particles = new_particles
 
-    def calc_aggregration(self, time_step):
+    def _calc_aggregration(self, step):
         """calculate aggregation.
         """
-        zeta = self.primary
-        nu = self.secondary
+        zeta = self._primary
+        nu = self._secondary
 
-        for i, section_i in enumerate(self.previous_ndf):
+        for i, section_i in enumerate(self._previous):
             #print("i=", i, "section_i=", section_i)
+            if i == 0 or i == len(self._previous) - 1:
+                continue
 
             xi = section_i.pivot
             Ni = section_i.particles
-            gammai = self.break_freq(xi)
+            gammai = self._bre_freq(xi)
 
-            if i == 0 or i == len(self.previous_ndf) - 1:
-                continue
-
-            xip1 = self.current_ndf.section(i + 1).pivot
-            xim1 = self.current_ndf.section(i - 1).pivot
-            '''
-            try:
-                xip1 = self.current_ndf.section(i + 1).pivot
-            except AssertionError:
-                xip1 = None
-            try:
-                xim1 = self.current_ndf.section(i - 1).pivot
-            except AssertionError:
-                xim1 = None
-            '''
+            xip1 = self._previous.section(i + 1).pivot
+            xim1 = self._previous.section(i - 1).pivot
 
             # calculate birth:
             birth = 0
-            for j, section_j in enumerate(self.previous_ndf):
+            for j, section_j in enumerate(self._previous):
                 #print("j=", j, "section_j=", section_j)
-
                 xj = section_j.pivot
                 Nj = section_j.particles
 
-                for k, section_k in enumerate(self.previous_ndf):
+                for k, section_k in enumerate(self._previous):
                     #print("k=", k, "section_k=", section_k)
-
                     xk = section_k.pivot
                     Nk = section_k.particles
 
                     v = xj + xk
                     if j >= k:
-                        '''
-                        if xim1 is None:
-                            num = v ** zeta * xip1 ** nu - v ** nu * xip1 ** zeta
-                            denom = xi ** zeta * xip1 ** nu - xi ** nu * xip1 ** zeta
-                            eta = num / denom
-                        elif xip1 is None:
-                            num = v ** zeta * xim1 ** nu - v ** nu * xim1 ** zeta
-                            denom = xi ** zeta * xim1 ** nu - xi ** nu * xim1 ** zeta
-                            eta = num / denom
-                        elif xim1 <= v <= xip1:
-                            if xi <= v <= xip1:
-                                num = v**zeta * xip1**nu - v**nu * xip1**zeta
-                                denom =xi**zeta * xip1**nu - xi**nu * xip1**zeta
-                                eta = num / denom
-                            elif xim1 <= v <= xi:
-                                num = v**zeta * xim1**nu - v**nu * xim1**zeta
-                                denom =xi**zeta * xim1**nu - xi**nu * xim1 ** zeta
-                                eta = num / denom
-                            else:
-                                raise RuntimeError("unable to calc eta!")
-                        '''
                         if xim1 <= v <= xip1:
                             if xi <= v <= xip1:
                                 num = v ** zeta * xip1 ** nu - v ** nu * xip1 ** zeta
@@ -292,44 +216,45 @@ class FixedPivot:
                             else:
                                 raise RuntimeError("unable to calc eta!")
 
-                            djk = kronecker_delta(j, k)
-                            Qjk = self.agg_freq(xj, xk)
+                            djk = kronecker(j, k)
+                            Qjk = self._agg_freq(xj, xk)
 
-                            birth += (1 - 1/2 * djk) * eta * Qjk * Nj * Nk
+                            birth += (1 - 0.5 * djk) * eta * Qjk * Nj * Nk
 
             # calculate death:
             death = 0
-            for k, section_k in enumerate(self.previous_ndf):
+            for k, section_k in enumerate(self._previous):
                 xk = section_k.pivot
                 Nk = section_k.particles
-                Qik = self.agg_freq(xi, xk)
+                Qik = self._agg_freq(xi, xk)
                 death += Qik * Nk
             death *= Ni
 
-            #self.current_ndf.section(i).particles += time_step * (birth - death)
-            new_particles = self.current_ndf.section(i).particles + time_step * (birth - death)
-            if new_particles < 0:
-                self.current_ndf.section(i).particles = 0
-                #raise RuntimeWarning("calculated particle number lower than 0!")
+            # calculate new NDF:
+            old_particles = self._previous.section(i).particles
+            new_particles = old_particles + step * (birth - death)
+            if new_particles < 0:  # keep values from getting < 0:
+                # sys.stderr.write("BRE: i={} particles < 0!\n".format(i))
+                self._current.section(i).particles = 0
             else:
-                self.current_ndf.section(i).particles = new_particles
+                self._current.section(i).particles = new_particles
 
-    def calc_growth(self, time_step):
+    # TODO: implement different methods with less oscillations!
+    def _calc_growth(self, step):
         """calculate growth.
         """
-        for i, section_i in enumerate(self.previous_ndf):
+        for i, section_i in enumerate(self._previous):
             #print("i=", i, "section_i=", section_i)
-
-            if i == 0 or i == len(self.previous_ndf) - 1:
+            if i == 0 or i == len(self._previous) - 1:
                 continue
 
             vi = section_i.start
             vip1 = section_i.end
-            Gvi = self.gro_rate(vi)
-            Gvip1 = self.gro_rate(vip1)
+            Gvi = self._gro_rate(vi)
+            Gvip1 = self._gro_rate(vip1)
             ni = section_i.pivot
-            nim1 = self.current_ndf.section(i - 1).particle_density
-            nip1 = self.current_ndf.section(i + 1).particle_density
+            nim1 = self._previous.section(i - 1).particle_density
+            nip1 = self._previous.section(i + 1).particle_density
             nvi = 0.5 * (nim1 + ni)
             nvip1 = 0.5 * (ni + nip1)
 
@@ -339,32 +264,31 @@ class FixedPivot:
             # calculate birth:
             death = Gvip1 * nvip1
 
-            # calculate new ndf:
-            new_particles = self.current_ndf.section(
-                i).particles + time_step * (birth - death)
-            if new_particles < 0:
-                self.current_ndf.section(i).particles = 0
-                # raise RuntimeWarning("calculated particle number lower than 0!")
+            # calculate new NDF:
+            old_particles = self._previous.section(i).particles
+            new_particles = old_particles + step * (birth - death)
+            if new_particles < 0:  # keep values from getting < 0:
+                # sys.stderr.write("GRO: i={} particles < 0!\n".format(i))
+                self._current.section(i).particles = 0
             else:
-                self.current_ndf.section(i).particles = new_particles
+                self._current.section(i).particles = new_particles
 
-    def calc_nucleation(self, time_step):
+    def _calc_nucleation(self, step):
         """calculate nucleation.
         """
-        for i, section_i in enumerate(self.previous_ndf):
+        for i, section_i in enumerate(self._previous):
             #print("i=", i, "section_i=", section_i)
-
             vi = section_i.start
             vip1 = section_i.end
 
             # calculate birth:
-            birth = quad(self.nuc_rate, vi, vip1)[0]
+            birth = quad(self._nuc_rate, vi, vip1)[0]
 
-            # calculate new ndf.
-            new_particles = self.current_ndf.section(
-                i).particles + time_step * birth
-            if new_particles < 0:
-                self.current_ndf.section(i).particles = 0
-                # raise RuntimeWarning("calculated particle number lower than 0!")
+            # calculate new NDF:
+            old_particles = self._previous.section(i).particles
+            new_particles = old_particles + step * birth
+            if new_particles < 0:  # keep values from getting < 0:
+                # sys.stderr.write("NUC: i={} particles < 0!\n".format(i))
+                self._current.section(i).particles = 0
             else:
-                self.current_ndf.section(i).particles = new_particles
+                self._current.section(i).particles = new_particles

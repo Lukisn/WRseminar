@@ -55,10 +55,10 @@ def S(v):
 
 
 def plot_initial_and_current(method):
-    plt.plot(method.initial_ndf.pivots(),
-             method.initial_ndf.particle_densities(), "g-", label="ini")
-    plt.plot(method.current_ndf.pivots(),
-             method.current_ndf.particle_densities(), "ro", label="cur")
+    plt.plot(method._initial.pivots(),
+             method._initial.particle_densities(), "g-", label="ini")
+    plt.plot(method._current.pivots(),
+             method._current.particle_densities(), "ro", label="cur")
     plt.xscale("log")
     plt.yscale("log")
     plt.xlim(1.e-5, 1.e5)
@@ -68,24 +68,34 @@ def plot_initial_and_current(method):
     plt.show()
 
 
+def demo_zero():
+    """Demo basic behaviour without specifying the keyword arguments.
+    """
+    print("Demoing zero behaviour.")
+
+    ini = Grid.create_geometric_end(
+        start=MIN, end=MAX, sections=SECTIONS, factor=FACTOR, func=f
+    )
+    method = FixedPivot(initial=ini)
+    method.simulate(end_time=END_TIME, steps=STEPS)
+    plot_initial_and_current(method)
+    print("done.")
+
+
 def demo_breakage():
     """Demo pure breakage.
     """
     print("Demoing pure breakage.")
-
-    ini = Grid.create_geometric_end(start=MIN, end=MAX, sections=SECTIONS,
-                                    factor=FACTOR, func=f)
-    #ini._plot()
-
-    method = FixedPivot(initial_ndf=ini,
-                        breakage=True,
-                        break_freq=gamma, child_number=beta,
-                        aggregation=False, growth=False, nucleation=False)
+    ini = Grid.create_geometric_end(
+        start=MIN, end=MAX, sections=SECTIONS, factor=FACTOR, func=f
+    )
+    method = FixedPivot(
+        initial=ini,
+        bre=True, bre_freq=gamma, child=beta,
+        agg=False, gro=False, nuc=False
+    )
     method.simulate(end_time=END_TIME, steps=STEPS)
-    #method.current_ndf._plot()
-
     plot_initial_and_current(method)
-
     print("done.\n")
 
 
@@ -93,20 +103,16 @@ def demo_aggregation():
     """Demo pure aggregation.
     """
     print("Demoing pure aggregation.")
-
-    ini = Grid.create_geometric_end(start=MIN, end=MAX, sections=SECTIONS,
-                                    factor=FACTOR, func=f)
-    #ini._plot()
-
-    method = FixedPivot(initial_ndf=ini,
-                        aggregation=True,
-                        agg_freq=Q,
-                        breakage=False, growth=False, nucleation=False)
+    ini = Grid.create_geometric_end(
+        start=MIN, end=MAX, sections=SECTIONS, factor=FACTOR, func=f
+    )
+    method = FixedPivot(
+        initial=ini,
+        agg=True, agg_freq=Q,
+        bre=False, gro=False, nuc=False
+    )
     method.simulate(end_time=END_TIME, steps=STEPS)
-    #method.current_ndf._plot()
-
     plot_initial_and_current(method)
-
     print("done.\n")
 
 
@@ -114,22 +120,17 @@ def demo_breakage_aggregation():
     """Demo combined breakage and aggregation.
     """
     print("Demoing combined breakage and aggregation.")
-
-    ini = Grid.create_geometric_end(start=MIN, end=MAX, sections=SECTIONS,
-                                    factor=FACTOR, func=f)
-    #ini._plot()
-
-    method = FixedPivot(initial_ndf=ini,
-                        breakage=True,
-                        break_freq=gamma, child_number=beta,
-                        aggregation=True,
-                        agg_freq=Q,
-                        growth=False, nucleation=False)
+    ini = Grid.create_geometric_end(
+        start=MIN, end=MAX, sections=SECTIONS, factor=FACTOR, func=f
+    )
+    method = FixedPivot(
+        initial=ini,
+        bre=True, bre_freq=gamma, child=beta,
+        agg=True, agg_freq=Q,
+        gro=False, nuc=False
+    )
     method.simulate(end_time=END_TIME, steps=STEPS)
-    #method.current_ndf._plot()
-
     plot_initial_and_current(method)
-
     print("done.\n")
 
 
@@ -137,20 +138,15 @@ def demo_growth():
     """Demo pure growth.
     """
     print("Demoing pure growth.")
-
-    ini = Grid.create_geometric_end(start=MIN, end=MAX, sections=SECTIONS,
-                                    factor=FACTOR, func=f)
-    # ini._plot()
-
-    method = FixedPivot(initial_ndf=ini,
-                        growth=True,
-                        gro_rate=G,
-                        breakage=False, aggregation=False, nucleation=False)
+    ini = Grid.create_geometric_end(
+        start=MIN, end=MAX, sections=SECTIONS, factor=FACTOR, func=f)
+    method = FixedPivot(
+        initial=ini,
+        gro=True, gro_rate=G,
+        bre=False, agg=False, nuc=False
+    )
     method.simulate(end_time=END_TIME, steps=STEPS)
-    # method.current_ndf._plot()
-
     plot_initial_and_current(method)
-
     print("done.\n")
 
 
@@ -158,27 +154,34 @@ def demo_nucleation():
     """Demo pure nucleation.
     """
     print("Demoing pure nucleation.")
-
-    ini = Grid.create_geometric_end(start=MIN, end=MAX, sections=SECTIONS,
-                                    factor=FACTOR, func=f)
-    # ini._plot()
-
-    method = FixedPivot(initial_ndf=ini,
-                        nucleation=True,
-                        nuc_rate=S,
-                        breakage=False, aggregation=False, growth=False)
+    ini = Grid.create_geometric_end(
+        start=MIN, end=MAX, sections=SECTIONS, factor=FACTOR, func=f
+    )
+    method = FixedPivot(
+        initial=ini,
+        nuc=True, nuc_rate=S,
+        bre=False, agg=False, gro=False
+    )
     method.simulate(end_time=END_TIME, steps=STEPS)
-    # method.current_ndf._plot()
-
     plot_initial_and_current(method)
-
     print("done.\n")
 
-# TODO: write code for combinations
+
 def demo_growth_nucleation():
     """Demo combined growth and nucleation.
     """
     print("Demoing combined growth and nucleation.")
+    ini = Grid.create_geometric_end(
+        start=MIN, end=MAX, sections=SECTIONS, factor=FACTOR, func=f
+    )
+    method = FixedPivot(
+        initial=ini,
+        gro=True, gro_rate=G,
+        nuc=True, nuc_rate=S,
+        bre=False, agg=False
+    )
+    method.simulate(end_time=END_TIME, steps=STEPS)
+    plot_initial_and_current(method)
     print("done.\n")
 
 
@@ -186,14 +189,27 @@ def demo_all():
     """Demo combined breakage, aggregation, growth and nucleation.
     """
     print("Demoing combined breakage, aggregation, growth and nucleation.")
+    ini = Grid.create_geometric_end(
+        start=MIN, end=MAX, sections=SECTIONS, factor=FACTOR, func=f
+    )
+    method = FixedPivot(
+        initial=ini,
+        bre=True, bre_freq=gamma, child=beta,
+        agg=True, agg_freq=Q,
+        gro=True, gro_rate=G,
+        nuc=True, nuc_rate=S
+    )
+    method.simulate(end_time=END_TIME, steps=STEPS)
+    plot_initial_and_current(method)
     print("done.\n")
 
 
 if __name__ == "__main__":
+    demo_zero()
     demo_breakage()
     demo_aggregation()
     demo_breakage_aggregation()
     demo_growth()
     demo_nucleation()
-    #demo_growth_nucleation()
-    #demo_all()
+    demo_growth_nucleation()
+    demo_all()

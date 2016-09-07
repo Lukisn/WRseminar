@@ -12,6 +12,8 @@ def f(v, N0=1, v0=1):
 
 
 def demo_creation():
+    """Demo creation of discrete NDFs from a given function.
+    """
     pivots = np.linspace(0, 10, 1000)
     densities = f(pivots)
 
@@ -36,7 +38,10 @@ def demo_creation():
     plt.show()
 
 
+# TODO: revisit this when implementation of coarsen and refine is done!
 def demo_manipulation():
+    """Demo manipulationf of the NDFs.
+    """
     pivots = np.linspace(0, 10, 1000)
     densities = f(pivots)
 
@@ -62,5 +67,5 @@ def demo_manipulation():
 
 
 if __name__ == "__main__":
-    #demo_creation()
-    demo_manipulation()
+    demo_creation()
+    #demo_manipulation()

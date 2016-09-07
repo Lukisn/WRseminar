@@ -2,11 +2,45 @@
 
 import sys
 import threading
-import itertools
+from itertools import tee, cycle
 import io
 
 YES = ["y", "Y", "yes", "Yes", "YES"]
 NO = ["n", "N", "no", "No", "NO"]
+
+
+def pairwise(iterable):
+    """Pairwise iterator recipe.
+
+    s -> (s0,s1), (s1,s2), (s2, s3), ...
+    taken from: https://docs.python.org/3/library/itertools.html
+
+    :param iterable: iterable object.
+    :return: chained pairs of iterable objects elements.
+    """
+    a, b = tee(iterable)
+    next(b, None)
+    return zip(a, b)
+
+
+def kronecker(i, j):
+    """Function representing the mathematical Kronecker delta symbol.
+
+    :param i: first argument.
+    :param j: second argument.
+    :return: 0 if i == j, 1 otherwise.
+    """
+    return 1 if i == j else 0
+
+
+def zero(*args, **kwars):
+    """Function always returning 0.
+
+    :param args: optional arguments.
+    :param kwars: optional keyword arguments.
+    :return: always 0.
+    """
+    return 0
 
 
 def prompt_continue(msg):
@@ -41,7 +75,7 @@ class Spinner:
         self._end_msg = end_msg
         self._interval = interval
         self._timer = threading.Timer(self._interval, self.spin)
-        self._cycle = itertools.cycle("-\|/-\|/")
+        self._cycle = cycle("-\|/-\|/")
         self._buffer = io.StringIO()
         self._stdout = None
 

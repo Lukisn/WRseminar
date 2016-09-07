@@ -9,29 +9,11 @@ lower and upper boundaries (minimum, maximum), the pivot point and the number
 of particles within the section.
 """
 
-from itertools import tee
 from collections import deque
 from scipy.integrate import quad
 import matplotlib.pyplot as plt
 
-
-def zero(x):
-    """Function always returning zero.
-
-    This function acts mainly as a placeholder and default value for arbitrary
-    function objects that have to be specified.
-
-    :param x: function parameter.
-    :return: always 0.
-    """
-    return 0
-
-
-def pairwise(iterable):
-    "s -> (s0,s1), (s1,s2), (s2, s3), ..."
-    a, b = tee(iterable)
-    next(b, None)
-    return zip(a, b)
+from WR.util import zero
 
 
 def find_initial_step(start, end, steps, factor, max_err=1e-14, max_iter=100):
