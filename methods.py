@@ -72,10 +72,10 @@ class FixedPivot:
         self.agg_freq = agg_freq  # aggregation frequency function "Q"
 
         self.growth = growth
+        self.gro_rate = gro_rate  # growth rate function
 
         self.nucleation = nucleation
-
-    # TODO: implement toggles for switching single calculations on and off
+        self.nuc_rate = nuc_rate  # nucleation rate function
 
     # TODO: implement results output with options.
     def simulate(self, end_time, steps):
@@ -125,6 +125,7 @@ class FixedPivot:
             if i == 0 or i == len(self.previous_ndf) - 1:
                 continue
 
+            # TODO: check use of current ndf! here and elsewhere!
             xip1 = self.current_ndf.section(i + 1).pivot
             xim1 = self.current_ndf.section(i - 1).pivot
 
@@ -305,13 +306,57 @@ class FixedPivot:
             else:
                 self.current_ndf.section(i).particles = new_particles
 
-    # TODO: implement nucleation and growth
     def calc_growth(self, time_step):
         """calculate growth.
         """
-        pass
+        for i, section_i in enumerate(self.previous_ndf):
+            #print("i=", i, "section_i=", section_i)
+
+            if i == 0 or i == len(self.previous_ndf) - 1:
+                continue
+
+            vi = section_i.start
+            vip1 = section_i.end
+            Gvi = self.gro_rate(vi)
+            Gvip1 = self.gro_rate(vip1)
+            ni = section_i.pivot
+            nim1 = self.current_ndf.section(i - 1).particle_density
+            nip1 = self.current_ndf.section(i + 1).particle_density
+            nvi = 0.5 * (nim1 + ni)
+            nvip1 = 0.5 * (ni + nip1)
+
+            # calculate birth:
+            birth = Gvi * nvi
+
+            # calculate birth:
+            death = Gvip1 * nvip1
+
+            # calculate new ndf:
+            new_particles = self.current_ndf.section(
+                i).particles + time_step * (birth - death)
+            if new_particles < 0:
+                self.current_ndf.section(i).particles = 0
+                # raise RuntimeWarning("calculated particle number lower than 0!")
+            else:
+                self.current_ndf.section(i).particles = new_particles
 
     def calc_nucleation(self, time_step):
         """calculate nucleation.
         """
-        pass
+        for i, section_i in enumerate(self.previous_ndf):
+            #print("i=", i, "section_i=", section_i)
+
+            vi = section_i.start
+            vip1 = section_i.end
+
+            # calculate birth:
+            birth = quad(self.nuc_rate, vi, vip1)[0]
+
+            # calculate new ndf.
+            new_particles = self.current_ndf.section(
+                i).particles + time_step * birth
+            if new_particles < 0:
+                self.current_ndf.section(i).particles = 0
+                # raise RuntimeWarning("calculated particle number lower than 0!")
+            else:
+                self.current_ndf.section(i).particles = new_particles

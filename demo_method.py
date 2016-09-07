@@ -48,13 +48,13 @@ def G(v):
 def S(v):
     """rate of nucleation of particles of size v.
     """
-    if v < 1:
+    if v <= 1:
         return 1
     else:
         return 0
 
 
-def plot_initial_current(method):
+def plot_initial_and_current(method):
     plt.plot(method.initial_ndf.pivots(),
              method.initial_ndf.particle_densities(), "g-", label="ini")
     plt.plot(method.current_ndf.pivots(),
@@ -84,7 +84,7 @@ def demo_breakage():
     method.simulate(end_time=END_TIME, steps=STEPS)
     #method.current_ndf._plot()
 
-    plot_initial_current(method)
+    plot_initial_and_current(method)
 
     print("done.\n")
 
@@ -105,7 +105,7 @@ def demo_aggregation():
     method.simulate(end_time=END_TIME, steps=STEPS)
     #method.current_ndf._plot()
 
-    plot_initial_current(method)
+    plot_initial_and_current(method)
 
     print("done.\n")
 
@@ -128,16 +128,29 @@ def demo_breakage_aggregation():
     method.simulate(end_time=END_TIME, steps=STEPS)
     #method.current_ndf._plot()
 
-    plot_initial_current(method)
+    plot_initial_and_current(method)
 
     print("done.\n")
 
 
-# TODO: write demo code for growth and nucleation
 def demo_growth():
     """Demo pure growth.
     """
     print("Demoing pure growth.")
+
+    ini = Grid.create_geometric_end(start=MIN, end=MAX, sections=SECTIONS,
+                                    factor=FACTOR, func=f)
+    # ini._plot()
+
+    method = FixedPivot(initial_ndf=ini,
+                        growth=True,
+                        gro_rate=G,
+                        breakage=False, aggregation=False, nucleation=False)
+    method.simulate(end_time=END_TIME, steps=STEPS)
+    # method.current_ndf._plot()
+
+    plot_initial_and_current(method)
+
     print("done.\n")
 
 
@@ -145,9 +158,23 @@ def demo_nucleation():
     """Demo pure nucleation.
     """
     print("Demoing pure nucleation.")
+
+    ini = Grid.create_geometric_end(start=MIN, end=MAX, sections=SECTIONS,
+                                    factor=FACTOR, func=f)
+    # ini._plot()
+
+    method = FixedPivot(initial_ndf=ini,
+                        nucleation=True,
+                        nuc_rate=S,
+                        breakage=False, aggregation=False, growth=False)
+    method.simulate(end_time=END_TIME, steps=STEPS)
+    # method.current_ndf._plot()
+
+    plot_initial_and_current(method)
+
     print("done.\n")
 
-
+# TODO: write code for combinations
 def demo_growth_nucleation():
     """Demo combined growth and nucleation.
     """
@@ -163,10 +190,10 @@ def demo_all():
 
 
 if __name__ == "__main__":
-    demo_breakage()
-    demo_aggregation()
-    demo_breakage_aggregation()
-    #demo_growth()
+    #demo_breakage()
+    #demo_aggregation()
+    #demo_breakage_aggregation()
+    demo_growth()
     #demo_nucleation()
     #demo_growth_nucleation()
     #demo_all()
