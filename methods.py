@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import numpy as np
 from copy import copy, deepcopy
 from scipy.integrate import quad
 
@@ -44,7 +45,6 @@ def S(v):
         return 0
 
 
-# TODO: implement growth and nucleation
 # TODO: refactoring and clean up
 # TODO: documentaion
 class FixedPivot:
@@ -77,36 +77,44 @@ class FixedPivot:
         self.nucleation = nucleation
         self.nuc_rate = nuc_rate  # nucleation rate function
 
-    # TODO: implement results output with options.
-    def simulate(self, end_time, steps):
-        start_time = 0
-        time_step = (end_time - start_time) / steps
-        current_time = start_time
+        self.results = {}
 
-        # apply change to time step:
-        step_counter = 0
-        while current_time < end_time:
-            current_time += time_step
-            step_counter += 1
-            print("step=", step_counter, "current_time=", current_time)
-
-            # calculate terms of the PBE:
-            self.previous_ndf = copy(self.current_ndf)
-            if self.breakage:
-                self.calc_breakage(time_step)
-            if self.aggregation:
-                self.calc_aggregration(time_step)
-            if self.growth:
-                self.calc_growth(time_step)
-            if self.nucleation:
-                self.calc_nucleation(time_step)
-
-            # TODO: write out intermediate result
-
-        # TODO: write out final result
-
-    # TODO: find a method for handling boundary sections
+    # TODO: implement time steppig in simulate function!?
     # TODO: find a way to handle instability issues (implicit?!?)
+    def simulate(self, end_time, steps, start_time=0, write_every=None):
+        assert start_time < end_time
+        assert steps > 0
+
+        if write_every is None:
+            write_every = steps
+
+        times, step = np.linspace(start_time, end_time, steps, retstep=True)
+        for counter, time in enumerate(times):
+            if counter == 0:  # save initial ndf:
+                self.results[start_time] = deepcopy(self.initial_ndf)
+            else:  # calculate time step:
+                print("step=", counter, "time=", time, "step=", step)
+
+                # calculate terms of the PBE:
+                self.previous_ndf = copy(self.current_ndf)
+                if self.breakage:
+                    self.calc_breakage(step)
+                if self.aggregation:
+                    self.calc_aggregration(step)
+                if self.growth:
+                    self.calc_growth(step)
+                if self.nucleation:
+                    self.calc_nucleation(step)
+
+                # write intermediate result:
+                if counter % write_every == 0:
+                    self.results[time] = deepcopy(self.current_ndf)
+
+        # write final result:
+        if end_time not in self.results:
+            self.results[end_time] = deepcopy(self.current_ndf)
+
+    # TODO: find a method for handling boundary sections!!!
     def calc_breakage(self, time_step):
         """calculate breakage.
         """

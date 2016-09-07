@@ -190,10 +190,10 @@ def demo_all():
 
 
 if __name__ == "__main__":
-    #demo_breakage()
-    #demo_aggregation()
-    #demo_breakage_aggregation()
+    demo_breakage()
+    demo_aggregation()
+    demo_breakage_aggregation()
     demo_growth()
-    #demo_nucleation()
+    demo_nucleation()
     #demo_growth_nucleation()
     #demo_all()
