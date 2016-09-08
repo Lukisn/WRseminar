@@ -7,8 +7,8 @@ import matplotlib.pyplot as plt
 
 MIN = 0
 MAX = 1000
-SECTIONS = 100
-FACTOR = 1.1
+SECTIONS = 50
+FACTOR = 1.5
 
 END_TIME = 1
 STEPS = 10

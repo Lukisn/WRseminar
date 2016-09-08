@@ -15,8 +15,6 @@ from scipy.integrate import quad
 from WR.util import zero, kronecker
 
 
-# TODO: refactoring and clean up
-# TODO: documentation
 class FixedPivot:
 
     def __init__(self, initial, primary=0, secondary=1,
@@ -239,7 +237,6 @@ class FixedPivot:
             else:
                 self._current.section(i).particles = new_particles
 
-    # TODO: implement different methods with less oscillations!
     def _calc_growth(self, step):
         """calculate growth.
         """
@@ -252,11 +249,27 @@ class FixedPivot:
             vip1 = section_i.end
             Gvi = self._gro_rate(vi)
             Gvip1 = self._gro_rate(vip1)
+
             ni = section_i.pivot
             nim1 = self._previous.section(i - 1).particle_density
             nip1 = self._previous.section(i + 1).particle_density
+
+            # MARCHAL calculation of n(vi) and n(vi+1):
+            #'''
             nvi = 0.5 * (nim1 + ni)
             nvip1 = 0.5 * (ni + nip1)
+            #'''
+
+            # TODO: test and compare to MARCHAL
+            # DAVID calculation of n(vi) and n(vi+1):
+            '''
+            dvi = section_i.size
+            dvim1 = self._previous.section(i - 1).size
+            dvip1 = self._previous.section(i + 1).size
+
+            nvi = (dvim1 * ni + dvi * nim1) / (dvim1 + dvi)
+            nvip1 = (dvi * nip1 + dvip1 * ni) / (dvi + dvip1)
+            '''
 
             # calculate birth:
             birth = Gvi * nvi
