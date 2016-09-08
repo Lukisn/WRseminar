@@ -43,6 +43,17 @@ def zero(*args, **kwars):
     return 0
 
 
+def hstep(x):
+    if x == 0:
+        return 0.5
+    elif x > 0:
+        return 1
+    elif x < 0:
+        return 0
+    else:
+        raise RuntimeError("This should never happen! '{}'".format(x))
+
+
 def prompt_continue(msg):
     input("{} [Enter] to continue! ".format(msg))
 

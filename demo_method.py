@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
 
 from WR.grid import Grid
-from WR.methods import FixedPivot
+from WR.methods import FixedPivot, CellAverage
 import numpy as np
 import matplotlib.pyplot as plt
 
 MIN = 0
 MAX = 1000
 SECTIONS = 50
-FACTOR = 1.5
+FACTOR = 1.3
 
-END_TIME = 1
+END_TIME = .1
 STEPS = 10
 
 
@@ -36,7 +36,7 @@ def beta(v1, v2):
 def Q(x1, x2):
     """aggregation frequency function.
     """
-    return 1
+    return x1 + x2
 
 
 def G(v):
@@ -72,11 +72,11 @@ def demo_zero():
     """Demo basic behaviour without specifying the keyword arguments.
     """
     print("Demoing zero behaviour.")
-
     ini = Grid.create_geometric_end(
         start=MIN, end=MAX, sections=SECTIONS, factor=FACTOR, func=f
     )
-    method = FixedPivot(initial=ini)
+    #method = FixedPivot(initial=ini)
+    method = CellAverage(initial=ini)
     method.simulate(end_time=END_TIME, steps=STEPS)
     plot_initial_and_current(method)
     print("done.")
@@ -89,7 +89,14 @@ def demo_breakage():
     ini = Grid.create_geometric_end(
         start=MIN, end=MAX, sections=SECTIONS, factor=FACTOR, func=f
     )
+    '''
     method = FixedPivot(
+        initial=ini,
+        bre=True, bre_freq=gamma, child=beta,
+        agg=False, gro=False, nuc=False
+    )
+    '''
+    method = CellAverage(
         initial=ini,
         bre=True, bre_freq=gamma, child=beta,
         agg=False, gro=False, nuc=False
@@ -106,7 +113,14 @@ def demo_aggregation():
     ini = Grid.create_geometric_end(
         start=MIN, end=MAX, sections=SECTIONS, factor=FACTOR, func=f
     )
+    '''
     method = FixedPivot(
+        initial=ini,
+        agg=True, agg_freq=Q,
+        bre=False, gro=False, nuc=False
+    )
+    '''
+    method = CellAverage(
         initial=ini,
         agg=True, agg_freq=Q,
         bre=False, gro=False, nuc=False
@@ -123,7 +137,15 @@ def demo_breakage_aggregation():
     ini = Grid.create_geometric_end(
         start=MIN, end=MAX, sections=SECTIONS, factor=FACTOR, func=f
     )
+    '''
     method = FixedPivot(
+        initial=ini,
+        bre=True, bre_freq=gamma, child=beta,
+        agg=True, agg_freq=Q,
+        gro=False, nuc=False
+    )
+    '''
+    method = CellAverage(
         initial=ini,
         bre=True, bre_freq=gamma, child=beta,
         agg=True, agg_freq=Q,
@@ -139,8 +161,16 @@ def demo_growth():
     """
     print("Demoing pure growth.")
     ini = Grid.create_geometric_end(
-        start=MIN, end=MAX, sections=SECTIONS, factor=FACTOR, func=f)
+        start=MIN, end=MAX, sections=SECTIONS, factor=FACTOR, func=f
+    )
+    '''
     method = FixedPivot(
+        initial=ini,
+        gro=True, gro_rate=G,
+        bre=False, agg=False, nuc=False
+    )
+    '''
+    method = CellAverage(
         initial=ini,
         gro=True, gro_rate=G,
         bre=False, agg=False, nuc=False
@@ -157,7 +187,14 @@ def demo_nucleation():
     ini = Grid.create_geometric_end(
         start=MIN, end=MAX, sections=SECTIONS, factor=FACTOR, func=f
     )
+    '''
     method = FixedPivot(
+        initial=ini,
+        nuc=True, nuc_rate=S,
+        bre=False, agg=False, gro=False
+    )
+    '''
+    method = CellAverage(
         initial=ini,
         nuc=True, nuc_rate=S,
         bre=False, agg=False, gro=False
@@ -174,7 +211,15 @@ def demo_growth_nucleation():
     ini = Grid.create_geometric_end(
         start=MIN, end=MAX, sections=SECTIONS, factor=FACTOR, func=f
     )
+    '''
     method = FixedPivot(
+        initial=ini,
+        gro=True, gro_rate=G,
+        nuc=True, nuc_rate=S,
+        bre=False, agg=False
+    )
+    '''
+    method = CellAverage(
         initial=ini,
         gro=True, gro_rate=G,
         nuc=True, nuc_rate=S,
@@ -192,7 +237,16 @@ def demo_all():
     ini = Grid.create_geometric_end(
         start=MIN, end=MAX, sections=SECTIONS, factor=FACTOR, func=f
     )
+    '''
     method = FixedPivot(
+        initial=ini,
+        bre=True, bre_freq=gamma, child=beta,
+        agg=True, agg_freq=Q,
+        gro=True, gro_rate=G,
+        nuc=True, nuc_rate=S
+    )
+    '''
+    method = CellAverage(
         initial=ini,
         bre=True, bre_freq=gamma, child=beta,
         agg=True, agg_freq=Q,
