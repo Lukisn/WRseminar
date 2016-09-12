@@ -12,7 +12,6 @@ of particles within the section.
 from collections import deque
 from scipy.integrate import quad
 import matplotlib.pyplot as plt
-
 from WR.util import zero
 
 

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
-from WR.util import *
+from WR.util import prompt_continue, prompt_yes_no, YES, NO
+from WR.util import Spinner, Progress
 
 
 def demo_prompts():

@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 
-from WR.grid import Grid
-from WR.methods import FixedPivot, CellAverage
 import numpy as np
 import matplotlib.pyplot as plt
+from WR.grid import Grid
+from WR.methods import FixedPivot, CellAverage
 
 MIN = 0
 MAX = 1000

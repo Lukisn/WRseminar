@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 
+import io
 import sys
 import threading
 from itertools import tee, cycle
-import io
 
 YES = ["y", "Y", "yes", "Yes", "YES"]
 NO = ["n", "N", "no", "No", "NO"]
