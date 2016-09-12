@@ -19,7 +19,7 @@ def demo_creation():
 
     start= 0
     end = 20
-    steps = 42
+    steps = 20
     factor = 1.35
     corr = True
 
@@ -29,12 +29,15 @@ def demo_creation():
 
     plt.plot(pivots, densities, "y-", lw=2, label="ana dens")
     plt.plot(uni.pivots(), uni.particles(), "ro", label="uni part")
-    plt.plot(uni.pivots(), uni.particle_densities(), "r-", label="uni dens")
+    plt.plot(uni.pivots(), uni.densities(), "r-", label="uni dens")
     plt.plot(geo_step.pivots(), geo_step.particles(), "go", label="geo step part")
-    plt.plot(geo_step.pivots(), geo_step.particle_densities(), "g-", label="geo step dens")
+    plt.plot(geo_step.pivots(), geo_step.densities(), "g-", label="geo step dens")
     plt.plot(geo_max.pivots(), geo_max.particles(), "bo", label="geo max part")
-    plt.plot(geo_max.pivots(), geo_max.particle_densities(), "b-", label="geo max dens")
-    plt.legend()
+    plt.plot(geo_max.pivots(), geo_max.densities(), "b-", label="geo max dens")
+    plt.xscale("log")
+    plt.yscale("log")
+    plt.legend(loc="best", fontsize="small")
+    plt.grid()
     plt.show()
 
 
@@ -42,6 +45,8 @@ def demo_creation():
 def demo_manipulation():
     """Demo manipulationf of the NDFs.
     """
+    raise NotImplementedError
+
     pivots = np.linspace(0, 10, 1000)
     densities = f(pivots)
 
@@ -59,9 +64,9 @@ def demo_manipulation():
 
     plt.plot(pivots, densities, "y-", lw=2, label="ana dens")
     plt.plot(ini.pivots(), ini.particles(), "ro", label="ini part")
-    plt.plot(ini.pivots(), ini.particle_densities(), "r-", label="ini dens")
+    plt.plot(ini.pivots(), ini.densities(), "r-", label="ini dens")
     plt.plot(man.pivots(), man.particles(), "go", label="man part")
-    plt.plot(man.pivots(), man.particle_densities(), "g-", label="man dens")
+    plt.plot(man.pivots(), man.densities(), "g-", label="man dens")
     plt.legend()
     plt.show()
 

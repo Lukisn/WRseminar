@@ -44,7 +44,7 @@ def find_initial_step(start, end, steps, factor, max_err=1e-14, max_iter=100):
     step = length / steps  # uniform step size for number of steps
 
     initial_step = step  # initial guess for the initial step size
-    previous_step = step
+    #previous_step = step
     diff = max_err + 1  # difference between current iteration and total length
     for _ in range(max_iter):
         # sum individual step sizes to get total length of the geometric grid:
@@ -79,6 +79,12 @@ class Section:
     size. Additionally the class contains a field for the total number of
     particles in the section and the derived value of the mean particle
     density.
+
+       start   pivot    end
+         |       |       |
+      ---[-------o-------)-->
+         |       |       |
+        v_i     x_i    v_i+1
     """
     def __init__(self, start, end, particles=0.):
         """Initializer.
@@ -91,6 +97,7 @@ class Section:
         """
         assert particles >= 0
         assert start < end
+
         self._particles = particles
         self._start = start
         self._end = end
@@ -128,6 +135,7 @@ class Section:
         :raises: AssertionError if minimum >= maximum.
         """
         assert new_start < self.end
+
         self._start = new_start
         self._center_pivot()
 
@@ -147,42 +155,44 @@ class Section:
         :raises: AssertionError if minimum >= maximum.
         """
         assert new_end > self.start
+
         self._end = new_end
         self._center_pivot()
 
     @property
-    def range(self):
-        """Getter for range property (v_i, v_i+1).
+    def interval(self):
+        """Getter for interval property (v_i, v_i+1).
 
         :return: tuple containing minimum and maximum value of the section.
         """
         return self.start, self.end
 
-    @range.setter
-    def range(self, new_range):
-        """Setter for range property (v_i, v_i+1).
+    @interval.setter
+    def interval(self, new_interval):
+        """Setter for interval property (v_i, v_i+1).
 
-        :param new_range: tuple with new minimum and maximum values.
+        :param new_interval: tuple with new minimum and maximum values.
         :raises: IndexError if len(new_range) < 2.
         :raises: TypeError [] operator is not supported.
         :raises: AssertionError if new_minimum >= new_maximum.
         """
         try:
-            new_minimum = new_range[0]
-            new_maximum = new_range[1]
+            new_minimum = new_interval[0]
+            new_maximum = new_interval[1]
         except IndexError:
             raise IndexError(
                 "range '{}' must be a tuple of at least two elements!".format(
-                    new_range
+                    new_interval
                 )
             )
         except TypeError:
             raise TypeError(
                 "range '{}' must be a tuple of at least two elements!".format(
-                    new_range
+                    new_interval
                 )
             )
         assert new_minimum < new_maximum
+
         if new_maximum >= self.end:  # expand or shift to the right first
             self.end = new_maximum
             self.start = new_minimum
@@ -198,6 +208,11 @@ class Section:
         :return: sections pivot point.
         """
         return self._pivot
+
+    def _center_pivot(self):
+        """Center the pivot point between minimum and maximum.
+        """
+        self._pivot = self.start + self.size / 2
 
     @property
     def size(self):
@@ -226,27 +241,31 @@ class Section:
         self._particles = new_particles
 
     @property
-    def particle_density(self):
+    def density(self):
         """Getter for the mean particle density property (n_i).
 
         :return: mean particle density in the section.
         """
         return self.particles / self.size
 
-    def _center_pivot(self):
-        """Center the pivot point between minimum and maximum.
-        """
-        self._pivot = self.start + self.size / 2
-
 
 class Grid:
     """Grid class for representing an arbitrary grid of connected sections.
 
     The grid bins are represented by a list (actually a double ended queue) of
-    sections with arbitrary ranges. The seamless connection of the buckets
-    (max(bucket i) = min(bucket(i+1)) is guaranteed by the simple
+    N sections with arbitrary interval ranges. The seamless connection of the
+    sections (max(bucket i) = min(bucket(i+1)) is guaranteed by the simple
     implementation of the classes methods. If changes are made to the Sections
     "by hand" the seamlessness has to be checked.
+
+    start                                          end
+      0     1     2       3  ...   N-1    N        N+1   <- boundaries
+      |  0  |  1  |   2   | 3 | ... | N-1 |    N    |    <- pivots
+      +--o--+--o--+---o---+-o-+--o--+--o--+----o----+->
+
+      [--o--)     [---o---)   [--o--)     [----o----)    <- section objects
+    left    [--o--)       [-o-)     [--o--)       right
+
     """
     def __init__(self, start=0, end=1, particles=0.):
         """Initializer.
@@ -307,6 +326,7 @@ class Grid:
     def section(self, index):
         assert index >= 0
         assert index < len(self)
+
         return self._sections[index]
 
     def add_left(self, size, particles=0.):
@@ -363,7 +383,7 @@ class Grid:
         else:
             return self._sections.pop()
 
-    # TODO: look at grid manipulation after implemented simple method!
+    # TODO: look at grid manipulation after method implementation!
     def coarsen_range(self, start, end):
         """Coarsen grid by combining sections in the index range.
 
@@ -374,6 +394,7 @@ class Grid:
         assert start <= end
         assert start >= 0  # --> IndexError
         assert end < len(self)  # --> IndexError
+
         new_sections = deque()
         coarse_min = self._sections[start].start
         coarse_max = self._sections[end].end
@@ -394,6 +415,7 @@ class Grid:
                     coarsened = True
         self._sections = new_sections
 
+    # TODO: look at grid manipulation after method implementation!
     def coarsen(self, times=1):
         for _ in range(times):
             index = 0
@@ -401,6 +423,7 @@ class Grid:
                 self.coarsen_range(index, index + 1)
                 index += 1
 
+    # TODO: look at grid manipulation after method implementation!
     def refine_range(self, start, end):
         """Refine the grid by splitting the sections in the index range.
 
@@ -411,6 +434,7 @@ class Grid:
         assert start <= end
         assert start >= 0  # --> IndexError
         assert end < len(self)  # --> IndexError
+
         new_sections = deque()
         for index, section in enumerate(self._sections):
             if index < start or index > end:  # outside range
@@ -428,6 +452,7 @@ class Grid:
                 new_sections.append(right_section)
         self._sections = new_sections
 
+    # TODO: look at grid manipulation after method implementation!
     def refine(self, times=1):
         for _ in range(times):
             self.refine_range(0, len(self) - 1)
@@ -463,14 +488,14 @@ class Grid:
             particle_list.append(section.particles)
         return particle_list
 
-    def particle_densities(self):
+    def densities(self):
         """return the list of particle density values.
 
         :return: particle density list.
         """
         particle_density_list = []
         for section in self:
-            particle_density_list.append(section.particle_density)
+            particle_density_list.append(section.density)
         return particle_density_list
 
     @staticmethod
@@ -633,7 +658,7 @@ class Grid:
         """Plot grids particle densities values using matplotlib.
         """
         pivots = self.pivots()
-        densities = self.particle_densities()
+        densities = self.densities()
 
         fig, ax1 = plt.subplots()
         ax1.plot(pivots, densities, "r-", label="density")
@@ -649,7 +674,7 @@ class Grid:
         """
         pivots = self.pivots()
         particles = self.particles()
-        densities = self.particle_densities()
+        densities = self.densities()
 
         fig, ax1 = plt.subplots()
         ax1.plot(pivots, particles, "ro", label="numbers")

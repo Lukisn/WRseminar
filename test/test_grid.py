@@ -3,9 +3,6 @@
 import unittest
 from WR.grid import Section, Grid
 
-# TODO: checkout Property Based Testing
-# https://hypothesis.readthedocs.io/en/latest/index.html
-
 
 class TestSection(unittest.TestCase):
 
@@ -35,26 +32,26 @@ class TestSection(unittest.TestCase):
 
     def test_range_getters_setters(self):
         s = Section(0, 1)
-        self.assertEquals(s.range, (0, 1))
-        s.range = (-2, 3)
-        self.assertEquals(s.range, (-2, 3))
+        self.assertEquals(s.interval, (0, 1))
+        s.interval = (-2, 3)
+        self.assertEquals(s.interval, (-2, 3))
         with self.assertRaises(IndexError):
-            s.range = (-2,)
+            s.interval = (-2,)
         with self.assertRaises(TypeError):
-            s.range = 2
+            s.interval = 2
         with self.assertRaises(AssertionError):
-            s.range = (4, -2)
-        s.range = (0, 1)
-        s.range = (2, 3)
-        s.range = (-2, -1)
+            s.interval = (4, -2)
+        s.interval = (0, 1)
+        s.interval = (2, 3)
+        s.interval = (-2, -1)
 
     def test_particle_getters_setters(self):
         s = Section(0, 1, particles=100)
         self.assertEquals(s.particles, 100)
-        self.assertEquals(s.particle_density, 100/s.size)
+        self.assertEquals(s.density, 100 / s.size)
         s.particles = 200
         self.assertEquals(s.particles, 200)
-        self.assertEquals(s.particle_density, 200 / s.size)
+        self.assertEquals(s.density, 200 / s.size)
         with self.assertRaises(AssertionError):
             s.particles = -1
 
@@ -86,7 +83,8 @@ class TestGrid(unittest.TestCase):
         self.assertEquals(u.end, 10)
         with self.assertRaises(AssertionError):
             Grid.create_uniform(start=0, end=-10, sections=1)
-        self.assertRaises(AssertionError, Grid.create_uniform, 0, 1, steps=-1)
+        with self.assertRaises(AssertionError):
+            Grid.create_uniform(0, 1, sections=-1)
         # geometric step:
         g = Grid.create_geometric_step(start=0, end=10, factor=1, sections=3)
         self.assertEquals(u.start, 0)

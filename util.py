@@ -75,7 +75,7 @@ def prompt_input_int(msg):
     raise NotImplementedError
 
 
-def promt_input_float(msg):
+def prompt_input_float(msg):
     raise NotImplementedError
 
 
