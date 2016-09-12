@@ -1,0 +1,773 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Welcome to Seminar WR: PBE sectional’s documentation! &#8212; Seminar WR: PBE sectional 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Seminar WR: PBE sectional 0.1 documentation" href="#" />
+    <link rel="next" title="Intro" href="intro.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="welcome-to-seminar-wr-pbe-sectional-s-documentation">
+<h1>Welcome to Seminar WR: PBE sectional&#8217;s documentation!<a class="headerlink" href="#welcome-to-seminar-wr-pbe-sectional-s-documentation" title="Permalink to this headline">¶</a></h1>
+<p>Contents:</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="intro.html">Intro</a></li>
+</ul>
+</div>
+<span class="target" id="module-WR.grid"></span><p>module implementing the core classes used for representing a discrete NDF.</p>
+<p>These classes are the top level Grid class and the lower level Section class.
+A Grid is a connected amount of sections. The sections are defined by their
+lower and upper boundaries (minimum, maximum), the pivot point and the number
+of particles within the section.</p>
+<dl class="class">
+<dt id="WR.grid.Grid">
+<em class="property">class </em><code class="descclassname">WR.grid.</code><code class="descname">Grid</code><span class="sig-paren">(</span><em>start=0</em>, <em>end=1</em>, <em>particles=0.0</em><span class="sig-paren">)</span><a class="headerlink" href="#WR.grid.Grid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Grid class for representing an arbitrary grid of connected sections.</p>
+<p>The grid bins are represented by a list (actually a double ended queue) of
+N sections with arbitrary interval ranges. The seamless connection of the
+sections (max(bucket i) = min(bucket(i+1)) is guaranteed by the simple
+implementation of the classes methods. If changes are made to the Sections
+&#8220;by hand&#8221; the seamlessness has to be checked.</p>
+<dl class="docutils">
+<dt>start                                          end</dt>
+<dd><p class="first">0     1     2       3  ...   N-1    N        N+1   &lt;- boundaries
+|  0  |  1  |   2   | 3 | ... | N-1 |    N    |    &lt;- pivots
++&#8211;o&#8211;+&#8211;o&#8211;+&#8212;o&#8212;+-o-+&#8211;o&#8211;+&#8211;o&#8211;+&#8212;-o&#8212;-+-&gt;</p>
+<p class="last">[&#8211;o&#8211;)     [&#8212;o&#8212;)   [&#8211;o&#8211;)     [&#8212;-o&#8212;-)    &lt;- section objects</p>
+</dd>
+</dl>
+<p>left    [&#8211;o&#8211;)       [-o-)     [&#8211;o&#8211;)       right</p>
+<dl class="method">
+<dt id="WR.grid.Grid.add_left">
+<code class="descname">add_left</code><span class="sig-paren">(</span><em>size</em>, <em>particles=0.0</em><span class="sig-paren">)</span><a class="headerlink" href="#WR.grid.Grid.add_left" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add new section to the left.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>size</strong> &#8211; range of the new section (maximum - minimum).</li>
+<li><strong>particles</strong> &#8211; total number of particles in the new section.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last">AssertionError if size &lt;= 0.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="WR.grid.Grid.add_right">
+<code class="descname">add_right</code><span class="sig-paren">(</span><em>size</em>, <em>particles=0.0</em><span class="sig-paren">)</span><a class="headerlink" href="#WR.grid.Grid.add_right" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add new section to the right.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>size</strong> &#8211; range of the new section (maximum - minimum).</li>
+<li><strong>particles</strong> &#8211; total number of particles in the new section.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last">AssertionError if size &lt;= 0.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="WR.grid.Grid.boundaries">
+<code class="descname">boundaries</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#WR.grid.Grid.boundaries" title="Permalink to this definition">¶</a></dt>
+<dd><p>return the list of boundary values.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">boundary list.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="WR.grid.Grid.coarsen">
+<code class="descname">coarsen</code><span class="sig-paren">(</span><em>times=1</em><span class="sig-paren">)</span><a class="headerlink" href="#WR.grid.Grid.coarsen" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="WR.grid.Grid.coarsen_range">
+<code class="descname">coarsen_range</code><span class="sig-paren">(</span><em>start</em>, <em>end</em><span class="sig-paren">)</span><a class="headerlink" href="#WR.grid.Grid.coarsen_range" title="Permalink to this definition">¶</a></dt>
+<dd><p>Coarsen grid by combining sections in the index range.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>start</strong> &#8211; inclusive start of index range.</li>
+<li><strong>end</strong> &#8211; inclusive end of index range.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last">AssertionError if start &gt; end</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="WR.grid.Grid.create_adaptive">
+<em class="property">static </em><code class="descname">create_adaptive</code><span class="sig-paren">(</span><em>start</em>, <em>end</em>, <em>steps</em>, <em>func</em><span class="sig-paren">)</span><a class="headerlink" href="#WR.grid.Grid.create_adaptive" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a grid that adapts automatically to the given function.</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="WR.grid.Grid.create_geometric">
+<em class="property">static </em><code class="descname">create_geometric</code><span class="sig-paren">(</span><em>start</em>, <em>end</em>, <em>initial_step</em>, <em>factor</em>, <em>func=&lt;function zero&gt;</em>, <em>correct=True</em><span class="sig-paren">)</span><a class="headerlink" href="#WR.grid.Grid.create_geometric" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a geometric grid.</p>
+<p>The grid is created using the given initial step size. By default the
+last section is corrected to match the given end value. This results in
+the last section not matching the exact end value. If this correction
+is turned off, the actual maximum of the grid will be greater than the
+given end value.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>start</strong> &#8211; inclusive minimum of the grid.</li>
+<li><strong>end</strong> &#8211; exclusive maximum of the grid.</li>
+<li><strong>initial_step</strong> &#8211; step size of the first step in the grid.</li>
+<li><strong>factor</strong> &#8211; factor controlling size change.</li>
+<li><strong>func</strong> &#8211; particle number density function.</li>
+<li><strong>correct</strong> &#8211; flag for fixing numeric deviations in the last section.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">geometric Grid object.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="WR.grid.Grid.create_geometric_end">
+<em class="property">static </em><code class="descname">create_geometric_end</code><span class="sig-paren">(</span><em>start</em>, <em>end</em>, <em>sections</em>, <em>factor</em>, <em>func=&lt;function zero&gt;</em>, <em>correct=True</em><span class="sig-paren">)</span><a class="headerlink" href="#WR.grid.Grid.create_geometric_end" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a geometric grid.</p>
+<p>The grid is created by choosing an initial step size so the maximum
+boundary is the same as for the corresponding uniform grid.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>start</strong> &#8211; inclusive minimum of the grid.</li>
+<li><strong>end</strong> &#8211; exclusive maximum of the grid.</li>
+<li><strong>sections</strong> &#8211; number of sections in the corresponding uniform grid.</li>
+<li><strong>factor</strong> &#8211; factor for size change.</li>
+<li><strong>func</strong> &#8211; particle number density function.</li>
+<li><strong>correct</strong> &#8211; flag for fixing numeric deviations in the last section.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">geometric Grid object.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="WR.grid.Grid.create_geometric_step">
+<em class="property">static </em><code class="descname">create_geometric_step</code><span class="sig-paren">(</span><em>start</em>, <em>end</em>, <em>sections</em>, <em>factor</em>, <em>func=&lt;function zero&gt;</em>, <em>correct=True</em><span class="sig-paren">)</span><a class="headerlink" href="#WR.grid.Grid.create_geometric_step" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a geometric grid.</p>
+<p>The grid is created by using the same initial step size as the
+corresponding uniform grid (step = (maximum - minimum) / amount). This
+method does NOT achieve the same maximum boundary.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>start</strong> &#8211; inclusive minimum of the grid.</li>
+<li><strong>end</strong> &#8211; exclusive maximum of the corresponding uniform grid.</li>
+<li><strong>sections</strong> &#8211; number of sections in the corresponding uniform grid.</li>
+<li><strong>factor</strong> &#8211; factor for size change.</li>
+<li><strong>func</strong> &#8211; particle number density function.</li>
+<li><strong>correct</strong> &#8211; flag for fixing numeric deviations in the last section.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">geometric Grid object.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="WR.grid.Grid.create_uniform">
+<em class="property">static </em><code class="descname">create_uniform</code><span class="sig-paren">(</span><em>start</em>, <em>end</em>, <em>sections</em>, <em>func=&lt;function zero&gt;</em>, <em>correct=True</em><span class="sig-paren">)</span><a class="headerlink" href="#WR.grid.Grid.create_uniform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a uniform grid.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>start</strong> &#8211; inclusive minimum of the grid.</li>
+<li><strong>end</strong> &#8211; exclusive maximum of the grid.</li>
+<li><strong>sections</strong> &#8211; total number of sections in the grid.</li>
+<li><strong>func</strong> &#8211; number density function for calculating particle numbers.</li>
+<li><strong>correct</strong> &#8211; flag for fixing numeric deviations in the last section.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">equidistant Grid object.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="WR.grid.Grid.densities">
+<code class="descname">densities</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#WR.grid.Grid.densities" title="Permalink to this definition">¶</a></dt>
+<dd><p>return the list of particle density values.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">particle density list.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="WR.grid.Grid.end">
+<code class="descname">end</code><a class="headerlink" href="#WR.grid.Grid.end" title="Permalink to this definition">¶</a></dt>
+<dd><p>Getter for grid maximum property.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">maximum of the grid.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="WR.grid.Grid.from_boundaries">
+<em class="property">static </em><code class="descname">from_boundaries</code><span class="sig-paren">(</span><em>boundaries</em><span class="sig-paren">)</span><a class="headerlink" href="#WR.grid.Grid.from_boundaries" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create grid from list of range boundaries.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="WR.grid.Grid.particles">
+<code class="descname">particles</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#WR.grid.Grid.particles" title="Permalink to this definition">¶</a></dt>
+<dd><p>return the list of particle numbers.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">particle number list.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="WR.grid.Grid.pivots">
+<code class="descname">pivots</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#WR.grid.Grid.pivots" title="Permalink to this definition">¶</a></dt>
+<dd><p>return the list of pivots.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">pivot list.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="WR.grid.Grid.refine">
+<code class="descname">refine</code><span class="sig-paren">(</span><em>times=1</em><span class="sig-paren">)</span><a class="headerlink" href="#WR.grid.Grid.refine" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="WR.grid.Grid.refine_range">
+<code class="descname">refine_range</code><span class="sig-paren">(</span><em>start</em>, <em>end</em><span class="sig-paren">)</span><a class="headerlink" href="#WR.grid.Grid.refine_range" title="Permalink to this definition">¶</a></dt>
+<dd><p>Refine the grid by splitting the sections in the index range.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>start</strong> &#8211; inclusive start of index range.</li>
+<li><strong>end</strong> &#8211; inclusive end of index range.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last">AssertionError if start &gt; end</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="WR.grid.Grid.remove_left">
+<code class="descname">remove_left</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#WR.grid.Grid.remove_left" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove section on the left.</p>
+<p>The last section can not be removed.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">removed section.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body">IndexError if length of the gris is 1.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="WR.grid.Grid.remove_right">
+<code class="descname">remove_right</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#WR.grid.Grid.remove_right" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove section on the right.</p>
+<p>The last section can not be removed.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">removed section.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body">IndexError if length of the gris is 1.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="WR.grid.Grid.section">
+<code class="descname">section</code><span class="sig-paren">(</span><em>index</em><span class="sig-paren">)</span><a class="headerlink" href="#WR.grid.Grid.section" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="WR.grid.Grid.smooth">
+<code class="descname">smooth</code><span class="sig-paren">(</span><em>start</em>, <em>end</em><span class="sig-paren">)</span><a class="headerlink" href="#WR.grid.Grid.smooth" title="Permalink to this definition">¶</a></dt>
+<dd><p>Smooth grid by averaging the section sizes in the range</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="WR.grid.Grid.start">
+<code class="descname">start</code><a class="headerlink" href="#WR.grid.Grid.start" title="Permalink to this definition">¶</a></dt>
+<dd><p>Getter for grid minimum property.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">minimum of the grid.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="WR.grid.Section">
+<em class="property">class </em><code class="descclassname">WR.grid.</code><code class="descname">Section</code><span class="sig-paren">(</span><em>start</em>, <em>end</em>, <em>particles=0.0</em><span class="sig-paren">)</span><a class="headerlink" href="#WR.grid.Section" title="Permalink to this definition">¶</a></dt>
+<dd><p>Section class representing a discrete bin.</p>
+<p>It represents the semi open interval [start, end). (minimum included,
+maximum NOT included in the interval). The class includes a fixed pivot
+within the sections boundaries (min &lt;= pivot &lt; max). The default pivot
+position is right in the middle between the min and max boundaries
+(pivot = min + size / 2). The length of the section (max - min) is called
+size. Additionally the class contains a field for the total number of
+particles in the section and the derived value of the mean particle
+density.</p>
+<blockquote>
+<div><blockquote>
+<div><dl class="docutils">
+<dt>start   pivot    end</dt>
+<dd><div class="first last line-block">
+<div class="line">|       |</div>
+</div>
+</dd>
+</dl>
+</div></blockquote>
+<dl class="docutils">
+<dt>&#8212;[&#8212;&#8212;-o&#8212;&#8212;-)&#8211;&gt;</dt>
+<dd><blockquote class="first">
+<div><div class="line-block">
+<div class="line">|       |</div>
+</div>
+</div></blockquote>
+<p class="last">v_i     x_i    v_i+1</p>
+</dd>
+</dl>
+</div></blockquote>
+<dl class="attribute">
+<dt id="WR.grid.Section.density">
+<code class="descname">density</code><a class="headerlink" href="#WR.grid.Section.density" title="Permalink to this definition">¶</a></dt>
+<dd><p>Getter for the mean particle density property (n_i).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">mean particle density in the section.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="WR.grid.Section.end">
+<code class="descname">end</code><a class="headerlink" href="#WR.grid.Section.end" title="Permalink to this definition">¶</a></dt>
+<dd><p>Getter for maximum property (v_i+1).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">exclusive maximum of the section.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="WR.grid.Section.interval">
+<code class="descname">interval</code><a class="headerlink" href="#WR.grid.Section.interval" title="Permalink to this definition">¶</a></dt>
+<dd><p>Getter for interval property (v_i, v_i+1).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">tuple containing minimum and maximum value of the section.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="WR.grid.Section.particles">
+<code class="descname">particles</code><a class="headerlink" href="#WR.grid.Section.particles" title="Permalink to this definition">¶</a></dt>
+<dd><p>Getter for total number of particles property (N_i).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">total number of particles in the section.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="WR.grid.Section.pivot">
+<code class="descname">pivot</code><a class="headerlink" href="#WR.grid.Section.pivot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Getter for pivot property (x_i).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">sections pivot point.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="WR.grid.Section.size">
+<code class="descname">size</code><a class="headerlink" href="#WR.grid.Section.size" title="Permalink to this definition">¶</a></dt>
+<dd><p>Getter for size property (v_i+1 - v_i).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">section size (max - min).</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="WR.grid.Section.start">
+<code class="descname">start</code><a class="headerlink" href="#WR.grid.Section.start" title="Permalink to this definition">¶</a></dt>
+<dd><p>Getter for minimum property (v_i).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">inclusive minimum of the section.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="WR.grid.find_initial_step">
+<code class="descclassname">WR.grid.</code><code class="descname">find_initial_step</code><span class="sig-paren">(</span><em>start</em>, <em>end</em>, <em>steps</em>, <em>factor</em>, <em>max_err=1e-14</em>, <em>max_iter=100</em><span class="sig-paren">)</span><a class="headerlink" href="#WR.grid.find_initial_step" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find initial step size for geometric grid with given parameters.</p>
+<p>The Function tries to figure out an initial step size for a geometric grid
+with the given paramters (start, end, steps, factor). Its initial guess is
+the step size of the corresponding uniform grid. Further guesses are
+calculated from the ratio of the resulting and the desired length. The
+method converges very fast and is therefore slowed down by averaging to
+approach the solution slowly and achieving a more stable result.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>start</strong> &#8211; start of the grid.</li>
+<li><strong>end</strong> &#8211; end of the grid.</li>
+<li><strong>steps</strong> &#8211; number of steps.</li>
+<li><strong>factor</strong> &#8211; geometric grid factor.</li>
+<li><strong>max_err</strong> &#8211; maximum allowed iteration error.</li>
+<li><strong>max_iter</strong> &#8211; maximum allowed number of iterations.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">initial step size (first cell) for the geometric grid.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<span class="target" id="module-WR.methods"></span><p>module implementing the fixed pivot technique in a class.</p>
+<p>The class handles the main calculation using the fixed pivot technique for
+breakage, aggregation, nucleation and growth. The different kernel functions
+can be arbitrarily defined by the user.</p>
+<dl class="class">
+<dt id="WR.methods.CellAverage">
+<em class="property">class </em><code class="descclassname">WR.methods.</code><code class="descname">CellAverage</code><span class="sig-paren">(</span><em>initial</em>, <em>primary=0</em>, <em>secondary=1</em>, <em>bre=True</em>, <em>bre_freq=&lt;function zero&gt;</em>, <em>child=&lt;function zero&gt;</em>, <em>agg=True</em>, <em>agg_freq=&lt;function zero&gt;</em>, <em>gro=True</em>, <em>gro_rate=&lt;function zero&gt;</em>, <em>nuc=True</em>, <em>nuc_rate=&lt;function zero&gt;</em><span class="sig-paren">)</span><a class="headerlink" href="#WR.methods.CellAverage" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="WR.methods.CellAverage.do_time_step">
+<code class="descname">do_time_step</code><span class="sig-paren">(</span><em>step</em><span class="sig-paren">)</span><a class="headerlink" href="#WR.methods.CellAverage.do_time_step" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="WR.methods.FixedPivot">
+<em class="property">class </em><code class="descclassname">WR.methods.</code><code class="descname">FixedPivot</code><span class="sig-paren">(</span><em>initial</em>, <em>primary=0</em>, <em>secondary=1</em>, <em>bre=True</em>, <em>bre_freq=&lt;function zero&gt;</em>, <em>child=&lt;function zero&gt;</em>, <em>agg=True</em>, <em>agg_freq=&lt;function zero&gt;</em>, <em>gro=True</em>, <em>gro_rate=&lt;function zero&gt;</em>, <em>nuc=True</em>, <em>nuc_rate=&lt;function zero&gt;</em><span class="sig-paren">)</span><a class="headerlink" href="#WR.methods.FixedPivot" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="WR.methods.FixedPivot.do_time_step">
+<code class="descname">do_time_step</code><span class="sig-paren">(</span><em>step</em><span class="sig-paren">)</span><a class="headerlink" href="#WR.methods.FixedPivot.do_time_step" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="WR.methods.Method">
+<em class="property">class </em><code class="descclassname">WR.methods.</code><code class="descname">Method</code><span class="sig-paren">(</span><em>initial</em>, <em>primary=0</em>, <em>secondary=1</em>, <em>bre=True</em>, <em>bre_freq=&lt;function zero&gt;</em>, <em>child=&lt;function zero&gt;</em>, <em>agg=True</em>, <em>agg_freq=&lt;function zero&gt;</em>, <em>gro=True</em>, <em>gro_rate=&lt;function zero&gt;</em>, <em>nuc=True</em>, <em>nuc_rate=&lt;function zero&gt;</em><span class="sig-paren">)</span><a class="headerlink" href="#WR.methods.Method" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="WR.methods.Method.do_time_step">
+<code class="descname">do_time_step</code><span class="sig-paren">(</span><em>step</em><span class="sig-paren">)</span><a class="headerlink" href="#WR.methods.Method.do_time_step" title="Permalink to this definition">¶</a></dt>
+<dd><p>Place holder for the actual time stepping implementation.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>step</strong> &#8211; time step.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="WR.methods.Method.simulate">
+<code class="descname">simulate</code><span class="sig-paren">(</span><em>end_time</em>, <em>steps</em>, <em>start_time=0</em>, <em>write_every=None</em><span class="sig-paren">)</span><a class="headerlink" href="#WR.methods.Method.simulate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simulation driver method.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>end_time</strong> &#8211; end time of the simulation.</li>
+<li><strong>steps</strong> &#8211; number of steps to take for the simulation.</li>
+<li><strong>start_time</strong> &#8211; start time of the simulation (default: 0).</li>
+<li><strong>write_every</strong> &#8211; number of stept between result output.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<span class="target" id="module-WR.util"></span><dl class="function">
+<dt id="WR.util.kronecker">
+<code class="descclassname">WR.util.</code><code class="descname">kronecker</code><span class="sig-paren">(</span><em>i</em>, <em>j</em><span class="sig-paren">)</span><a class="headerlink" href="#WR.util.kronecker" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function representing the mathematical Kronecker delta symbol.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>i</strong> &#8211; first argument.</li>
+<li><strong>j</strong> &#8211; second argument.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">0 if i == j, 1 otherwise.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="WR.util.pairwise">
+<code class="descclassname">WR.util.</code><code class="descname">pairwise</code><span class="sig-paren">(</span><em>iterable</em><span class="sig-paren">)</span><a class="headerlink" href="#WR.util.pairwise" title="Permalink to this definition">¶</a></dt>
+<dd><p>Pairwise iterator recipe.</p>
+<p>s -&gt; (s0,s1), (s1,s2), (s2, s3), ...
+taken from: <a class="reference external" href="https://docs.python.org/3/library/itertools.html">https://docs.python.org/3/library/itertools.html</a></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>iterable</strong> &#8211; iterable object.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">chained pairs of iterable objects elements.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="WR.util.zero">
+<code class="descclassname">WR.util.</code><code class="descname">zero</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwars</em><span class="sig-paren">)</span><a class="headerlink" href="#WR.util.zero" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function always returning 0.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>args</strong> &#8211; optional arguments.</li>
+<li><strong>kwars</strong> &#8211; optional keyword arguments.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">always 0.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="indices-and-tables">
+<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></li>
+<li><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></li>
+<li><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></li>
+</ul>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="#">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Welcome to Seminar WR: PBE sectional&#8217;s documentation!</a></li>
+<li><a class="reference internal" href="#indices-and-tables">Indices and tables</a></li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="#">Documentation overview</a><ul>
+      <li>Next: <a href="intro.html" title="next chapter">Intro</a></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/index.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, Lukas Reimer.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
+      
+      |
+      <a href="_sources/index.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
