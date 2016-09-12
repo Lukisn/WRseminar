@@ -10,8 +10,8 @@ MAX = 1000
 SECTIONS = 50
 FACTOR = 1.3
 
-END_TIME = .1
-STEPS = 10
+END_TIME = 1
+STEPS = 100
 
 #METHOD = "fixed pivot"
 METHOD = "cell average"
@@ -45,13 +45,13 @@ def Q(x1, x2):
 def G(v):
     """growth rate for particles of size v.
     """
-    return 1
+    return 0.1
 
 
 def S(v):
     """rate of nucleation of particles of size v.
     """
-    if v <= 1:
+    if v <= 0.01:
         return 1
     else:
         return 0
@@ -86,7 +86,6 @@ def demo_zero():
         raise ValueError("unknown method '{}'!".format(METHOD))
     method.simulate(end_time=END_TIME, steps=STEPS)
     plot_initial_and_current(method)
-    print("done.")
 
 
 def demo_breakage():
@@ -112,7 +111,6 @@ def demo_breakage():
         raise ValueError("unknown method '{}'!".format(METHOD))
     method.simulate(end_time=END_TIME, steps=STEPS)
     plot_initial_and_current(method)
-    print("done.\n")
 
 
 def demo_aggregation():
@@ -138,7 +136,6 @@ def demo_aggregation():
         raise ValueError("unknown method '{}'!".format(METHOD))
     method.simulate(end_time=END_TIME, steps=STEPS)
     plot_initial_and_current(method)
-    print("done.\n")
 
 
 def demo_breakage_aggregation():
@@ -166,7 +163,6 @@ def demo_breakage_aggregation():
         raise ValueError("unknown method '{}'!".format(METHOD))
     method.simulate(end_time=END_TIME, steps=STEPS)
     plot_initial_and_current(method)
-    print("done.\n")
 
 
 def demo_growth():
@@ -192,7 +188,6 @@ def demo_growth():
         raise ValueError("unknown method '{}'!".format(METHOD))
     method.simulate(end_time=END_TIME, steps=STEPS)
     plot_initial_and_current(method)
-    print("done.\n")
 
 
 def demo_nucleation():
@@ -218,7 +213,6 @@ def demo_nucleation():
         raise ValueError("unknown method '{}'!".format(METHOD))
     method.simulate(end_time=END_TIME, steps=STEPS)
     plot_initial_and_current(method)
-    print("done.\n")
 
 
 def demo_growth_nucleation():
@@ -246,7 +240,6 @@ def demo_growth_nucleation():
         raise ValueError("unknown method '{}'!".format(METHOD))
     method.simulate(end_time=END_TIME, steps=STEPS)
     plot_initial_and_current(method)
-    print("done.\n")
 
 
 def demo_all():
@@ -276,7 +269,6 @@ def demo_all():
         raise ValueError("unknown method '{}'!".format(METHOD))
     method.simulate(end_time=END_TIME, steps=STEPS)
     plot_initial_and_current(method)
-    print("done.\n")
 
 
 if __name__ == "__main__":

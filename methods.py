@@ -12,7 +12,7 @@ from numpy import linspace, zeros
 from copy import deepcopy
 from scipy.integrate import quad
 
-from WR.util import zero, kronecker, hstep
+from WR.util import zero, kronecker, hstep, Spinner
 
 
 class Method:
@@ -66,6 +66,13 @@ class Method:
         self.results = {}  # result dictionary {time: resulting NDF}
 
     def simulate(self, end_time, steps, start_time=0, write_every=None):
+        """Simulation driver method.
+
+        :param end_time: end time of the simulation.
+        :param steps: number of steps to take for the simulation.
+        :param start_time: start time of the simulation (default: 0).
+        :param write_every: number of stept between result output.
+        """
         assert start_time < end_time
         assert steps > 0
 
@@ -74,115 +81,61 @@ class Method:
 
         # create time stepping grid and iterate through time steps:
         times, step = linspace(start_time, end_time, steps + 1, retstep=True)
-        for counter, time in enumerate(times):
-            if counter == 0:
-                # "zeroth" time step -> save initial ndf:
-                self.results[start_time] = deepcopy(self._initial)
-            else:
-                # calculate time step:
-                print("step=", counter, "time=", time)
-                self.do_time_step(step)
+        with Spinner("simulating", end_msg=None) as sp:
+            for counter, time in enumerate(times):
+                sp.message("step={}, time={}".format(counter, time))
 
-                # write intermediate result:
-                if counter % write_every == 0:
-                    self.results[time] = deepcopy(self._current)
+                if counter == 0:
+                    # "zeroth" time step -> save initial ndf:
+                    self.results[start_time] = deepcopy(self._initial)
+                else:
+                    # calculate time step:
+                    self.do_time_step(step)
 
-        # write final result:
-        if end_time not in self.results:
-            self.results[end_time] = deepcopy(self._current)
+                    # write intermediate result:
+                    if counter % write_every == 0:
+                        self.results[time] = deepcopy(self._current)
+
+            # write final result:
+            if end_time not in self.results:
+                self.results[end_time] = deepcopy(self._current)
 
     def do_time_step(self, step):
+        """Place holder for the actual time stepping implementation.
+
+        :param step: time step.
+        """
         raise NotImplementedError
 
 
-class FixedPivot:
+# TODO: find a way to handle instability issues (implicit?!?)
+# TODO: find a method for handling boundary sections!!!
+class FixedPivot(Method):
     def __init__(self, initial, primary=0, secondary=1,
                  bre=True, bre_freq=zero, child=zero,
                  agg=True, agg_freq=zero,
                  gro=True, gro_rate=zero,
                  nuc=True, nuc_rate=zero):
-        """Initializer.
+        super().__init__(initial, primary, secondary,
+                         bre, bre_freq, child,
+                         agg, agg_freq,
+                         gro, gro_rate,
+                         nuc, nuc_rate)
 
-        :param initial: initial discrete number density function.
-        :param bre: flag for breakage.
-        :param bre_freq: breakage frequency function.
-        :param child: child number function.
-        :param agg: flag for aggregation.
-        :param agg_freq: aggregation frequency function.
-        :param gro: flag for growth.
-        :param gro_rate: growth rate function.
-        :param nuc: flag for nucleation.
-        :param nuc_rate: nucleation rate function.
-        :param primary: primary preserved moment (default: 0 = numbers).
-        :param secondary: secondary preserved moment (default: 1 = mass).
-        """
-        self._initial = initial
-        self._current = deepcopy(initial)
-        self._previous = deepcopy(initial)
+    def do_time_step(self, step):
+        # save last result for comparison:
+        self._previous = deepcopy(self._current)
 
-        self._primary = primary  # primary preserved moment "zeta"
-        self._secondary = secondary  # secondary preserved moment "nu"
+        # calculate individial terms of the PBE:
+        if self._breakage:
+            self._calc_breakage(step)
+        if self._aggregation:
+            self._calc_aggregation(step)
+        if self._growth:
+            self._calc_growth(step)
+        if self._nucleation:
+            self._calc_nucleation(step)
 
-        self._breakage = bre  # flag for toggling breakage
-        self._bre_freq = bre_freq  # breakage frequency function "Gamma"
-        self._child = child  # number of child particles formed by breakage
-
-        self._aggregation = agg  # flag for toggling aggregation
-        self._agg_freq = agg_freq  # aggregation frequency function "Q"
-
-        self._growth = gro  # flag for toggling growth
-        self._gro_rate = gro_rate  # growth rate function
-
-        self._nucleation = nuc  # flag for toggling nucleation
-        self._nuc_rate = nuc_rate  # nucleation rate function
-
-        self.results = {}
-
-    # TODO: find a way to handle instability issues (implicit?!?)
-    def simulate(self, end_time, steps, start_time=0, write_every=None):
-        """Run simulation on initial number density function.
-
-        :param end_time: end time of the simulation.
-        :param steps: number of time steps to perform.
-        :param start_time: simulation starting time (default: 0).
-        :param write_every: steps betweens intermediate save (default: None).
-        """
-        assert start_time < end_time
-        assert steps > 0
-
-        if write_every is None:  # don't write intermediate results
-            write_every = steps
-
-        # create time stepping grid and iterate through time steps:
-        times, step = linspace(start_time, end_time, steps+1, retstep=True)
-        for counter, time in enumerate(times):
-            if counter == 0:  # "zeroth" time step -> save initial ndf:
-                self.results[start_time] = deepcopy(self._initial)
-            else:  # calculate time step:
-                print("step=", counter, "time=", time)
-
-                # save last result for comparison:
-                self._previous = deepcopy(self._current)
-
-                # calculate individial terms of the PBE:
-                if self._breakage:
-                    self._calc_breakage(step)
-                if self._aggregation:
-                    self._calc_aggregation(step)
-                if self._growth:
-                    self._calc_growth(step)
-                if self._nucleation:
-                    self._calc_nucleation(step)
-
-                # write intermediate result:
-                if counter % write_every == 0:
-                    self.results[time] = deepcopy(self._current)
-
-        # write final result:
-        if end_time not in self.results:
-            self.results[end_time] = deepcopy(self._current)
-
-    # TODO: find a method for handling boundary sections!!!
     def _calc_breakage(self, step):
         """calculate breakage.
         """
@@ -386,160 +339,143 @@ class FixedPivot:
                 self._current.section(i).particles = new_particles
 
 
-class CellAverage:
+class CellAverage(Method):
     def __init__(self, initial, primary=0, secondary=1,
                  bre=True, bre_freq=zero, child=zero,
                  agg=True, agg_freq=zero,
                  gro=True, gro_rate=zero,
                  nuc=True, nuc_rate=zero):
-        """Initializer.
+        super().__init__(initial, primary, secondary,
+                         bre, bre_freq, child,
+                         agg, agg_freq,
+                         gro, gro_rate,
+                         nuc, nuc_rate)
 
-        :param initial: initial discrete number density function.
-        :param bre: flag for breakage.
-        :param bre_freq: breakage frequency function.
-        :param child: child number function.
-        :param agg: flag for aggregation.
-        :param agg_freq: aggregation frequency function.
-        :param gro: flag for growth.
-        :param gro_rate: growth rate function.
-        :param nuc: flag for nucleation.
-        :param nuc_rate: nucleation rate function.
-        :param primary: primary preserved moment (default: 0 = numbers).
-        :param secondary: secondary preserved moment (default: 1 = mass).
-        """
-        self._initial = initial
-        self._current = deepcopy(initial)
-        self._previous = deepcopy(initial)
-
-        self._primary = primary  # primary preserved moment "zeta"
-        self._secondary = secondary  # secondary preserved moment "nu"
-
-        self._breakage = bre  # flag for toggling breakage
-        self._bre_freq = bre_freq  # breakage frequency function "Gamma"
-        self._child = child  # number of child particles formed by breakage
-
-        self._aggregation = agg  # flag for toggling aggregation
-        self._agg_freq = agg_freq  # aggregation frequency function "Q"
-
-        self._growth = gro  # flag for toggling growth
-        self._gro_rate = gro_rate  # growth rate function
+        # nuclei size for growth modeling by aggregation:
         sec_0 = self._initial.section(0)
         self._x0 = (sec_0.end - sec_0.pivot) / 10  # small for safety
 
-        self._nucleation = nuc  # flag for toggling nucleation
-        self._nuc_rate = nuc_rate  # nucleation rate function
+    def do_time_step(self, step):
+        # save last result for comparison:
+        self._previous = deepcopy(self._current)
 
-        self.results = {}
+        # STEP 1: calculate birth and death rates:
+        birth_num = zeros(len(self._previous))  # B_i's
+        birth_vol = zeros(len(self._previous))  # V_i's
+        death_num = zeros(len(self._previous))  # D_i's
 
-    def simulate(self, end_time, steps, start_time=0, write_every=None):
-        """Run simulation on initial number density function.
+        for i, sec_i in enumerate(self._previous):
+            # print("i=", i, "section=", sec_i)
 
-        :param end_time: end time of the simulation.
-        :param steps: number of time steps to perform.
-        :param start_time: simulation starting time (default: 0).
-        :param write_every: steps betweens intermediate save (default: None).
-        """
-        assert start_time < end_time
-        assert steps > 0
+            if self._breakage:
+                num, vol = self._calc_breakage_birth(i)
+                birth_num[i] += num
+                birth_vol[i] += vol
+                death_num[i] += self._calc_breakage_death(i)
+            if self._aggregation:
+                num, vol = self._calc_aggregation_birth(i)
+                birth_num[i] += num
+                birth_vol[i] += vol
+                death_num[i] += self._calc_aggregation_death(i)
+            if self._growth:
+                num, vol = self._calc_growth_birth(i)
+                birth_num[i] += num
+                birth_vol[i] += vol
+                death_num[i] += self._calc_growth_death(i)
+            if self._nucleation:
+                num, vol = self._calc_nucleation_birth(i)
+                birth_num[i] += num
+                birth_vol[i] += vol
+                # no death due to nucleation!
 
-        if write_every is None:  # don't write intermediate results
-            write_every = steps
+        # STEP 2: compute volume averages:
+        mean_vol = zeros(len(self._previous))  # v_i's
+        for i, _ in enumerate(mean_vol):
+            if birth_num[i] == 0:
+                mean_vol[i] = 0
+            else:
+                mean_vol[i] = birth_vol[i] / birth_num[i]
 
-        # create time stepping grid and iterate through time steps:
-        times, step = linspace(start_time, end_time, steps+1, retstep=True)
-        for counter, time in enumerate(times):
-            if counter == 0:  # "zeroth" time step -> save initial ndf:
-                self.results[start_time] = deepcopy(self._initial)
-            else:  # calculate time step:
-                print("step=", counter, "time=", time)
+        # STEP 3: birth modification:
+        birth_num_av = zeros(len(self._previous))
+        for i, _ in enumerate(birth_num_av):
+            if i == 0:  # leftmost section:
+                Bi = birth_num[i]
+                #Bim1 = birth_num[i - 1]
+                Bip1 = birth_num[i + 1]
 
-                # save last result for comparison:
-                self._previous = deepcopy(self._current)
+                vi = mean_vol[i]
+                #vim1 = mean_vol[i - 1]
+                vip1 = mean_vol[i + 1]
 
-                # STEP 1: calculate birth and death rates:
-                birth_num = zeros(len(self._previous))  # B_i's
-                birth_vol = zeros(len(self._previous))  # V_i's
-                death_num = zeros(len(self._previous))  # D_i's
-                for i, sec_i in enumerate(self._previous):
-                    #print("i=", i, "section=", sec_i)
+                xi = self._previous.section(i).pivot
+                xim1 = self._previous.section(i).start  # !!!
+                xip1 = self._previous.section(i + 1).pivot
 
-                    # TODO: implement boundary contitions!
-                    if i == 0 or i == len(self._previous) - 1:
-                        continue
+                #lamvim1 = (vim1 - xim1) / (xi - xim1)
+                lamvi = (vi - xim1) / (xi - xim1)
+                lapvi = (vi - xip1) / (xi - xip1)
+                lapvip1 = (vip1 - xip1) / (xi - xip1)
 
-                    if self._breakage:
-                        num, vol = self._calc_breakage_birth(i)
-                        birth_num[i] += num
-                        birth_vol[i] += vol
-                        death_num[i] += self._calc_breakage_death(i)
-                    if self._aggregation:
-                        num, vol = self._calc_aggregation_birth(i)
-                        birth_num[i] += num
-                        birth_vol[i] += vol
-                        death_num[i] += self._calc_aggregation_death(i)
-                    if self._growth:
-                        num, vol = self._calc_growth_birth(i)
-                        birth_num[i] += num
-                        birth_vol[i] += vol
-                        death_num[i] += self._calc_growth_death(i)
-                    if self._nucleation:
-                        num, vol = self._calc_nucleation_birth(i)
-                        birth_num[i] += num
-                        birth_vol[i] += vol
-                        # no death due to nucleation!
-                #print("birth_num=", birth_num)
-                #print("birth_vol=", birth_vol)
-                #print("death_num=", death_num)
+                B1 = 0
+                B2 = Bi * lamvi * hstep(xi - vi)
+                B3 = Bi * lapvi * hstep(vi - xi)
+                B4 = Bip1 * lapvip1 * hstep(xip1 - vip1)
+            elif i == len(self._previous) - 1:  # rightmost section:
+                Bi = birth_num[i]
+                Bim1 = birth_num[i - 1]
+                #Bip1 = birth_num[i + 1]
 
-                # STEP 2: compute volume averages:
-                mean_vol = zeros(len(self._previous))  # v_i's
-                for i, _ in enumerate(mean_vol):
-                    if birth_num[i] == 0:
-                        mean_vol[i] = 0
-                    else:
-                        mean_vol[i] = birth_vol[i] / birth_num[i]
-                #print("mean_vol=", mean_vol)
+                vi = mean_vol[i]
+                vim1 = mean_vol[i - 1]
+                #vip1 = mean_vol[i + 1]
 
-                # STEP 3: birth modification:
-                birth_num_av = zeros(len(self._previous))
-                for i, _ in enumerate(birth_num_av):
-                    # TODO: implement boundary contitions!
-                    if i == 0 or i == len(self._previous) - 1:
-                        continue
+                xi = self._previous.section(i).pivot
+                xim1 = self._previous.section(i - 1).pivot
+                xip1 = self._previous.section(i).end  # !!!
 
-                    Bi = birth_num[i]
-                    Bim1 = birth_num[i - 1]
-                    Bip1 = birth_num[i + 1]
+                lamvim1 = (vim1 - xim1) / (xi - xim1)
+                lamvi = (vi - xim1) / (xi - xim1)
+                lapvi = (vi - xip1) / (xi - xip1)
+                #lapvip1 = (vip1 - xip1) / (xi - xip1)
 
-                    vi = mean_vol[i]
-                    vim1 = mean_vol[i - 1]
-                    vip1 = mean_vol[i + 1]
+                B1 = Bim1 * lamvim1 * hstep(vim1 - xim1)
+                B2 = Bi * lamvi * hstep(xi - vi)
+                B3 = Bi * lapvi * hstep(vi - xi)
+                B4 = 0
+            else:  # other sections:
+                Bi = birth_num[i]
+                Bim1 = birth_num[i - 1]
+                Bip1 = birth_num[i + 1]
 
-                    xi = self._previous.section(i).pivot
-                    xim1 = self._previous.section(i - 1).pivot
-                    xip1 = self._previous.section(i + 1).pivot
+                vi = mean_vol[i]
+                vim1 = mean_vol[i - 1]
+                vip1 = mean_vol[i + 1]
 
-                    lamvim1 = (vim1 - xim1) / (xi - xim1)
-                    lamvi = (vi - xim1) / (xi - xim1)
-                    lapvi = (vi - xip1) / (xi - xip1)
-                    lapvip1 = (vip1 - xip1) / (xi - xip1)
+                xi = self._previous.section(i).pivot
+                xim1 = self._previous.section(i - 1).pivot
+                xip1 = self._previous.section(i + 1).pivot
 
-                    B1 = Bim1 * lamvim1 * hstep(vim1 - xim1)
-                    B2 = Bi * lamvi * hstep(xi - vi)
-                    B3 = Bi * lapvi * hstep(vi - xi)
-                    B4 = Bip1 * lapvip1 * hstep(xip1 - vip1)
+                lamvim1 = (vim1 - xim1) / (xi - xim1)
+                lamvi = (vi - xim1) / (xi - xim1)
+                lapvi = (vi - xip1) / (xi - xip1)
+                lapvip1 = (vip1 - xip1) / (xi - xip1)
 
-                    birth_num_av[i] = B1 + B2 + B3 + B4
-                #print("birth_num_av=", birth_num_av)
+                B1 = Bim1 * lamvim1 * hstep(vim1 - xim1)
+                B2 = Bi * lamvi * hstep(xi - vi)
+                B3 = Bi * lapvi * hstep(vi - xi)
+                B4 = Bip1 * lapvip1 * hstep(xip1 - vip1)
 
-                # STEP 4: solution of the ODEs:
-                for i, sec_i in enumerate(self._previous):
-                    old = sec_i.particles
-                    new_particles = old + step * (birth_num_av[i] - death_num[i])
-                    if new_particles < 0:
-                        self._current.section(i).particles = 0
-                    else:
-                        self._current.section(i).particles = new_particles
+            birth_num_av[i] = B1 + B2 + B3 + B4
+
+        # STEP 4: solution of the ODEs:
+        for i, sec_i in enumerate(self._previous):
+            old = sec_i.particles
+            new_particles = old + step * (birth_num_av[i] - death_num[i])
+            if new_particles < 0:
+                self._current.section(i).particles = 0
+            else:
+                self._current.section(i).particles = new_particles
 
     def _calc_breakage_birth(self, i):
         assert i >= 0
