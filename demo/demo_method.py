@@ -33,7 +33,7 @@ def gamma(v):
 def beta(v1, v2):
     """child number function.
     """
-    return 2 / v2  # v2/2
+    return 2 / v2
 
 
 def Q(x1, x2):

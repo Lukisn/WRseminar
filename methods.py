@@ -8,6 +8,7 @@ breakage, aggregation, nucleation and growth. The different kernel functions
 can be arbitrarily defined by the user.
 """
 
+import matplotlib.pyplot as plt
 from numpy import linspace, zeros
 from copy import deepcopy
 from scipy.integrate import quad
@@ -120,6 +121,47 @@ class Method:
         :param step: time step.
         """
         raise NotImplementedError
+
+    def _plot_ndfs(self):
+        # get parameter data (times)
+        times = sorted(self.result_ndfs)
+
+        # plot data:
+        for time in times:
+            pivots = self.result_ndfs[time].pivots()
+            densities = self.result_ndfs[time].densities()
+            plt.plot(pivots, densities, ".-",
+                     label="ndf t={}".format(time))
+
+        plt.xlabel("particle volume")
+        plt.ylabel("number density")
+        plt.xscale("log")
+        plt.yscale("log")
+        plt.legend(loc="best", fontsize="small")
+        plt.grid()
+        plt.show()
+
+    def _plot_moments(self, max_order):
+        # get x-axis data (times):
+        times = sorted(self.result_moments)
+
+        # collect y-axis data (moments):
+        moments = {}
+        for order in range(max_order + 1):
+            moments[order] = []
+            for time in times:
+                moments[order].append(self.result_moments[time][order])
+
+        # plot data:
+        for order in range(max_order + 1):
+            plt.plot(times, moments[order], ".-",
+                     label="moment{}".format(order))
+
+        plt.xlabel("time")
+        plt.ylabel("moment")
+        plt.legend(loc="best", fontsize="small")
+        plt.grid()
+        plt.show()
 
 
 # TODO: find a method for handling boundary sections!!!
