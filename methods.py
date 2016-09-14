@@ -62,18 +62,23 @@ class Method:
         self._nuc_rate = nuc_rate  # nucleation rate function
 
         # Results:
-        self.results = {}  # result dictionary {time: resulting NDF}
+        self.result_ndfs = {}  # result dictionary {time: resulting NDF}
+        self.result_moments = {}  # result dictionary {time: resulting moments}
 
-    def simulate(self, end_time, steps, start_time=0, write_every=None):
+    def simulate(self, end_time, steps, start_time=0, write_every=None,
+                 max_order=None):
         """Simulation driver method.
 
         :param end_time: end time of the simulation.
         :param steps: number of steps to take for the simulation.
         :param start_time: start time of the simulation (default: 0).
         :param write_every: number of stept between result output.
+        :param max_order: maximum order of moments to be calculated.
         """
         assert start_time < end_time
         assert steps > 0
+        if max_order is not None:
+            assert max_order >= 0
 
         if write_every is None:  # don't write intermediate results
             write_every = steps
@@ -86,18 +91,28 @@ class Method:
 
                 if counter == 0:
                     # "zeroth" time step -> save initial ndf:
-                    self.results[start_time] = deepcopy(self._initial)
+                    self.result_ndfs[start_time] = deepcopy(self._initial)
                 else:
                     # calculate time step:
                     self.do_time_step(step)
 
                     # write intermediate result:
                     if counter % write_every == 0:
-                        self.results[time] = deepcopy(self._current)
+                        self.result_ndfs[time] = deepcopy(self._current)
+                        if max_order is not None:
+                            moments = {}
+                            for order in range(max_order + 1):
+                                moments[order] = self._current.moment(order)
+                            self.result_moments[time] = moments
 
             # write final result:
-            if end_time not in self.results:
-                self.results[end_time] = deepcopy(self._current)
+            if end_time not in self.result_ndfs:
+                self.result_ndfs[end_time] = deepcopy(self._current)
+                if max_order is not None:
+                    moments = {}
+                    for order in range(max_order + 1):
+                        moments[order] = self._current.moment(order)
+                    self.result_moments[end_time] = moments
 
     def do_time_step(self, step):
         """Place holder for the actual time stepping implementation.
@@ -107,7 +122,6 @@ class Method:
         raise NotImplementedError
 
 
-# TODO: find a way to handle instability issues (implicit?!?)
 # TODO: find a method for handling boundary sections!!!
 class FixedPivot(Method):
     def __init__(self, initial, primary=0, secondary=1,

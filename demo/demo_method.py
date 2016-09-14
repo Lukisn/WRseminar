@@ -13,8 +13,8 @@ FACTOR = 1.3
 END_TIME = 1
 STEPS = 100
 
-#METHOD = "fixed pivot"
-METHOD = "cell average"
+METHOD = "fixed pivot"
+#METHOD = "cell average"
 
 
 def f(v, N0=1, v0=1):
@@ -33,7 +33,7 @@ def gamma(v):
 def beta(v1, v2):
     """child number function.
     """
-    return 2/v2  # v2/2
+    return 2 / v2  # v2/2
 
 
 def Q(x1, x2):
@@ -58,6 +58,8 @@ def S(v):
 
 
 def plot_initial_and_current(method):
+    plt.xlabel("particle volume")
+    plt.ylabel("number density")
     plt.plot(method._initial.pivots(),
              method._initial.densities(), "g.-", label="initial")
     plt.plot(method._current.pivots(),
@@ -66,6 +68,24 @@ def plot_initial_and_current(method):
     plt.yscale("log")
     plt.xlim(1.e-5, 1.e5)
     plt.ylim(1.e-5, 1.e5)
+    plt.legend(loc="best", fontsize="small")
+    plt.grid()
+    plt.show()
+
+
+def plot_moments_over_time(method, max_order):
+    times = sorted(method.result_moments)
+    moments = {}
+    for order in range(max_order + 1):
+        moments[order] = []
+        for time in times:
+            moments[order].append(method.result_moments[time][order])
+
+    plt.xlabel("time")
+    plt.ylabel("moment")
+    for order in range(max_order + 1):
+        plt.plot(times, moments[order], ".-", label="moment{}".format(order))
+
     plt.legend(loc="best", fontsize="small")
     plt.grid()
     plt.show()
@@ -84,8 +104,9 @@ def demo_zero():
         method = CellAverage(initial=ini)
     else:
         raise ValueError("unknown method '{}'!".format(METHOD))
-    method.simulate(end_time=END_TIME, steps=STEPS)
+    method.simulate(end_time=END_TIME, steps=STEPS, write_every=1, max_order=2)
     plot_initial_and_current(method)
+    plot_moments_over_time(method, max_order=2)
 
 
 def demo_breakage():
@@ -109,8 +130,9 @@ def demo_breakage():
         )
     else:
         raise ValueError("unknown method '{}'!".format(METHOD))
-    method.simulate(end_time=END_TIME, steps=STEPS)
+    method.simulate(end_time=END_TIME, steps=STEPS, write_every=1, max_order=2)
     plot_initial_and_current(method)
+    plot_moments_over_time(method, max_order=2)
 
 
 def demo_aggregation():
@@ -134,8 +156,9 @@ def demo_aggregation():
         )
     else:
         raise ValueError("unknown method '{}'!".format(METHOD))
-    method.simulate(end_time=END_TIME, steps=STEPS)
+    method.simulate(end_time=END_TIME, steps=STEPS, write_every=1, max_order=2)
     plot_initial_and_current(method)
+    plot_moments_over_time(method, max_order=2)
 
 
 def demo_breakage_aggregation():
@@ -161,8 +184,9 @@ def demo_breakage_aggregation():
         )
     else:
         raise ValueError("unknown method '{}'!".format(METHOD))
-    method.simulate(end_time=END_TIME, steps=STEPS)
+    method.simulate(end_time=END_TIME, steps=STEPS, write_every=1, max_order=2)
     plot_initial_and_current(method)
+    plot_moments_over_time(method, max_order=2)
 
 
 def demo_growth():
@@ -186,8 +210,9 @@ def demo_growth():
         )
     else:
         raise ValueError("unknown method '{}'!".format(METHOD))
-    method.simulate(end_time=END_TIME, steps=STEPS)
+    method.simulate(end_time=END_TIME, steps=STEPS, write_every=1, max_order=2)
     plot_initial_and_current(method)
+    plot_moments_over_time(method, max_order=2)
 
 
 def demo_nucleation():
@@ -211,8 +236,9 @@ def demo_nucleation():
         )
     else:
         raise ValueError("unknown method '{}'!".format(METHOD))
-    method.simulate(end_time=END_TIME, steps=STEPS)
+    method.simulate(end_time=END_TIME, steps=STEPS, write_every=1, max_order=2)
     plot_initial_and_current(method)
+    plot_moments_over_time(method, max_order=2)
 
 
 def demo_growth_nucleation():
@@ -238,8 +264,9 @@ def demo_growth_nucleation():
         )
     else:
         raise ValueError("unknown method '{}'!".format(METHOD))
-    method.simulate(end_time=END_TIME, steps=STEPS)
+    method.simulate(end_time=END_TIME, steps=STEPS, write_every=1, max_order=2)
     plot_initial_and_current(method)
+    plot_moments_over_time(method, max_order=2)
 
 
 def demo_all():
@@ -267,8 +294,9 @@ def demo_all():
         )
     else:
         raise ValueError("unknown method '{}'!".format(METHOD))
-    method.simulate(end_time=END_TIME, steps=STEPS)
+    method.simulate(end_time=END_TIME, steps=STEPS, write_every=1, max_order=2)
     plot_initial_and_current(method)
+    plot_moments_over_time(method, max_order=2)
 
 
 if __name__ == "__main__":

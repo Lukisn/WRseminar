@@ -382,80 +382,6 @@ class Grid:
         else:
             return self._sections.pop()
 
-    # TODO: look at grid manipulation after method implementation!
-    def coarsen_range(self, start, end):
-        """Coarsen grid by combining sections in the index range.
-
-        :param start: inclusive start of index range.
-        :param end: inclusive end of index range.
-        :raises: AssertionError if start > end
-        """
-        assert start <= end
-        assert start >= 0  # --> IndexError
-        assert end < len(self)  # --> IndexError
-
-        new_sections = deque()
-        coarse_min = self._sections[start].start
-        coarse_max = self._sections[end].end
-        particles = 0
-        for index, section in enumerate(self._sections):
-            if index >= start and index <= end:
-                particles += section.particles
-        coarsened = False
-        for index, section in enumerate(self._sections):
-            if index < start or index > end:  # outside range
-                new_sections.append(self._sections[index])
-            else:  # inside coarsening range
-                if not coarsened:
-                    coarse_section = Section(start=coarse_min,
-                                             end=coarse_max,
-                                             particles=particles)
-                    new_sections.append(coarse_section)
-                    coarsened = True
-        self._sections = new_sections
-
-    # TODO: look at grid manipulation after method implementation!
-    def coarsen(self, times=1):
-        for _ in range(times):
-            index = 0
-            while index < len(self) - 1:
-                self.coarsen_range(index, index + 1)
-                index += 1
-
-    # TODO: look at grid manipulation after method implementation!
-    def refine_range(self, start, end):
-        """Refine the grid by splitting the sections in the index range.
-
-        :param start: inclusive start of index range.
-        :param end: inclusive end of index range.
-        :raises: AssertionError if start > end
-        """
-        assert start <= end
-        assert start >= 0  # --> IndexError
-        assert end < len(self)  # --> IndexError
-
-        new_sections = deque()
-        for index, section in enumerate(self._sections):
-            if index < start or index > end:  # outside range
-                new_sections.append(self._sections[index])
-            else:  # inside refining range
-                left = section.start
-                right = section.end
-                center = left + (right - left)/2
-                particles = section.particles
-                left_section = Section(start=left, end=center,
-                                       particles=particles/2)
-                right_section = Section(start=center, end=right,
-                                        particles=particles/2)
-                new_sections.append(left_section)
-                new_sections.append(right_section)
-        self._sections = new_sections
-
-    # TODO: look at grid manipulation after method implementation!
-    def refine(self, times=1):
-        for _ in range(times):
-            self.refine_range(0, len(self) - 1)
-
     def boundaries(self):
         """return the list of boundary values.
 
@@ -496,6 +422,19 @@ class Grid:
         for section in self:
             particle_density_list.append(section.density)
         return particle_density_list
+
+    def moment(self, order=0):
+        """Calculate the moment of a given order of the entire discrete NDF.
+
+        :param order: order of the moment to calculate.
+        :return: orderth moment.
+        """
+        moment = 0
+        for section in self:
+            x = section.pivot
+            N = section.particles
+            moment += (x ** order) * N
+        return moment
 
     @staticmethod
     def create_uniform(start, end, sections, func=zero, correct=True):
@@ -701,7 +640,45 @@ class Grid:
         """
         raise NotImplementedError  # TODO: maybe implement in the future
 
-    def smooth(self, start, end):
-        """Smooth grid by averaging the section sizes in the range
+    def coarsen_range(self, start, end):
+        """Coarsen grid by combining sections in the index range.
+
+        :param start: inclusive start of index range.
+        :param end: inclusive end of index range.
+        """
+        raise NotImplementedError  # TODO: maybe implement in the future
+
+    def coarsen(self, times=1):
+        """Coarsen whole grid a specified number of times.
+
+        :param times: amount of coarsening steps.
+        """
+        raise NotImplementedError  # TODO: maybe implement in the future
+
+    def refine_range(self, start, end):
+        """Refine the grid by splitting the sections in the index range.
+
+        :param start: inclusive start of index range.
+        :param end: inclusive end of index range.
+        """
+        raise NotImplementedError  # TODO: maybe implement in the future
+
+    def refine(self, times=1):
+        """Refine whole grid a specified number of times
+
+        :param times: amount of refinement steps.
+        """
+        raise NotImplementedError  # TODO: maybe implement in the future
+
+    def smooth_range(self, start, end):
+        """Smooth grid by averaging the section sizes in the index range.
+
+        :param start: inclusive start of the index range.
+        :param end: inclusive end of the index range.
+        """
+        raise NotImplementedError  # TODO: maybe implement in the future
+
+    def smooth(self):
+        """Smooth entire grid.
         """
         raise NotImplementedError  # TODO: maybe implement in the future
