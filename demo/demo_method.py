@@ -13,8 +13,8 @@ FACTOR = 1.3
 END_TIME = 1
 STEPS = 100
 
-METHOD = "fixed pivot"
-#METHOD = "cell average"
+#METHOD = "fixed pivot"
+METHOD = "cell average"
 
 
 def f(v, N0=1, v0=1):
@@ -39,7 +39,7 @@ def beta(v1, v2):
 def Q(x1, x2):
     """aggregation frequency function.
     """
-    return x1 + x2
+    return 1
 
 
 def G(v):
@@ -51,7 +51,7 @@ def G(v):
 def S(v):
     """rate of nucleation of particles of size v.
     """
-    if v <= 0.01:
+    if v <= 0.0001:
         return 1
     else:
         return 0
@@ -301,11 +301,15 @@ def demo_all():
 
 if __name__ == "__main__":
     print("demoing {} method".format(METHOD.upper()))
+
     demo_zero()
+
     demo_breakage()
     demo_aggregation()
     demo_breakage_aggregation()
+
     demo_growth()
     demo_nucleation()
     demo_growth_nucleation()
+
     demo_all()
