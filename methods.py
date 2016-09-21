@@ -8,14 +8,17 @@ breakage, aggregation, nucleation and growth. The different kernel functions
 can be arbitrarily defined by the user.
 """
 
+import sys
 import matplotlib.pyplot as plt
-from numpy import linspace, zeros, finfo
+from numpy import linspace, zeros, finfo, inf
 max_float = finfo("float").max
 from copy import deepcopy
 from scipy.integrate import quad
 from WR.util import zero, kronecker, hstep, Spinner
 
 
+# TODO: write explicit exceptions!
+# TODO: remove numpy stuff!?
 class Method:
     """Base class for different sectional methods.
 
@@ -363,13 +366,23 @@ class FixedPivot(Method):
 
             # calculate birth:
             birthi = Gvi * nvi
+            if birthi == -inf:
+                birthi = -max_float
+            elif birthi == inf:
+                birthi = max_float
+
 
             # calculate birth:
             deathi = Gvip1 * nvip1
+            if deathi == -inf:
+                deathi = -max_float
+            elif deathi == inf:
+                deathi = max_float
 
             # calculate new NDF:
             current_particles = self._current.section(i).particles
             new_particles = current_particles + step * (birthi - deathi)
+            sys.stderr.write("i={}, Bi={}, Di={}, Pi={}\n".format(i, birthi, deathi, new_particles))
             if new_particles < 0:
                 self._current.section(i).particles = 0
             else:

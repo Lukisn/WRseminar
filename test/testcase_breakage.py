@@ -1,5 +1,11 @@
 #!/usr/bin/env python3
 
+"""
+Testcase for pure breakage.
+
+Taken from ...
+"""
+
 import numpy as np
 import matplotlib.pyplot as plt
 from math import exp
@@ -7,25 +13,27 @@ from WR.grid import Grid
 from WR.methods import FixedPivot, CellAverage
 
 
+def step(x, L):
+    if x < L:
+        return 1
+    else:
+        return 0
+
+
+def num_delta(x, L, eps=1e-1):
+    assert eps > 0
+
+    min = L - eps
+    max = L + eps
+
+    if min <= x <= max:
+        return 1
+    else:
+        return 0
+
+
 def main():
-
-    def step(x, L):
-        if x < L:
-            return 1
-        else:
-            return 0
-
-    def num_delta(x, L, eps=1e-1):
-        assert eps > 0
-
-        min = L - eps
-        max = L + eps
-
-        if min <= x <= max:
-            return 1
-        else:
-            return 0
-
+    # TODO: tweak initial delta function representation!
     # initial NDF:
     L = 1
 
@@ -36,7 +44,11 @@ def main():
     SECTIONS = 100
     FACTOR = 1.25
 
-    # Breakage:
+    initial_ndf = Grid.create_geometric_end(
+        start=START, end=END, sections=SECTIONS, factor=FACTOR, func=f
+    )
+
+    # Breakage functions:
     def Gamma(v):
         return v
 
@@ -50,10 +62,8 @@ def main():
     EVERY = None
     ORDER = 1
 
-    # setup method and do simulation:
-    initial_ndf = Grid.create_geometric_end(
-        start=START, end=END, sections=SECTIONS, factor=FACTOR, func=f
-    )
+    # setup methods and do simulation:
+    # Fixed Pivot Method:
     fp = FixedPivot(
         initial=initial_ndf,
         bre=True, bre_freq=Gamma, child=beta,
@@ -63,7 +73,7 @@ def main():
         start_time=T0, end_time=TEND, steps=STEPS,
         write_every=EVERY, max_order=ORDER
     )
-
+    # Cell Average Technique:
     ca = CellAverage(
         initial=initial_ndf,
         bre=True, bre_freq=Gamma, child=beta,

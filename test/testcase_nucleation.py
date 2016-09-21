@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 """
-Testcase for pure aggregation (coagulation).
+Testcase for pure nucleation.
 
 Taken from ...
 """
@@ -13,6 +13,19 @@ from WR.grid import Grid
 from WR.methods import FixedPivot, CellAverage
 
 
+def num_delta(x, L, eps=1e-1):
+    assert eps > 0
+
+    min = L - eps
+    max = L + eps
+
+    if min <= x <= max:
+        return 1
+    else:
+        return 0
+
+
+# TODO: find testcase!
 def main():
     # initial NDF:
     N0 = 1
@@ -29,11 +42,9 @@ def main():
         start=START, end=END, sections=SECTIONS, factor=FACTOR, func=f
     )
 
-    # Breakage function:
-    Q0 = 1
-
-    def Q(v1, v2, Q0=Q0):
-        return Q0
+    # Nucleation functions:
+    def S(v):
+        return num_delta(v, 1e-5, eps=1e-6)
 
     # Simulation:
     T0 = 0
@@ -42,12 +53,12 @@ def main():
     EVERY = None
     ORDER = 1
 
-    # setup method and do simulation:
+    # setup methods and do simulation:
     # Fixed Pivot Method:
     fp = FixedPivot(
         initial=initial_ndf,
-        agg=True, agg_freq=Q,
-        bre=False, gro=False, nuc=False
+        nuc=True, nuc_rate=S,
+        bre=False, agg=False, gro=False
     )
     fp.simulate(
         start_time=T0, end_time=TEND, steps=STEPS,
@@ -56,27 +67,23 @@ def main():
     # Cell Average Technique:
     ca = CellAverage(
         initial=initial_ndf,
-        agg=True, agg_freq=Q,
-        bre=False, gro=False, nuc=False
+        nuc=True, nuc_rate=S,
+        bre=False, agg=False, gro=False
     )
     ca.simulate(
         start_time=T0, end_time=TEND, steps=STEPS,
         write_every=EVERY, max_order=ORDER
     )
 
-    # analytic solution
-    def n(t, x, N0=N0, v0=v0, Q0=Q0):
-        Ta = N0 * Q0 * t
-        first = ((12 * N0 * x**2) / (v0 * (Ta + 2)**2))
-        inner = (-2 * x**3) / (v0 * (Ta + 2))
-        return first * np.exp(inner)
+    # analytic solution:
+    # TODO:
 
     # plot comparison:
-    ana_x = initial_ndf.pivots()
-    ana_y = []
-    for x in ana_x:
-        ana_y.append(n(TEND, x))
-    plt.plot(ana_x, ana_y, "-", label="analytic")
+    #ana_x = initial_ndf.pivots()
+    #ana_y = []
+    #for x in ana_x:
+    #    ana_y.append(n(TEND, x))
+    #plt.plot(ana_x, ana_y, "-", label="analytic")
 
     ini_x = initial_ndf.pivots()
     ini_y = initial_ndf.densities()
@@ -90,7 +97,7 @@ def main():
     ca_y = ca.result_ndfs[TEND].densities()
     plt.plot(ca_x, ca_y, ".-", label="cell average")
 
-    plt.xlim(1e-5, 1e5)
+    plt.xlim(1e-5, 1e1)
     plt.ylim(1e-10, 1e5)
     plt.xscale("log")
     plt.yscale("log")
