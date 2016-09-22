@@ -43,10 +43,22 @@ def zero(*args, **kwars):
     return 0
 
 
+def step(x):
+    """Simple step function.
+
+    :param x: function argument.
+    :return: result.
+    """
+    if x < 0:
+        return 1
+    else:
+        return 0
+
+
 def hstep(x):
     """Heavyside step function.
 
-    :param x: argument.
+    :param x: function argument.
     :return: result.
     """
     if x == 0:

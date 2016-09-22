@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 
 """
-Testcase for pure growth.
+Demo case for pure aggregation (coagulation).
 
-Taken from Yuan paper Case 1.
+Taken from Yuan paper case 9.
 """
 
 import numpy as np
@@ -12,18 +12,16 @@ from math import exp
 from WR.grid import Grid
 from WR.methods import FixedPivot, CellAverage
 
-
-# TODO: find test case!
+# TODO: implement test case!
 def main():
     # initial NDF:
-    def f(x):
-        res = 60 * x ** 2 * (1 - x) ** 3
-        if res < 0:
-            return 0
-        else:
-            return res
+    N0 = 1
+    v0 = 1
 
-    START, END = 0, 1
+    def f(x, N0=N0, v0=v0):
+        return (3 * N0 / v0) * x ** 2 * exp(-x ** 3 / v0)
+
+    START, END = 0, 1e5
     SECTIONS = 100
     FACTOR = 1.25
 
@@ -31,22 +29,25 @@ def main():
         start=START, end=END, sections=SECTIONS, factor=FACTOR, func=f
     )
 
-    # Growth function:
-    def Q(v):
-        return -0.5
+    # Breakage function:
+    Q0 = 1
+
+    def Q(v1, v2, Q0=Q0):
+        return Q0
 
     # Simulation:
-    T0, TEND = 0, 0.5
-    STEPS = 50
+    T0 = 0
+    TEND = 1
+    STEPS = 10
     EVERY = None
     ORDER = 1
 
-    # setup methods and do simulation:
+    # setup method and do simulation:
     # Fixed Pivot Method:
     fp = FixedPivot(
         initial=initial_ndf,
-        gro=True, gro_rate=Q,
-        bre=False, agg=False, nuc=False
+        agg=True, agg_freq=Q,
+        bre=False, gro=False, nuc=False
     )
     fp.simulate(
         start_time=T0, end_time=TEND, steps=STEPS,
@@ -55,20 +56,20 @@ def main():
     # Cell Average Technique:
     ca = CellAverage(
         initial=initial_ndf,
-        gro=True, gro_rate=Q,
-        bre=False, agg=False, nuc=False
+        agg=True, agg_freq=Q,
+        bre=False, gro=False, nuc=False
     )
     ca.simulate(
         start_time=T0, end_time=TEND, steps=STEPS,
         write_every=EVERY, max_order=ORDER
     )
 
-    # analytic solution:
-    def n(t, x):
-        return max(
-            60 * (x + t/2) ** 2 * (1 - (x + t/2)) ** 3,
-            0
-        )
+    # analytic solution
+    def n(t, x, N0=N0, v0=v0, Q0=Q0):
+        Ta = N0 * Q0 * t
+        first = ((12 * N0 * x**2) / (v0 * (Ta + 2)**2))
+        inner = (-2 * x**3) / (v0 * (Ta + 2))
+        return first * np.exp(inner)
 
     # plot comparison:
     ana_x = initial_ndf.pivots()
@@ -89,10 +90,10 @@ def main():
     ca_y = ca.result_ndfs[TEND].densities()
     plt.plot(ca_x, ca_y, ".-", label="cell average")
 
-    plt.xlim(0, 1)
-    plt.ylim(0, 5)
-    plt.xscale("linear")
-    plt.yscale("linear")
+    plt.xlim(1e-5, 1e5)
+    plt.ylim(1e-10, 1e5)
+    plt.xscale("log")
+    plt.yscale("log")
     plt.legend(loc="best", fontsize="small")
     plt.grid()
     plt.show()

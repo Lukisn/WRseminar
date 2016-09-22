@@ -15,7 +15,6 @@ import matplotlib.pyplot as plt
 from WR.util import zero
 
 
-# TODO: cover every function/method call with parameter checks!
 def find_initial_step(start, end, steps, factor, max_err=1e-14, max_iter=100):
     """Find initial step size for geometric grid with given parameters.
 

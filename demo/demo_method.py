@@ -24,7 +24,7 @@ def f(v, N0=1, v0=1):
     #return (N0 / v0) * np.exp(-v / v0)
 
 
-def gamma(v):
+def Gamma(v):
     """breakage frequency function.
     """
     return v ** 2
@@ -119,13 +119,13 @@ def demo_breakage():
     if METHOD == "fixed pivot":
         method = FixedPivot(
             initial=ini,
-            bre=True, bre_freq=gamma, child=beta,
+            bre=True, bre_freq=Gamma, child=beta,
             agg=False, gro=False, nuc=False
         )
     elif METHOD == "cell average":
         method = CellAverage(
             initial=ini,
-            bre=True, bre_freq=gamma, child=beta,
+            bre=True, bre_freq=Gamma, child=beta,
             agg=False, gro=False, nuc=False
         )
     else:
@@ -171,14 +171,14 @@ def demo_breakage_aggregation():
     if METHOD == "fixed pivot":
         method = FixedPivot(
             initial=ini,
-            bre=True, bre_freq=gamma, child=beta,
+            bre=True, bre_freq=Gamma, child=beta,
             agg=True, agg_freq=Q,
             gro=False, nuc=False
         )
     elif METHOD == "cell average":
         method = CellAverage(
             initial=ini,
-            bre=True, bre_freq=gamma, child=beta,
+            bre=True, bre_freq=Gamma, child=beta,
             agg=True, agg_freq=Q,
             gro=False, nuc=False
         )
@@ -279,7 +279,7 @@ def demo_all():
     if METHOD == "fixed pivot":
         method = FixedPivot(
             initial=ini,
-            bre=True, bre_freq=gamma, child=beta,
+            bre=True, bre_freq=Gamma, child=beta,
             agg=True, agg_freq=Q,
             gro=True, gro_rate=G,
             nuc=True, nuc_rate=S
@@ -287,7 +287,7 @@ def demo_all():
     elif METHOD == "cell average":
         method = CellAverage(
             initial=ini,
-            bre=True, bre_freq=gamma, child=beta,
+            bre=True, bre_freq=Gamma, child=beta,
             agg=True, agg_freq=Q,
             gro=True, gro_rate=G,
             nuc=True, nuc_rate=S

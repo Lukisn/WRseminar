@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 
 """
-Testcase for pure breakage.
+Demo case for pure growth
+(positive = condensation / negative = evaporation).
 
-Taken from ...
+Taken from Yuan paper Case 4, (5) (both condensation).
+(Also possible Cases 1, 2, 3 (evaporation).)
 """
 
 import numpy as np
@@ -13,34 +15,17 @@ from WR.grid import Grid
 from WR.methods import FixedPivot, CellAverage
 
 
-def step(x, L):
-    if x < L:
-        return 1
-    else:
-        return 0
-
-
-def num_delta(x, L, eps=1e-1):
-    assert eps > 0
-
-    min = L - eps
-    max = L + eps
-
-    if min <= x <= max:
-        return 1
-    else:
-        return 0
-
-
+# TODO: implement first testcase!
 def main():
-    # TODO: tweak initial delta function representation!
     # initial NDF:
-    L = 1
+    def f(x):
+        res = 60 * x ** 2 * (1 - x) ** 3
+        if res < 0:
+            return 0
+        else:
+            return res
 
-    def f(x, L=L):
-        return num_delta(x, L)
-
-    START, END = 0, 1e1
+    START, END = 0, 1
     SECTIONS = 100
     FACTOR = 1.25
 
@@ -48,17 +33,13 @@ def main():
         start=START, end=END, sections=SECTIONS, factor=FACTOR, func=f
     )
 
-    # Breakage functions:
-    def Gamma(v):
-        return v
-
-    def beta(v1, v2):
-        return 2 / v2
+    # Growth function:
+    def Q(v):
+        return -0.5
 
     # Simulation:
-    T0 = 0
-    TEND = 1
-    STEPS = 10
+    T0, TEND = 0, 0.5
+    STEPS = 50
     EVERY = None
     ORDER = 1
 
@@ -66,8 +47,8 @@ def main():
     # Fixed Pivot Method:
     fp = FixedPivot(
         initial=initial_ndf,
-        bre=True, bre_freq=Gamma, child=beta,
-        agg=False, gro=False, nuc=False
+        gro=True, gro_rate=Q,
+        bre=False, agg=False, nuc=False
     )
     fp.simulate(
         start_time=T0, end_time=TEND, steps=STEPS,
@@ -76,8 +57,8 @@ def main():
     # Cell Average Technique:
     ca = CellAverage(
         initial=initial_ndf,
-        bre=True, bre_freq=Gamma, child=beta,
-        agg= False, gro=False, nuc=False
+        gro=True, gro_rate=Q,
+        bre=False, agg=False, nuc=False
     )
     ca.simulate(
         start_time=T0, end_time=TEND, steps=STEPS,
@@ -85,9 +66,11 @@ def main():
     )
 
     # analytic solution:
-    def n(t, x, L=L):
-        brace = num_delta(x, L) + (2 * t + t**2 * (L - x)) * step(x, L)
-        return exp(-t * x) * brace
+    def n(t, x):
+        return max(
+            60 * (x + t/2) ** 2 * (1 - (x + t/2)) ** 3,
+            0
+        )
 
     # plot comparison:
     ana_x = initial_ndf.pivots()
@@ -108,10 +91,10 @@ def main():
     ca_y = ca.result_ndfs[TEND].densities()
     plt.plot(ca_x, ca_y, ".-", label="cell average")
 
-    plt.xlim(1e-5, 1e1)
-    #plt.ylim(1e-10, 1e5)
-    plt.xscale("log")
-    plt.yscale("log")
+    plt.xlim(0, 1)
+    plt.ylim(0, 5)
+    plt.xscale("linear")
+    plt.yscale("linear")
     plt.legend(loc="best", fontsize="small")
     plt.grid()
     plt.show()
