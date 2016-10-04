@@ -10,22 +10,22 @@ Taken from Yuan paper Case 4, (5) (both condensation).
 
 import numpy as np
 import matplotlib.pyplot as plt
-from math import exp
+from math import exp, sqrt
 from WR.grid import Grid
 from WR.methods import FixedPivot, CellAverage
 
 
 # TODO: implement first testcase!
 def main():
+
     # initial NDF:
     def f(x):
-        res = 60 * x ** 2 * (1 - x) ** 3
-        if res < 0:
-            return 0
-        else:
-            return res
+        #p = 2
+        #q = 8
+        #return (2**p / 7**q) * (x - 1)**q * (15 - x)**q
+        return 6 * x**3 * exp(-x)
 
-    START, END = 0, 1
+    START, END = 0, 50
     SECTIONS = 100
     FACTOR = 1.25
 
@@ -34,12 +34,14 @@ def main():
     )
 
     # Growth function:
-    def Q(v):
-        return -0.5
+    def G(v):
+        #K = 0.78
+        #return K / v
+        return v / 2
 
     # Simulation:
-    T0, TEND = 0, 0.5
-    STEPS = 50
+    T0, TEND = 0, 1
+    STEPS = 10
     EVERY = None
     ORDER = 1
 
@@ -47,7 +49,7 @@ def main():
     # Fixed Pivot Method:
     fp = FixedPivot(
         initial=initial_ndf,
-        gro=True, gro_rate=Q,
+        gro=True, gro_rate=G,
         bre=False, agg=False, nuc=False
     )
     fp.simulate(
@@ -57,7 +59,7 @@ def main():
     # Cell Average Technique:
     ca = CellAverage(
         initial=initial_ndf,
-        gro=True, gro_rate=Q,
+        gro=True, gro_rate=G,
         bre=False, agg=False, nuc=False
     )
     ca.simulate(
@@ -67,10 +69,17 @@ def main():
 
     # analytic solution:
     def n(t, x):
-        return max(
-            60 * (x + t/2) ** 2 * (1 - (x + t/2)) ** 3,
-            0
-        )
+        #K = 0.78
+        #a = sqrt(1 + 2*K*t)
+        #b = sqrt(15**2 + 2*K*t)
+        #if a < x < b:
+        #    root = sqrt(x**2 - 2*K*t)
+        #    return f(root)* x / root
+        #else:
+        #    return 0
+        num = (x * exp(-t / 2))**3 * exp(-x * exp(-t / 2))
+        den = 6 * exp(t / 2)
+        return num / den
 
     # plot comparison:
     ana_x = initial_ndf.pivots()
@@ -91,8 +100,8 @@ def main():
     ca_y = ca.result_ndfs[TEND].densities()
     plt.plot(ca_x, ca_y, ".-", label="cell average")
 
-    plt.xlim(0, 1)
-    plt.ylim(0, 5)
+    #plt.xlim(0, 1e3)
+    #plt.ylim(0, 5)
     plt.xscale("linear")
     plt.yscale("linear")
     plt.legend(loc="best", fontsize="small")

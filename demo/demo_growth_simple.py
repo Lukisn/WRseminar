@@ -1,48 +1,37 @@
 #!/usr/bin/env python3
 
 """
-Demo case for pure breakage.
-
-Taken from Yuan paper case 8.
-(Also possible but using source term are cases 6 and 7.)
+Demo case for pure growth
 """
 
+import numpy as np
 import matplotlib.pyplot as plt
 from math import exp, sqrt, pi
-from WR.util import step, hstep
 from WR.grid import Grid
 from WR.methods import FixedPivot, CellAverage
 
 
-# TODO: tune initial representation!
-# TODO: do actual comparison!
-def num_delta(x, a=1e-1):
-    """Numeric representation of the dirac delta function.
-    """
-    assert a > 0
-    return 1 / (a * sqrt(pi)) * exp(-x ** 2 / a ** 2)  # normal distribution
-
-
+# TODO: check moments!
+# TODO: find out why ca has negative numeric diffusion!?!?!!!
 def main():
 
     # initial NDF:
     def f(x):
-        return num_delta(x - 1)
+        sig = 0.5
+        mu = 2
+        return 1 / (sqrt(2 * pi * sig**2)) * exp(-(x - mu)**2 / (2 * sig**2))
 
     START, END = 0, 10
     SECTIONS = 100
-    FACTOR = 1.25
+    FACTOR = 1.1
 
     initial_ndf = Grid.create_geometric_end(
         start=START, end=END, sections=SECTIONS, factor=FACTOR, func=f
     )
 
-    # Breakage functions:
-    def Gamma(v):
-        return v ** 2
-
-    def beta(v1, v2):
-        return 2 / v2
+    # Growth function:
+    def Q(v):
+        return 1
 
     # Simulation:
     T0, TEND = 0, 1
@@ -54,8 +43,8 @@ def main():
     # Fixed Pivot Method:
     fp = FixedPivot(
         initial=initial_ndf,
-        bre=True, bre_freq=Gamma, child=beta,
-        agg=False, gro=False, nuc=False
+        gro=True, gro_rate=Q,
+        bre=False, agg=False, nuc=False
     )
     fp.simulate(
         start_time=T0, end_time=TEND, steps=STEPS,
@@ -64,8 +53,8 @@ def main():
     # Cell Average Technique:
     ca = CellAverage(
         initial=initial_ndf,
-        bre=True, bre_freq=Gamma, child=beta,
-        agg= False, gro=False, nuc=False
+        gro=True, gro_rate=Q,
+        bre=False, agg=False, nuc=False
     )
     ca.simulate(
         start_time=T0, end_time=TEND, steps=STEPS,
@@ -74,8 +63,10 @@ def main():
 
     # analytic solution:
     def n(t, x):
-        brace = num_delta(x - 1) + 2 * t * hstep(1 - x)
-        return exp(-t * x ** 2) * brace
+        sig = 0.5
+        mu = 2 + t
+        return 1 / (sqrt(2 * pi * sig ** 2)) * exp(
+            -(x - mu) ** 2 / (2 * sig ** 2))
 
     # plot comparison:
     ana_x = initial_ndf.pivots()
@@ -86,7 +77,7 @@ def main():
 
     ini_x = initial_ndf.pivots()
     ini_y = initial_ndf.densities()
-    plt.plot(ini_x, ini_y, ".-", label="initial")
+    plt.plot(ini_x, ini_y, label="initial")
 
     fp_x = fp.result_ndfs[TEND].pivots()
     fp_y = fp.result_ndfs[TEND].densities()
@@ -96,10 +87,10 @@ def main():
     ca_y = ca.result_ndfs[TEND].densities()
     plt.plot(ca_x, ca_y, ".-", label="cell average")
 
-    plt.xlim(1e-5, 1e1)
-    plt.ylim(1e-10, 1e5)
-    plt.xscale("log")
-    plt.yscale("log")
+    #plt.xlim(0, 1e3)
+    #plt.ylim(0, 5)
+    plt.xscale("linear")
+    plt.yscale("linear")
     plt.legend(loc="best", fontsize="small")
     plt.grid()
     plt.show()

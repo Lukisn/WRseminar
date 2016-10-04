@@ -546,7 +546,7 @@ class Grid:
 
         # create initial grid:
         initial_max = start + initial_step
-        particles = quad(func, start, initial_max)[0]
+        particles, err = quad(func, start, initial_max)
         grid = Grid(start, initial_max, particles)
 
         # add sections to the grid:
@@ -558,7 +558,7 @@ class Grid:
             last_section = grid._sections[-1]
             lower = last_section.end
             upper = last_section.end + current_size
-            particles = quad(func, lower, upper)[0]
+            particles, err = quad(func, lower, upper)
             grid.add_right(size=current_size, particles=particles)
 
         # clean up last section(s):
@@ -574,7 +574,7 @@ class Grid:
             last_section.end = end
             lower = last_section.end
             upper = last_section.end + current_size
-            particles = quad(func, lower, upper)[0]
+            particles, err = quad(func, lower, upper)
             last_section.particles = particles
 
         return grid

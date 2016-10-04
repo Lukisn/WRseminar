@@ -8,18 +8,18 @@ Taken from Yuan paper case 9.
 
 import numpy as np
 import matplotlib.pyplot as plt
-from math import exp
+from scipy.special import iv  # modified bessel function
+from math import exp, sqrt
 from WR.grid import Grid
 from WR.methods import FixedPivot, CellAverage
 
-# TODO: implement test case!
-def main():
-    # initial NDF:
-    N0 = 1
-    v0 = 1
 
-    def f(x, N0=N0, v0=v0):
-        return (3 * N0 / v0) * x ** 2 * exp(-x ** 3 / v0)
+# TODO: do actual comparison!
+def main():
+
+    # initial NDF:
+    def f(x):
+        return exp(-x)
 
     START, END = 0, 1e5
     SECTIONS = 100
@@ -29,15 +29,12 @@ def main():
         start=START, end=END, sections=SECTIONS, factor=FACTOR, func=f
     )
 
-    # Breakage function:
-    Q0 = 1
-
-    def Q(v1, v2, Q0=Q0):
-        return Q0
+    # Aggregation function:
+    def Q(v1, v2):
+        return v1 + v2
 
     # Simulation:
-    T0 = 0
-    TEND = 1
+    T0, TEND = 0, 1
     STEPS = 10
     EVERY = None
     ORDER = 1
@@ -65,11 +62,10 @@ def main():
     )
 
     # analytic solution
-    def n(t, x, N0=N0, v0=v0, Q0=Q0):
-        Ta = N0 * Q0 * t
-        first = ((12 * N0 * x**2) / (v0 * (Ta + 2)**2))
-        inner = (-2 * x**3) / (v0 * (Ta + 2))
-        return first * np.exp(inner)
+    def n(t, x):
+        ratio = (exp(-t - 2 * x + x * exp(-t))) / (x * sqrt(1 - exp(-t)))
+        bessel = iv(1, 2 * x * sqrt(1 - exp(-t)))
+        return ratio * bessel
 
     # plot comparison:
     ana_x = initial_ndf.pivots()
