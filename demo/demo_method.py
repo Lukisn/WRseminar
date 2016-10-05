@@ -13,8 +13,8 @@ FACTOR = 1.3
 END_TIME = 1
 STEPS = 100
 
-#METHOD = "fixed pivot"
-METHOD = "cell average"
+METHOD = "fixed pivot"
+#METHOD = "cell average"
 
 
 def f(v, N0=1, v0=1):

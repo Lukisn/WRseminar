@@ -14,7 +14,7 @@ from numpy import linspace, zeros, finfo, inf
 max_float = finfo("float").max
 from copy import deepcopy
 from scipy.integrate import quad
-from WR.util import zero, kronecker, hstep, Spinner
+from WR.cmdline import zero, kronecker, hstep, Spinner
 
 
 # TODO: write explicit exceptions!

@@ -9,17 +9,19 @@ Taken from Yuan paper case 8.
 
 import matplotlib.pyplot as plt
 from math import exp, sqrt, pi
-from WR.util import step, hstep
+from WR.cmdline import step, hstep
 from WR.grid import Grid
 from WR.methods import FixedPivot, CellAverage
 
 
-# TODO: tune initial representation!
+# FIXME: discrepency according to numerical representation of the dirac delta!
 # TODO: do actual comparison!
-def num_delta(x, a=1e-1):
+def num_delta(x, a=1e-3):
     """Numeric representation of the dirac delta function.
     """
     assert a > 0
+    # TODO: try simple function with more stable integral behaviour.
+
     return 1 / (a * sqrt(pi)) * exp(-x ** 2 / a ** 2)  # normal distribution
 
 
@@ -31,7 +33,7 @@ def main():
 
     START, END = 0, 10
     SECTIONS = 100
-    FACTOR = 1.25
+    FACTOR = 1.1
 
     initial_ndf = Grid.create_geometric_end(
         start=START, end=END, sections=SECTIONS, factor=FACTOR, func=f
@@ -47,7 +49,7 @@ def main():
     # Simulation:
     T0, TEND = 0, 1
     STEPS = 10
-    EVERY = None
+    EVERY = 1
     ORDER = 1
 
     # setup methods and do simulation:
@@ -77,7 +79,7 @@ def main():
         brace = num_delta(x - 1) + 2 * t * hstep(1 - x)
         return exp(-t * x ** 2) * brace
 
-    # plot comparison:
+    # plot NDF comparison:
     ana_x = initial_ndf.pivots()
     ana_y = []
     for x in ana_x:
@@ -90,16 +92,40 @@ def main():
 
     fp_x = fp.result_ndfs[TEND].pivots()
     fp_y = fp.result_ndfs[TEND].densities()
-    plt.plot(fp_x, fp_y, ".-", label="fixed pivot")
+    plt.plot(fp_x, fp_y, "x-", label="fixed pivot")
 
     ca_x = ca.result_ndfs[TEND].pivots()
     ca_y = ca.result_ndfs[TEND].densities()
     plt.plot(ca_x, ca_y, ".-", label="cell average")
 
     plt.xlim(1e-5, 1e1)
-    plt.ylim(1e-10, 1e5)
+    plt.ylim(1e-5, 1e2)
     plt.xscale("log")
     plt.yscale("log")
+    plt.legend(loc="best", fontsize="small")
+    plt.grid()
+    plt.show()
+
+    # plot moments comparison:
+    times = sorted(fp.result_moments)
+    moments = {"fp": {}, "ca": {}}
+    for method in moments.keys():
+        for order in range(ORDER + 1):
+            moments[method][order] = []
+            for time in times:
+                moments[method][order].append(fp.result_moments[time][order])
+    print(moments)
+
+    plt.xlabel("time")
+    plt.ylabel("moment")
+    for method in moments.keys():
+        if method == "ca":
+            symbol = ".-"
+        else:  # method == "fp"
+            symbol = "x-"
+        for order in range(ORDER + 1):
+            plt.plot(times, moments[method][order], symbol, label="{}-moment{}".format(method, order))
+
     plt.legend(loc="best", fontsize="small")
     plt.grid()
     plt.show()

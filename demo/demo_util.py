@@ -1,12 +1,17 @@
 #!/usr/bin/env python3
 
-from WR.util import prompt_continue, prompt_yes_no, YES, NO
-from WR.util import prompt_input_str, prompt_input_int, prompt_input_float
-from WR.util import prompt_sure, prompt_input_list
-from WR.util import Spinner, Progress
+"""
+Module demonstrating the basic usage of the command line utilities.
+"""
+from WR.cmdline import prompt_continue, prompt_yes_no, YES, NO
+from WR.cmdline import prompt_input_str, prompt_input_int, prompt_input_float
+from WR.cmdline import prompt_sure, prompt_input_list
+from WR.cmdline import Spinner, Progress
 
 
-def demo_prompts():
+def demo_basic_prompts():
+    """Demo basic prompt functions: continue, yes_no, input_str/int/float.
+    """
     prompt_continue("Really?")
 
     res = prompt_yes_no("Yes or Yes?", verbose=False)
@@ -28,6 +33,8 @@ def demo_prompts():
 
 
 def demo_fancy_prompts():
+    """Demo fancy prompt functions: sure, input_list.
+    """
     sure_answer = prompt_sure(prompt_input_int, "Your fave number?",
                               verbose=False)
     print("Youre surely fave number is '{}'.".format(sure_answer))
@@ -37,6 +44,8 @@ def demo_fancy_prompts():
 
 
 def demo_spinner():
+    """Demo Spinner context manager class.
+    """
     MAX = int(1e7)
     print("before")
     with Spinner("finding numbers") as spinner:
@@ -51,6 +60,8 @@ def demo_spinner():
 
 
 def demo_progress():
+    """Demo Progress context manager class.
+    """
     MAX = int(1e7)
     print("before")
     with Progress("finding numbers") as progress:
@@ -65,7 +76,7 @@ def demo_progress():
 
 
 if __name__ == "__main__":
-    demo_prompts()
+    demo_basic_prompts()
     demo_fancy_prompts()
     demo_spinner()
     demo_progress()

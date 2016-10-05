@@ -1,75 +1,25 @@
 #!/usr/bin/env python3
 
+"""
+Module implementing some basic command line utilities.
+
+The module contains multiple functions encapsulating some general command line
+interactions with the user. Those functions are prefixed with 'prompt_'.
+Also this module contains two classes for dynamic command line output on a
+single line. Those classes are designed to be used as context managers.
+"""
 import io
 import sys
 import threading
-from itertools import tee, cycle
+from itertools import cycle
 
-YES = ["y", "yes"]
-NO = ["n", "no"]
+# CONSTANTS: ------------------------------------------------------------------
 
-
-def pairwise(iterable):
-    """Pairwise iterator recipe.
-
-    s -> (s0,s1), (s1,s2), (s2, s3), ...
-    taken from: https://docs.python.org/3/library/itertools.html
-
-    :param iterable: iterable object.
-    :return: chained pairs of iterable objects elements.
-    """
-    a, b = tee(iterable)
-    next(b, None)
-    return zip(a, b)
+YES = ["y", "yes"]  # list of possible / accepted 'yes' answers
+NO = ["n", "no"]  # list of possible / accepted 'no' answers
 
 
-def kronecker(i, j):
-    """Function representing the mathematical Kronecker delta symbol.
-
-    :param i: first argument.
-    :param j: second argument.
-    :return: 0 if i == j, 1 otherwise.
-    """
-    return 1 if i == j else 0
-
-
-def zero(*args, **kwars):
-    """Function always returning 0.
-
-    :param args: optional arguments.
-    :param kwars: optional keyword arguments.
-    :return: always 0.
-    """
-    return 0
-
-
-def step(x):
-    """Simple step function.
-
-    :param x: function argument.
-    :return: result.
-    """
-    if x < 0:
-        return 1
-    else:
-        return 0
-
-
-def hstep(x):
-    """Heavyside step function.
-
-    :param x: function argument.
-    :return: result.
-    """
-    if x == 0:
-        return 0.5
-    elif x > 0:
-        return 1
-    elif x < 0:
-        return 0
-    else:
-        raise RuntimeError("This should never happen! '{}'".format(x))
-
+# FUNCTIONS: ------------------------------------------------------------------
 
 def prompt_continue(msg):
     """Prompt a message and wait for [Enter] to continue.
@@ -169,12 +119,12 @@ def prompt_sure(prompt, msg, verbose=True):
 
 
 def prompt_input_list(msg, length=None, verbose=True):
-    """Prompt to input a list of arbitrary values.
+    """Prompt to input a list of strings.
 
     :param msg: Message to be displayed.
-    :param length: accepted length of the list.
-    :param verbose: Flag for verbose output on errors.
-    :return: list.
+    :param length: accepted length of the list (default: None).
+    :param verbose: Flag for verbose output on errors (default: True).
+    :return: list of strings.
     """
     while True:
         if length is None:
@@ -195,11 +145,13 @@ def prompt_input_list(msg, length=None, verbose=True):
                     )
                 elif length < input_length:
                     print("List too short! {} too many items given.".format(
-                        input_length-length)
+                        input_length - length)
                     )
                 else:
                     raise RuntimeError("This should NEVER happen!")
 
+
+# CONTEXT MANAGERS: -----------------------------------------------------------
 
 class Spinner:
     """Context manager class implementing a command line spinner.

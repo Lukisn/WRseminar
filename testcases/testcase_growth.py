@@ -2,48 +2,54 @@
 
 """
 Demo case for pure growth
+(positive = condensation / negative = evaporation).
+
+Taken from Yuan paper Case 4, (5) (both condensation).
+(Also possible Cases 1, 2, 3 (evaporation).)
 """
 
 import numpy as np
 import matplotlib.pyplot as plt
-from math import exp, sqrt, pi
+from math import exp, sqrt
 from WR.grid import Grid
 from WR.methods import FixedPivot, CellAverage
 
 
-# TODO: check moments!
-# TODO: find out why ca has negative numeric diffusion!?!?!!!
+# TODO: implement first testcase!
 def main():
 
     # initial NDF:
     def f(x):
-        sig = 0.5
-        mu = 2
-        return 1 / (sqrt(2 * pi * sig**2)) * exp(-(x - mu)**2 / (2 * sig**2))
+        #p = 2
+        #q = 8
+        #return (2**p / 7**q) * (x - 1)**q * (15 - x)**q
+        return 6 * x**3 * exp(-x)
 
-    START, END = 0, 10
+    START, END = 0, 50
     SECTIONS = 100
-    FACTOR = 1.1
+    FACTOR = 1.25
 
     initial_ndf = Grid.create_geometric_end(
         start=START, end=END, sections=SECTIONS, factor=FACTOR, func=f
     )
 
     # Growth function:
-    def Q(v):
-        return 1
+    def G(v):
+        #K = 0.78
+        #return K / v
+        return v / 2
 
     # Simulation:
     T0, TEND = 0, 1
     STEPS = 10
-    EVERY = None
+    EVERY = 1
     ORDER = 1
 
     # setup methods and do simulation:
     # Fixed Pivot Method:
     fp = FixedPivot(
         initial=initial_ndf,
-        gro=True, gro_rate=Q,
+        gro=True, gro_rate=G,
         bre=False, agg=False, nuc=False
     )
     fp.simulate(
@@ -53,7 +59,7 @@ def main():
     # Cell Average Technique:
     ca = CellAverage(
         initial=initial_ndf,
-        gro=True, gro_rate=Q,
+        gro=True, gro_rate=G,
         bre=False, agg=False, nuc=False
     )
     ca.simulate(
@@ -63,10 +69,17 @@ def main():
 
     # analytic solution:
     def n(t, x):
-        sig = 0.5
-        mu = 2 + t
-        return 1 / (sqrt(2 * pi * sig ** 2)) * exp(
-            -(x - mu) ** 2 / (2 * sig ** 2))
+        #K = 0.78
+        #a = sqrt(1 + 2*K*t)
+        #b = sqrt(15**2 + 2*K*t)
+        #if a < x < b:
+        #    root = sqrt(x**2 - 2*K*t)
+        #    return f(root)* x / root
+        #else:
+        #    return 0
+        num = (x * exp(-t / 2))**3 * exp(-x * exp(-t / 2))
+        den = 6 * exp(t / 2)
+        return num / den
 
     # plot comparison:
     ana_x = initial_ndf.pivots()
@@ -91,6 +104,31 @@ def main():
     #plt.ylim(0, 5)
     plt.xscale("linear")
     plt.yscale("linear")
+    plt.legend(loc="best", fontsize="small")
+    plt.grid()
+    plt.show()
+
+    # plot moments comparison:
+    times = sorted(fp.result_moments)
+    moments = {"fp": {}, "ca": {}}
+    for method in moments.keys():
+        for order in range(ORDER + 1):
+            moments[method][order] = []
+            for time in times:
+                moments[method][order].append(fp.result_moments[time][order])
+    print(moments)
+
+    plt.xlabel("time")
+    plt.ylabel("moment")
+    for method in moments.keys():
+        if method == "ca":
+            symbol = ".-"
+        else:  # method == "fp"
+            symbol = "x-"
+        for order in range(ORDER + 1):
+            plt.plot(times, moments[method][order], symbol,
+                     label="{}-moment{}".format(method, order))
+
     plt.legend(loc="best", fontsize="small")
     plt.grid()
     plt.show()

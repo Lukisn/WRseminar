@@ -8,7 +8,7 @@ Taken from Yuan paper case 12.
 
 import matplotlib.pyplot as plt
 from math import exp
-from WR.util import step, hstep
+from WR.cmdline import step, hstep
 from WR.grid import Grid
 from WR.methods import FixedPivot, CellAverage
 

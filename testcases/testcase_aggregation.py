@@ -23,7 +23,7 @@ def main():
 
     START, END = 0, 1e5
     SECTIONS = 100
-    FACTOR = 1.25
+    FACTOR = 1.2
 
     initial_ndf = Grid.create_geometric_end(
         start=START, end=END, sections=SECTIONS, factor=FACTOR, func=f
@@ -36,7 +36,7 @@ def main():
     # Simulation:
     T0, TEND = 0, 1
     STEPS = 10
-    EVERY = None
+    EVERY = 1
     ORDER = 1
 
     # setup method and do simulation:
@@ -80,7 +80,7 @@ def main():
 
     fp_x = fp.result_ndfs[TEND].pivots()
     fp_y = fp.result_ndfs[TEND].densities()
-    plt.plot(fp_x, fp_y, ".-", label="fixed pivot")
+    plt.plot(fp_x, fp_y, "x-", label="fixed pivot")
 
     ca_x = ca.result_ndfs[TEND].pivots()
     ca_y = ca.result_ndfs[TEND].densities()
@@ -90,6 +90,31 @@ def main():
     plt.ylim(1e-10, 1e5)
     plt.xscale("log")
     plt.yscale("log")
+    plt.legend(loc="best", fontsize="small")
+    plt.grid()
+    plt.show()
+
+    # plot moments comparison:
+    times = sorted(fp.result_moments)
+    moments = {"fp": {}, "ca": {}}
+    for method in moments.keys():
+        for order in range(ORDER + 1):
+            moments[method][order] = []
+            for time in times:
+                moments[method][order].append(fp.result_moments[time][order])
+    print(moments)
+
+    plt.xlabel("time")
+    plt.ylabel("moment")
+    for method in moments.keys():
+        if method == "ca":
+            symbol = ".-"
+        else:  # method == "fp"
+            symbol = "x-"
+        for order in range(ORDER + 1):
+            plt.plot(times, moments[method][order], symbol,
+                     label="{}-moment{}".format(method, order))
+
     plt.legend(loc="best", fontsize="small")
     plt.grid()
     plt.show()

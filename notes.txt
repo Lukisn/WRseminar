@@ -8,4 +8,3 @@
 - Stabilität "courant" zahl
 - nummerische diffusion
 - Gitter studie
-- moving pivot in cell average!?
