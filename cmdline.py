@@ -11,7 +11,9 @@ single line. Those classes are designed to be used as context managers.
 import io
 import sys
 import threading
+from time import perf_counter
 from itertools import cycle
+
 
 # CONSTANTS: ------------------------------------------------------------------
 
@@ -156,7 +158,8 @@ def prompt_input_list(msg, length=None, verbose=True):
 class Spinner:
     """Context manager class implementing a command line spinner.
     """
-    def __init__(self, task, msg="", end_msg="done.", interval=0.25):
+    def __init__(self, task, msg="", end_msg="done.",
+                 interval=0.25, timing=True):
         """Initializer.
 
         :param task: task name to display.
@@ -168,10 +171,12 @@ class Spinner:
         self._msg = msg
         self._end_msg = end_msg
         self._interval = interval
+        self._timing = timing
         self._timer = threading.Timer(self._interval, self.spin)
         self._cycle = cycle("-\|/-\|/")
         self._buffer = io.StringIO()
         self._stdout = None
+        self._start_time = None
 
     def __enter__(self):
         """Enter context manager.
@@ -181,6 +186,7 @@ class Spinner:
         self._stdout = sys.stdout
         sys.stdout = self._buffer
         self._print_spinner("_")
+        self._start_time = perf_counter()
         self._timer.start()
         return self
 
@@ -188,9 +194,13 @@ class Spinner:
         """Exit context manager.
         """
         self._timer.cancel()
+        end_time = perf_counter()
+        time_taken = (end_time - self._start_time) * 1000  # in ms
         if self._end_msg is not None:
             self._msg = self._end_msg
         self._print_spinner("x")
+        if self._timing:
+            self._stdout.write(" (in {:.2f} ms)".format(time_taken))
         self._stdout.write("\n")
         self._stdout.flush()
         sys.stdout = sys.__stdout__  # self._stdout
@@ -234,7 +244,7 @@ class Progress:
     """Context manager implementing a command line progress bar.
     """
     def __init__(self, task, msg="", end_msg="done.",
-                 percentage=0, length=25, interval=0.25):
+                 percentage=0, length=25, interval=0.25, timing=True):
         """Initializer.
 
         :param task: task name to display.
@@ -250,10 +260,12 @@ class Progress:
         self._percentage = percentage
         self._length = length
         self._interval = interval
+        self._timing = timing
         self._timer = threading.Timer(self._interval, self.update)
         self._buffer = io.StringIO()
         self._stdout = None
         self._completed_char = "#"
+        self._progressing_char = ">"
         self._remaining_char = "_"
 
     def __enter__(self):
@@ -262,6 +274,7 @@ class Progress:
         self._stdout = sys.stdout
         sys.stdout = self._buffer
         self._print_progress()
+        self._start_time = perf_counter()
         self._timer.start()
         return self
 
@@ -269,10 +282,14 @@ class Progress:
         """Exit context manager.
         """
         self._timer.cancel()
+        end_time = perf_counter()
+        time_taken = (end_time - self._start_time) * 1000  # in ms
         self._percentage = 1
         if self._end_msg is not None:
             self._msg = self._end_msg
         self._print_progress()
+        if self._timing:
+            self._stdout.write(" (in {:.2f} ms)".format(time_taken))
         self._stdout.write("\n")
         self._stdout.flush()
         sys.stdout = sys.__stdout__
@@ -282,7 +299,10 @@ class Progress:
         """
         completed = int(self._percentage * self._length)
         remaining = self._length - completed
-        completed_str = self._completed_char * completed
+        if self._percentage < 1:
+            completed_str = self._completed_char * (completed - 1) + self._progressing_char
+        else:
+            completed_str = self._completed_char * completed
         remaining_str = self._remaining_char * remaining
         self._stdout.write(
             "\r{p:3.0f}%[{c}{r}] {t}: {m}".format(

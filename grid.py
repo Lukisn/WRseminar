@@ -339,6 +339,9 @@ class Grid:
             num=number
         )
 
+    def __getitem__(self, item):
+        return self._sections[item]
+
     @property
     def start(self):
         """Getter for grid minimum property.
@@ -354,15 +357,6 @@ class Grid:
         :return: maximum of the grid.
         """
         return self._sections[-1].end  # last section maximum
-
-    def section(self, index):
-        # check parameters:
-        if index < 0 or index >= len(self):
-            raise IndexError("index '{}' out of range (0, {})!".format(index, len(self)))
-        #assert index >= 0
-        #assert index < len(self)
-
-        return self._sections[index]
 
     def add_left(self, size, particles=0):
         """Add new section to the left.
@@ -396,7 +390,6 @@ class Grid:
             raise ValueError("size '{}' <= 0!".format(size))
         if particles < 0:
             raise ValueError("Particles '{}' < 0!".format(particles))
-        #assert size > 0
 
         current_right_section = self._sections[-1]
         new_min = current_right_section.end
@@ -490,32 +483,31 @@ class Grid:
         return moment
 
     @staticmethod
-    def create_uniform(start, end, sections, func=zero, correct=True):
+    def create_uniform(start, end, sec, func=zero, corr=True):
         """Create a uniform grid.
 
         This method is based on the create_geometric() method.
 
         :param start: inclusive minimum of the grid.
         :param end: exclusive maximum of the grid.
-        :param sections: total number of sections in the grid.
+        :param sec: total number of sections in the grid.
         :param func: number density function for calculating particle numbers.
-        :param correct: flag for fixing numeric deviations in the last section.
+        :param corr: flag for fixing numeric deviations in the last section.
         :return: equidistant Grid object.
         """
         # check parameters:
         if start > end:
             raise ValueError("start '{}' > end '{}'!".format(start, end))
-        if sections <= 0:
-            raise ValueError("sections '{}' <= 0!".format(sections))
+        if sec <= 0:
+            raise ValueError("sections '{}' <= 0!".format(sec))
 
         # create grid:
         return Grid.create_geometric_step(
-            start, end, sections, factor=1, func=func, correct=correct
+            start, end, sec, fact=1, func=func, corr=corr
         )
 
     @staticmethod
-    def create_geometric(start, end, initial_step, factor, func=zero,
-                         correct=True):
+    def create_geometric(start, end, ini_sec, fact, func=zero, corr=True):
         """Create a geometric grid.
 
         The grid is created using the given initial step size. By default the
@@ -526,61 +518,74 @@ class Grid:
 
         :param start: inclusive minimum of the grid.
         :param end: exclusive maximum of the grid.
-        :param initial_step: step size of the first step in the grid.
-        :param factor: factor controlling size change.
+        :param ini_sec: step size of the first step in the grid.
+        :param fact: factor controlling size change.
         :param func: particle number density function.
-        :param correct: flag for fixing numeric deviations in the last section.
+        :param corr: flag for fixing numeric deviations in the last section.
         :return: geometric Grid object.
         """
         # check parameters:
         if start >= end:
             raise ValueError("start '{}' >= end '{}'!".format(start, end))
-        if initial_step <= 0:
-            raise ValueError("initial_step '{}' <= 0!".format(initial_step))
-        if factor < 1:
-            raise ValueError("factor '{}' < 1!".format(factor))
-        # assert start <= end
-        # assert initial_step > 0
-        # assert factor >= 1
+        if ini_sec <= 0:
+            raise ValueError("initial_step '{}' <= 0!".format(ini_sec))
+        if fact < 1:
+            raise ValueError("factor '{}' < 1!".format(fact))
 
-        # create initial grid:
-        initial_max = start + initial_step
-        particles, err = quad(func, start, initial_max)
+        # create initial grid / first section:
+        initial_max = start + ini_sec
+        particles, _ = quad(func, start, initial_max)
         grid = Grid(start, initial_max, particles)
 
         # add sections to the grid:
-        current_size = initial_step
+        current_size = ini_sec
         current_max = initial_max
         while current_max < end:
-            current_size *= factor
+            current_size *= fact
             current_max += current_size
-            last_section = grid._sections[-1]
-            lower = last_section.end
-            upper = last_section.end + current_size
-            particles, err = quad(func, lower, upper)
-            grid.add_right(size=current_size, particles=particles)
+
+            grid.add_right(size=current_size)
+            current_section = grid[-1]
+            lower = current_section.start
+            upper = current_section.end
+            particles, _ = quad(func, lower, upper)
+            current_section.particles = particles
 
         # clean up last section(s):
-        if correct:
+        if corr:
+            last_section = grid[-1]
+            last_min = last_section.start
+            last_max = last_section.end
+            inside = end - last_min  # left side of the last section
+            outside = last_max - end  # rigth side of the last section
+            if inside < outside:  # last section pushing outward
+                grid.remove_right()
+                last_section = grid[-1]
+            last_section.end = end
+            lower = last_section.end
+            upper = last_section.end + current_size
+            particles, _ = quad(func, lower, upper)
+            last_section.particles = particles
+        '''
+        if corr:
             last_section = grid._sections[-1]
             last_min = last_section.start
             last_max = last_section.end
-            left = end - last_min  # left side of the last section
-            right = last_max - end  # rigth side of the last section
-            if left < right:  # last section pushing outward
+            inside = end - last_min  # left side of the last section
+            outside = last_max - end  # rigth side of the last section
+            if inside < outside:  # last section pushing outward
                 grid.remove_right()
                 last_section = grid._sections[-1]
             last_section.end = end
             lower = last_section.end
             upper = last_section.end + current_size
-            particles, err = quad(func, lower, upper)
-            last_section.particles = particles
+            particles, _ = quad(func, lower, upper)
+            last_section.particles = particles'''
 
         return grid
 
     @staticmethod
-    def create_geometric_step(start, end, uniform_sections, factor, func=zero,
-                              correct=True):
+    def create_geometric_step(start, end, uni_sec, fact, func=zero, corr=True):
         """Create a geometric grid.
 
         The grid is created by using the same initial step size as the
@@ -591,32 +596,28 @@ class Grid:
 
         :param start: inclusive minimum of the grid.
         :param end: exclusive maximum of the corresponding uniform grid.
-        :param uniform_sections: number of sections in the corresponding uniform grid.
-        :param factor: factor for size change.
+        :param uni_sec: number of sections in the corresponding uniform grid.
+        :param fact: factor for size change.
         :param func: particle number density function.
-        :param correct: flag for fixing numeric deviations in the last section.
+        :param corr: flag for fixing numeric deviations in the last section.
         :return: geometric Grid object.
         """
         # check parameters:
         if start > end:
             raise ValueError("start '{}' > end '{}'!".format(start, end))
-        if uniform_sections <= 0:
-            raise ValueError("sections '{}' <= 0!".format(uniform_sections))
-        if factor < 1:
-            raise ValueError("factor '{}' < 1!".format(factor))
-        #assert start <= end
-        #assert sections > 0
-        #assert factor >= 1
+        if uni_sec <= 0:
+            raise ValueError("sections '{}' <= 0!".format(uni_sec))
+        if fact < 1:
+            raise ValueError("factor '{}' < 1!".format(fact))
 
         # use uniform step size as initial step size and create grid:
-        initial_step = (end - start) / uniform_sections
+        initial_step = (end - start) / uni_sec
         return Grid.create_geometric(
-            start, end, initial_step, factor, func, correct
+            start, end, initial_step, fact, func, corr
         )
 
     @staticmethod
-    def create_geometric_end(start, end, sections, factor, func=zero,
-                             correct=True):
+    def create_geometric_end(start, end, sec, fact, func=zero, corr=True):
         """Create a geometric grid.
 
         The grid is created by choosing an initial step size so the maximum
@@ -626,27 +627,24 @@ class Grid:
 
         :param start: inclusive minimum of the grid.
         :param end: exclusive maximum of the grid.
-        :param sections: number of sections in the corresponding uniform grid.
-        :param factor: factor for size change.
+        :param sec: number of sections in the corresponding uniform grid.
+        :param fact: factor for size change.
         :param func: particle number density function.
-        :param correct: flag for fixing numeric deviations in the last section.
+        :param corr: flag for fixing numeric deviations in the last section.
         :return: geometric Grid object.
         """
         # check parameters:
         if start > end:
             raise ValueError("start '{}' > end '{}'!".format(start, end))
-        if sections <= 0:
-            raise ValueError("sections '{}' <= 0!".format(sections))
-        if factor < 1:
-            raise ValueError("factor '{}' < 1!".format(factor))
-        #assert start <= end
-        #assert sections > 0
-        #assert factor >= 1
+        if sec <= 0:
+            raise ValueError("sections '{}' <= 0!".format(sec))
+        if fact < 1:
+            raise ValueError("factor '{}' < 1!".format(fact))
 
         # calculate initial step size for given parameters and create grid:
-        initial_step = find_initial_step(start, end, sections, factor)
+        initial_step = find_initial_step(start, end, sec, fact)
         return Grid.create_geometric(
-            start, end, initial_step, factor, func, correct
+            start, end, initial_step, fact, func, corr
         )
 
     def _find_seams(self):

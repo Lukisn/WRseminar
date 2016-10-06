@@ -1,27 +1,41 @@
 #!/usr/bin/env python3
 
-import numpy as np
+"""
+Module demonstrating the basic usage of the provided classes for the
+calculation methods.
+"""
 import matplotlib.pyplot as plt
+from math import exp
+from collections import Iterable
 from WR.grid import Grid
 from WR.methods import FixedPivot, CellAverage
 
-MIN = 0
-MAX = 1000
+
+# CONSTANTS: ------------------------------------------------------------------
+
+# GRID:
+START, END = 0, 1000
 SECTIONS = 50
 FACTOR = 1.3
 
+# SIMULATION:
 END_TIME = 1
 STEPS = 100
 
-METHOD = "fixed pivot"
-#METHOD = "cell average"
+# PLOTTING:
+XSCALE, YSCALE = "log", "log"
+XMIN, XMAX = 1e-5, 1e5
+YMIN, YMAX = 1e-5, 1e5
+EVERY = 1
+ORDER = 2
 
+
+# UTILITY FUNCTIONS: ----------------------------------------------------------
 
 def f(v, N0=1, v0=1):
     """initial number density function.
     """
-    return (N0 / v0) * (v / v0) * np.exp(-v / v0)
-    #return (N0 / v0) * np.exp(-v / v0)
+    return (N0 / v0) * (v / v0) * exp(-v / v0)
 
 
 def Gamma(v):
@@ -57,56 +71,71 @@ def S(v):
         return 0
 
 
-def plot_initial_and_current(method):
+def plot_initial_and_current(methods):
+    """Plot initial and current NDFs of the given methods.
+    """
+    if not isinstance(methods, Iterable):
+        methods = [methods]
+
     plt.xlabel("particle volume")
     plt.ylabel("number density")
-    plt.plot(method._initial.pivots(),
-             method._initial.densities(), "g.-", label="initial")
-    plt.plot(method._current.pivots(),
-             method._current.densities(), "r.-", label="current")
-    plt.xscale("log")
-    plt.yscale("log")
-    plt.xlim(1.e-5, 1.e5)
-    plt.ylim(1.e-5, 1.e5)
+    for method in methods:
+        name = method.__class__.__name__
+        ini_pivs, ini_dens = method._initial.pivots(), method._initial.densities()
+        curr_pivs, curr_dens = method._current.pivots(), method._current.densities()
+        plt.plot(ini_pivs, ini_dens, ".-", label="{} ini".format(name))
+        plt.plot(curr_pivs, curr_dens, ".-", label="{} curr".format(name))
+    plt.xscale(XSCALE)
+    plt.yscale(YSCALE)
+    plt.xlim(XMIN, XMAX)
+    plt.ylim(YMIN, YMAX)
     plt.legend(loc="best", fontsize="small")
     plt.grid()
     plt.show()
 
 
-def plot_moments_over_time(method, max_order):
-    times = sorted(method.result_moments)
-    moments = {}
-    for order in range(max_order + 1):
-        moments[order] = []
-        for time in times:
-            moments[order].append(method.result_moments[time][order])
+def plot_moments_over_time(methods, max_order):
+    """Plot development of the moments over time of the given methods.
+    """
+    if not isinstance(methods, Iterable):
+        methods = [methods]
 
     plt.xlabel("time")
     plt.ylabel("moment")
-    for order in range(max_order + 1):
-        plt.plot(times, moments[order], ".-", label="moment{}".format(order))
-
+    for method in methods:
+        name = method.__class__.__name__
+        times = sorted(method.result_moments)
+        moments = {}
+        for order in range(max_order + 1):
+            moments[order] = []
+            for time in times:
+                moments[order].append(method.result_moments[time][order])
+        for order in range(max_order + 1):
+            plt.plot(times, moments[order], ".-", label="{} mom{}".format(name, order))
     plt.legend(loc="best", fontsize="small")
     plt.grid()
     plt.show()
 
+
+# DEMO FUNCTIONS: -------------------------------------------------------------
 
 def demo_zero():
     """Demo basic behaviour without specifying the keyword arguments.
     """
     print("Demoing zero behaviour.")
     ini = Grid.create_geometric_end(
-        start=MIN, end=MAX, sections=SECTIONS, factor=FACTOR, func=f
+        start=START, end=END, sec=SECTIONS, fact=FACTOR, func=f
     )
-    if METHOD == "fixed pivot":
-        method = FixedPivot(initial=ini)
-    elif METHOD == "cell average":
-        method = CellAverage(initial=ini)
-    else:
-        raise ValueError("unknown method '{}'!".format(METHOD))
-    method.simulate(end_time=END_TIME, steps=STEPS, write_every=1, max_order=2)
-    plot_initial_and_current(method)
-    plot_moments_over_time(method, max_order=2)
+    fp = FixedPivot(initial=ini)
+    ca = CellAverage(initial=ini)
+    fp.simulate(
+        end_time=END_TIME, steps=STEPS, write_every=EVERY, max_order=ORDER
+    )
+    ca.simulate(
+        end_time=END_TIME, steps=STEPS, write_every=EVERY, max_order=ORDER
+    )
+    plot_initial_and_current([fp, ca])
+    plot_moments_over_time([fp, ca], max_order=ORDER)
 
 
 def demo_breakage():
@@ -114,25 +143,26 @@ def demo_breakage():
     """
     print("Demoing pure breakage.")
     ini = Grid.create_geometric_end(
-        start=MIN, end=MAX, sections=SECTIONS, factor=FACTOR, func=f
+        start=START, end=END, sec=SECTIONS, fact=FACTOR, func=f
     )
-    if METHOD == "fixed pivot":
-        method = FixedPivot(
-            initial=ini,
-            bre=True, bre_freq=Gamma, child=beta,
-            agg=False, gro=False, nuc=False
-        )
-    elif METHOD == "cell average":
-        method = CellAverage(
-            initial=ini,
-            bre=True, bre_freq=Gamma, child=beta,
-            agg=False, gro=False, nuc=False
-        )
-    else:
-        raise ValueError("unknown method '{}'!".format(METHOD))
-    method.simulate(end_time=END_TIME, steps=STEPS, write_every=1, max_order=2)
-    plot_initial_and_current(method)
-    plot_moments_over_time(method, max_order=2)
+    fp = FixedPivot(
+        initial=ini,
+        bre=True, bre_freq=Gamma, child=beta,
+        agg=False, gro=False, nuc=False
+    )
+    ca = CellAverage(
+        initial=ini,
+        bre=True, bre_freq=Gamma, child=beta,
+        agg=False, gro=False, nuc=False
+    )
+    fp.simulate(
+        end_time=END_TIME, steps=STEPS, write_every=EVERY, max_order=ORDER
+    )
+    ca.simulate(
+        end_time=END_TIME, steps=STEPS, write_every=EVERY, max_order=ORDER
+    )
+    plot_initial_and_current([fp, ca])
+    plot_moments_over_time([fp, ca], max_order=ORDER)
 
 
 def demo_aggregation():
@@ -140,25 +170,26 @@ def demo_aggregation():
     """
     print("Demoing pure aggregation.")
     ini = Grid.create_geometric_end(
-        start=MIN, end=MAX, sections=SECTIONS, factor=FACTOR, func=f
+        start=START, end=END, sec=SECTIONS, fact=FACTOR, func=f
     )
-    if METHOD == "fixed pivot":
-        method = FixedPivot(
-            initial=ini,
-            agg=True, agg_freq=Q,
-            bre=False, gro=False, nuc=False
-        )
-    elif METHOD == "cell average":
-        method = CellAverage(
-            initial=ini,
-            agg=True, agg_freq=Q,
-            bre=False, gro=False, nuc=False
-        )
-    else:
-        raise ValueError("unknown method '{}'!".format(METHOD))
-    method.simulate(end_time=END_TIME, steps=STEPS, write_every=1, max_order=2)
-    plot_initial_and_current(method)
-    plot_moments_over_time(method, max_order=2)
+    fp = FixedPivot(
+        initial=ini,
+        agg=True, agg_freq=Q,
+        bre=False, gro=False, nuc=False
+    )
+    ca = CellAverage(
+        initial=ini,
+        agg=True, agg_freq=Q,
+        bre=False, gro=False, nuc=False
+    )
+    fp.simulate(
+        end_time=END_TIME, steps=STEPS, write_every=EVERY, max_order=ORDER
+    )
+    ca.simulate(
+        end_time=END_TIME, steps=STEPS, write_every=EVERY, max_order=ORDER
+    )
+    plot_initial_and_current([fp, ca])
+    plot_moments_over_time([fp, ca], max_order=ORDER)
 
 
 def demo_breakage_aggregation():
@@ -166,27 +197,28 @@ def demo_breakage_aggregation():
     """
     print("Demoing combined breakage and aggregation.")
     ini = Grid.create_geometric_end(
-        start=MIN, end=MAX, sections=SECTIONS, factor=FACTOR, func=f
+        start=START, end=END, sec=SECTIONS, fact=FACTOR, func=f
     )
-    if METHOD == "fixed pivot":
-        method = FixedPivot(
-            initial=ini,
-            bre=True, bre_freq=Gamma, child=beta,
-            agg=True, agg_freq=Q,
-            gro=False, nuc=False
-        )
-    elif METHOD == "cell average":
-        method = CellAverage(
-            initial=ini,
-            bre=True, bre_freq=Gamma, child=beta,
-            agg=True, agg_freq=Q,
-            gro=False, nuc=False
-        )
-    else:
-        raise ValueError("unknown method '{}'!".format(METHOD))
-    method.simulate(end_time=END_TIME, steps=STEPS, write_every=1, max_order=2)
-    plot_initial_and_current(method)
-    plot_moments_over_time(method, max_order=2)
+    fp = FixedPivot(
+        initial=ini,
+        bre=True, bre_freq=Gamma, child=beta,
+        agg=True, agg_freq=Q,
+        gro=False, nuc=False
+    )
+    ca = CellAverage(
+        initial=ini,
+        bre=True, bre_freq=Gamma, child=beta,
+        agg=True, agg_freq=Q,
+        gro=False, nuc=False
+    )
+    fp.simulate(
+        end_time=END_TIME, steps=STEPS, write_every=EVERY, max_order=ORDER
+    )
+    ca.simulate(
+        end_time=END_TIME, steps=STEPS, write_every=EVERY, max_order=ORDER
+    )
+    plot_initial_and_current([fp, ca])
+    plot_moments_over_time([fp, ca], max_order=ORDER)
 
 
 def demo_growth():
@@ -194,25 +226,26 @@ def demo_growth():
     """
     print("Demoing pure growth.")
     ini = Grid.create_geometric_end(
-        start=MIN, end=MAX, sections=SECTIONS, factor=FACTOR, func=f
+        start=START, end=END, sec=SECTIONS, fact=FACTOR, func=f
     )
-    if METHOD == "fixed pivot":
-        method = FixedPivot(
-            initial=ini,
-            gro=True, gro_rate=G,
-            bre=False, agg=False, nuc=False
-        )
-    elif METHOD == "cell average":
-        method = CellAverage(
-            initial=ini,
-            gro=True, gro_rate=G,
-            bre=False, agg=False, nuc=False
-        )
-    else:
-        raise ValueError("unknown method '{}'!".format(METHOD))
-    method.simulate(end_time=END_TIME, steps=STEPS, write_every=1, max_order=2)
-    plot_initial_and_current(method)
-    plot_moments_over_time(method, max_order=2)
+    fp = FixedPivot(
+        initial=ini,
+        gro=True, gro_rate=G,
+        bre=False, agg=False, nuc=False
+    )
+    ca = CellAverage(
+        initial=ini,
+        gro=True, gro_rate=G,
+        bre=False, agg=False, nuc=False
+    )
+    fp.simulate(
+        end_time=END_TIME, steps=STEPS, write_every=EVERY, max_order=ORDER
+    )
+    ca.simulate(
+        end_time=END_TIME, steps=STEPS, write_every=EVERY, max_order=ORDER
+    )
+    plot_initial_and_current([fp, ca])
+    plot_moments_over_time([fp, ca], max_order=ORDER)
 
 
 def demo_nucleation():
@@ -220,25 +253,26 @@ def demo_nucleation():
     """
     print("Demoing pure nucleation.")
     ini = Grid.create_geometric_end(
-        start=MIN, end=MAX, sections=SECTIONS, factor=FACTOR, func=f
+        start=START, end=END, sec=SECTIONS, fact=FACTOR, func=f
     )
-    if METHOD == "fixed pivot":
-        method = FixedPivot(
-            initial=ini,
-            nuc=True, nuc_rate=S,
-            bre=False, agg=False, gro=False
-        )
-    elif METHOD == "cell average":
-        method = CellAverage(
-            initial=ini,
-            nuc=True, nuc_rate=S,
-            bre=False, agg=False, gro=False
-        )
-    else:
-        raise ValueError("unknown method '{}'!".format(METHOD))
-    method.simulate(end_time=END_TIME, steps=STEPS, write_every=1, max_order=2)
-    plot_initial_and_current(method)
-    plot_moments_over_time(method, max_order=2)
+    fp = FixedPivot(
+        initial=ini,
+        nuc=True, nuc_rate=S,
+        bre=False, agg=False, gro=False
+    )
+    ca = CellAverage(
+        initial=ini,
+        nuc=True, nuc_rate=S,
+        bre=False, agg=False, gro=False
+    )
+    fp.simulate(
+        end_time=END_TIME, steps=STEPS, write_every=EVERY, max_order=ORDER
+    )
+    ca.simulate(
+        end_time=END_TIME, steps=STEPS, write_every=EVERY, max_order=ORDER
+    )
+    plot_initial_and_current([fp, ca])
+    plot_moments_over_time([fp, ca], max_order=ORDER)
 
 
 def demo_growth_nucleation():
@@ -246,27 +280,28 @@ def demo_growth_nucleation():
     """
     print("Demoing combined growth and nucleation.")
     ini = Grid.create_geometric_end(
-        start=MIN, end=MAX, sections=SECTIONS, factor=FACTOR, func=f
+        start=START, end=END, sec=SECTIONS, fact=FACTOR, func=f
     )
-    if METHOD == "fixed pivot":
-        method = FixedPivot(
-            initial=ini,
-            gro=True, gro_rate=G,
-            nuc=True, nuc_rate=S,
-            bre=False, agg=False
-        )
-    elif METHOD == "cell average":
-        method = CellAverage(
-            initial=ini,
-            gro=True, gro_rate=G,
-            nuc=True, nuc_rate=S,
-            bre=False, agg=False
-        )
-    else:
-        raise ValueError("unknown method '{}'!".format(METHOD))
-    method.simulate(end_time=END_TIME, steps=STEPS, write_every=1, max_order=2)
-    plot_initial_and_current(method)
-    plot_moments_over_time(method, max_order=2)
+    fp = FixedPivot(
+        initial=ini,
+        gro=True, gro_rate=G,
+        nuc=True, nuc_rate=S,
+        bre=False, agg=False
+    )
+    ca = CellAverage(
+        initial=ini,
+        gro=True, gro_rate=G,
+        nuc=True, nuc_rate=S,
+        bre=False, agg=False
+    )
+    fp.simulate(
+        end_time=END_TIME, steps=STEPS, write_every=EVERY, max_order=ORDER
+    )
+    ca.simulate(
+        end_time=END_TIME, steps=STEPS, write_every=EVERY, max_order=ORDER
+    )
+    plot_initial_and_current([fp, ca])
+    plot_moments_over_time([fp, ca], max_order=ORDER)
 
 
 def demo_all():
@@ -274,42 +309,40 @@ def demo_all():
     """
     print("Demoing combined breakage, aggregation, growth and nucleation.")
     ini = Grid.create_geometric_end(
-        start=MIN, end=MAX, sections=SECTIONS, factor=FACTOR, func=f
+        start=START, end=END, sec=SECTIONS, fact=FACTOR, func=f
     )
-    if METHOD == "fixed pivot":
-        method = FixedPivot(
-            initial=ini,
-            bre=True, bre_freq=Gamma, child=beta,
-            agg=True, agg_freq=Q,
-            gro=True, gro_rate=G,
-            nuc=True, nuc_rate=S
-        )
-    elif METHOD == "cell average":
-        method = CellAverage(
-            initial=ini,
-            bre=True, bre_freq=Gamma, child=beta,
-            agg=True, agg_freq=Q,
-            gro=True, gro_rate=G,
-            nuc=True, nuc_rate=S
-        )
-    else:
-        raise ValueError("unknown method '{}'!".format(METHOD))
-    method.simulate(end_time=END_TIME, steps=STEPS, write_every=1, max_order=2)
-    plot_initial_and_current(method)
-    plot_moments_over_time(method, max_order=2)
+    fp = FixedPivot(
+        initial=ini,
+        bre=True, bre_freq=Gamma, child=beta,
+        agg=True, agg_freq=Q,
+        gro=True, gro_rate=G,
+        nuc=True, nuc_rate=S
+    )
+    ca = CellAverage(
+        initial=ini,
+        bre=True, bre_freq=Gamma, child=beta,
+        agg=True, agg_freq=Q,
+        gro=True, gro_rate=G,
+        nuc=True, nuc_rate=S
+    )
+    fp.simulate(
+        end_time=END_TIME, steps=STEPS, write_every=EVERY, max_order=ORDER
+    )
+    ca.simulate(
+        end_time=END_TIME, steps=STEPS, write_every=EVERY, max_order=ORDER
+    )
+    plot_initial_and_current([fp, ca])
+    plot_moments_over_time([fp, ca], max_order=ORDER)
 
+
+# MAIN: -----------------------------------------------------------------------
 
 if __name__ == "__main__":
-    print("demoing {} method".format(METHOD.upper()))
-
     demo_zero()
-
     demo_breakage()
     demo_aggregation()
     demo_breakage_aggregation()
-
     demo_growth()
     demo_nucleation()
     demo_growth_nucleation()
-
     demo_all()

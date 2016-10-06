@@ -49,10 +49,12 @@ def demo_spinner():
     MAX = int(1e7)
     print("before")
     with Spinner("finding numbers") as spinner:
+        counter = 0
         print("miau")
         for i in range(MAX):
             if i % 3 == 0:
-                spinner.message("new one: {}".format(i))
+                counter += 1
+                spinner.message("{} found, new one: {}".format(counter, i))
         print("wuff")
     print("after")
     print(spinner.read_buffer())
@@ -65,10 +67,12 @@ def demo_progress():
     MAX = int(1e7)
     print("before")
     with Progress("finding numbers") as progress:
+        counter  = 0
         print("miau")
         for i in range(MAX):
             if i % 3 == 0:
-                progress.proceed(i / MAX, "new one: {}".format(i))
+                counter += 1
+                progress.proceed(i / MAX, "{} found, new one: {}".format(counter, i))
         print("wuff")
     print("after")
     print(progress.read_buffer())
@@ -76,7 +80,7 @@ def demo_progress():
 
 
 if __name__ == "__main__":
-    demo_basic_prompts()
-    demo_fancy_prompts()
+    #demo_basic_prompts()
+    #demo_fancy_prompts()
     demo_spinner()
     demo_progress()

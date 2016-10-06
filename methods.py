@@ -8,17 +8,15 @@ breakage, aggregation, nucleation and growth. The different kernel functions
 can be arbitrarily defined by the user.
 """
 
-import sys
+import sys  # for debugging output on sys.stderr
 import matplotlib.pyplot as plt
-from numpy import linspace, zeros, finfo, inf
-max_float = finfo("float").max
+from numpy import linspace, zeros
 from copy import deepcopy
 from scipy.integrate import quad
-from WR.cmdline import zero, kronecker, hstep, Spinner
+from WR.functions import zero, kronecker, hstep
+from WR.cmdline import Spinner
 
 
-# TODO: write explicit exceptions!
-# TODO: remove numpy stuff!?
 class Method:
     """Base class for different sectional methods.
 
@@ -93,7 +91,8 @@ class Method:
 
         # create time stepping grid and iterate through time steps:
         times, step = linspace(start_time, end_time, steps + 1, retstep=True)
-        with Spinner("simulating", end_msg=None) as sp:
+        name = self.__class__.__name__
+        with Spinner("simulating {}".format(name), end_msg=None) as sp:
             for counter, time in enumerate(times):
                 sp.message("step={}, time={}".format(counter, time))
 
@@ -217,19 +216,27 @@ class FixedPivot(Method):
         beta = self._child
 
         for i, section_i in enumerate(self._previous):
+            # FIXME: method is unclear about handling the boundary sections!
+            if i == 0 or i == len(self._previous) - 1:
+                continue
+
             xi = section_i.pivot
             Ni = section_i.particles
             Gammai = self._bre_freq(xi)
 
+            xip1 = self._previous[i + 1].pivot
+            xim1 = self._previous[i - 1].pivot
+            '''# possible handling of boundary sections:
             if i == 0:
-                xip1 = self._previous.section(i + 1).pivot
-                xim1 = self._previous.section(i).start
+                xip1 = self._previous[i + 1].pivot
+                xim1 = self._previous[i].start  # ???
             elif i == len(self._previous) - 1:
-                xip1 = self._previous.section(i).end
-                xim1 = self._previous.section(i - 1).pivot
+                xip1 = self._previous[i].end  # ???
+                xim1 = self._previous[i - 1].pivot
             else:
-                xip1 = self._previous.section(i + 1).pivot
-                xim1 = self._previous.section(i - 1).pivot
+                xip1 = self._previous[i + 1].pivot
+                xim1 = self._previous[i - 1].pivot
+            '''
 
             # calculate birth:
             birthi = 0
@@ -240,6 +247,7 @@ class FixedPivot(Method):
                     Gammak = self._bre_freq(xk)
 
                     # calculate n_i,k:
+                    '''# possible handling of boundary sections:
                     if xip1 is None:
                         first = 0
                     else:
@@ -253,11 +261,18 @@ class FixedPivot(Method):
                         def func(v):
                             return (v - xim1) / (xi - xim1) * beta(v, xk)
                         second = quad(func, xim1, xi)[0]
-
+                    '''
                     if i == k:
                         first = 0
                         second = 0
+                    else:
+                        def integrand1(v):
+                            return (xip1 - v) / (xip1 - xi) * beta(v, xk)
+                        first, _ = quad(integrand1, xi, xip1)
 
+                        def integrand2(v):
+                            return (v - xim1) / (xi - xim1) * beta(v, xk)
+                        second, _ = quad(integrand2, xim1, xi)
                     nik = first + second
 
                     # calculate actual birth:
@@ -267,29 +282,37 @@ class FixedPivot(Method):
             deathi = Gammai * Ni
 
             # calculate new NDF:
-            current_particles = self._current.section(i).particles
+            current_particles = self._current[i].particles
             new_particles = current_particles + step * (birthi - deathi)
             if new_particles < 0:
-                self._current.section(i).particles = 0
+                self._current[i].particles = 0
             else:
-                self._current.section(i).particles = new_particles
+                self._current[i].particles = new_particles
 
     def _calc_aggregation(self, step):
         """calculate aggregation.
         """
         for i, section_i in enumerate(self._previous):
+            # FIXME: method is unclear about handling the boundary sections!
+            if i == 0 or i == len(self._previous) - 1:
+                continue
+
             xi = section_i.pivot
             Ni = section_i.particles
 
+            xip1 = self._previous[i + 1].pivot
+            xim1 = self._previous[i - 1].pivot
+            '''# possible handling of boundary sections:
             if i == 0:
-                xip1 = self._previous.section(i + 1).pivot
-                xim1 = self._previous.section(i).start
+                xip1 = self._previous[i + 1].pivot
+                xim1 = self._previous[i].start  # ???
             elif i == len(self._previous) - 1:
-                xip1 = self._previous.section(i).end
-                xim1 = self._previous.section(i - 1).pivot
+                xip1 = self._previous[i].end  # ???
+                xim1 = self._previous[i - 1].pivot
             else:
-                xip1 = self._previous.section(i + 1).pivot
-                xim1 = self._previous.section(i - 1).pivot
+                xip1 = self._previous[i + 1].pivot
+                xim1 = self._previous[i - 1].pivot
+            '''
 
             # calculate birth:
             birthi = 0
@@ -326,67 +349,62 @@ class FixedPivot(Method):
             deathi *= Ni
 
             # calculate new NDF:
-            current_particles = self._current.section(i).particles
+            current_particles = self._current[i].particles
             new_particles = current_particles + step * (birthi - deathi)
             if new_particles < 0:
-                self._current.section(i).particles = 0
+                self._current[i].particles = 0
             else:
-                self._current.section(i).particles = new_particles
+                self._current[i].particles = new_particles
 
     def _calc_growth(self, step):
         """calculate growth.
         """
         for i, section_i in enumerate(self._previous):
+            # FIXME: method is unclear about handling the boundary sections!
+            if i == 0 or i == len(self._previous) - 1:
+                continue
+
             vi = section_i.start
             vip1 = section_i.end
             Gvi = self._gro_rate(vi)
             Gvip1 = self._gro_rate(vip1)
 
             ni = section_i.pivot
+            nim1 = self._previous[i - 1].density
+            nip1 = self._previous[i + 1].density
+            '''# possible handling of boundary sections:
             if i == 0:
-                nim1 = None
-                nip1 = self._previous.section(i + 1).density
+                nim1 = None  # ???
+                nip1 = self._previous[i + 1].density
             elif i == len(self._previous) - 1:
-                nim1 = self._previous.section(i - 1).density
-                nip1 = None
+                nim1 = self._previous[i - 1].density
+                nip1 = None  # ???
             else:
-                nim1 = self._previous.section(i - 1).density
-                nip1 = self._previous.section(i + 1).density
+                nim1 = self._previous[i - 1].density
+                nip1 = self._previous[i + 1].density
+
+            # if nim1 is None: ...
+            # if nip1 is None: ...
+            '''
 
             # MARCHAL calculation of n(vi) and n(vi+1):
-            if nim1 is None:
-                nvi = 0
-            else:
-                nvi = 0.5 * (nim1 + ni)
-
-            if nip1 is None:
-                nvip1 = max_float
-            else:
-                nvip1 = 0.5 * (ni + nip1)
+            nvi = 0.5 * (nim1 + ni)
+            nvip1 = 0.5 * (ni + nip1)
 
             # calculate birth:
             birthi = Gvi * nvi
-            if birthi == -inf:
-                birthi = -max_float
-            elif birthi == inf:
-                birthi = max_float
-
 
             # calculate birth:
             deathi = Gvip1 * nvip1
-            if deathi == -inf:
-                deathi = -max_float
-            elif deathi == inf:
-                deathi = max_float
 
             # calculate new NDF:
-            current_particles = self._current.section(i).particles
+            current_particles = self._current[i].particles
             new_particles = current_particles + step * (birthi - deathi)
-            sys.stderr.write("i={}, Bi={}, Di={}, Pi={}\n".format(i, birthi, deathi, new_particles))
+            #sys.stderr.write("i={}, Bi={}, Di={}, Pi={}\n".format(i, birthi, deathi, new_particles))
             if new_particles < 0:
-                self._current.section(i).particles = 0
+                self._current[i].particles = 0
             else:
-                self._current.section(i).particles = new_particles
+                self._current[i].particles = new_particles
 
     def _calc_nucleation(self, step):
         """calculate nucleation.
@@ -396,15 +414,15 @@ class FixedPivot(Method):
             vip1 = section_i.end
 
             # calculate birth:
-            birthi = quad(self._nuc_rate, vi, vip1)[0]
+            birthi, _ = quad(self._nuc_rate, vi, vip1)
 
             # calculate new NDF:
-            current_particles = self._current.section(i).particles
+            current_particles = self._current[i].particles
             new_particles = current_particles + step * birthi
             if new_particles < 0:
-                self._current.section(i).particles = 0
+                self._current[i].particles = 0
             else:
-                self._current.section(i).particles = new_particles
+                self._current[i].particles = new_particles
 
 
 class CellAverage(Method):
@@ -424,7 +442,7 @@ class CellAverage(Method):
                          nuc, nuc_rate)
 
         # nuclei size for growth modeling by aggregation:
-        sec_0 = self._initial.section(0)
+        sec_0 = self._initial[0]
         self._x0 = (sec_0.end - sec_0.pivot) / 10  # small for safety
 
     def do_time_step(self, step):
@@ -480,9 +498,9 @@ class CellAverage(Method):
                 vi = mean_vol[i]
                 vip1 = mean_vol[i + 1]
 
-                xi = self._previous.section(i).pivot
-                xim1 = self._previous.section(i).start
-                xip1 = self._previous.section(i + 1).pivot
+                xi = self._previous[i].pivot
+                xim1 = self._previous[i].start
+                xip1 = self._previous[i + 1].pivot
 
                 lamvi = (vi - xim1) / (xi - xim1)
                 lapvi = (vi - xip1) / (xi - xip1)
@@ -499,9 +517,9 @@ class CellAverage(Method):
                 vi = mean_vol[i]
                 vim1 = mean_vol[i - 1]
 
-                xi = self._previous.section(i).pivot
-                xim1 = self._previous.section(i - 1).pivot
-                xip1 = self._previous.section(i).end
+                xi = self._previous[i].pivot
+                xim1 = self._previous[i - 1].pivot
+                xip1 = self._previous[i].end
 
                 lamvim1 = (vim1 - xim1) / (xi - xim1)
                 lamvi = (vi - xim1) / (xi - xim1)
@@ -520,9 +538,9 @@ class CellAverage(Method):
                 vim1 = mean_vol[i - 1]
                 vip1 = mean_vol[i + 1]
 
-                xi = self._previous.section(i).pivot
-                xim1 = self._previous.section(i - 1).pivot
-                xip1 = self._previous.section(i + 1).pivot
+                xi = self._previous[i].pivot
+                xim1 = self._previous[i - 1].pivot
+                xip1 = self._previous[i + 1].pivot
 
                 lamvim1 = (vim1 - xim1) / (xi - xim1)
                 lamvi = (vi - xim1) / (xi - xim1)
@@ -541,9 +559,9 @@ class CellAverage(Method):
             old = sec_i.particles
             new_particles = old + step * (birth_num_av[i] - death_num[i])
             if new_particles < 0:
-                self._current.section(i).particles = 0
+                self._current[i].particles = 0
             else:
-                self._current.section(i).particles = new_particles
+                self._current[i].particles = new_particles
 
     def _calc_breakage_birth(self, i):
         """Calculate particles birthed due to breakage.
@@ -554,9 +572,9 @@ class CellAverage(Method):
         assert i >= 0
         assert i < len(self._previous)
 
-        xi = self._previous.section(i).pivot
-        vi = self._previous.section(i).start
-        vip1 = self._previous.section(i).end
+        xi = self._previous[i].pivot
+        vi = self._previous[i].start
+        vip1 = self._previous[i].end
 
         num = 0
         vol = 0
@@ -594,8 +612,8 @@ class CellAverage(Method):
         assert i >= 0
         assert i < len(self._previous)
 
-        xi = self._previous.section(i).pivot
-        Ni = self._previous.section(i).particles
+        xi = self._previous[i].pivot
+        Ni = self._previous[i].particles
         Si = self._bre_freq(xi)
 
         return Si * Ni
@@ -609,8 +627,8 @@ class CellAverage(Method):
         assert i >= 0
         assert i < len(self._previous)
 
-        vi = self._previous.section(i).start
-        vip1 = self._previous.section(i).end
+        vi = self._previous[i].start
+        vip1 = self._previous[i].end
 
         num = 0
         vol = 0
@@ -644,8 +662,8 @@ class CellAverage(Method):
         assert i >= 0
         assert i < len(self._previous)
 
-        xi = self._previous.section(i).pivot
-        Ni = self._previous.section(i).particles
+        xi = self._previous[i].pivot
+        Ni = self._previous[i].particles
 
         sum = 0
         for k, sec_k in enumerate(self._previous):
@@ -665,8 +683,8 @@ class CellAverage(Method):
         assert i >= 0
         assert i < len(self._previous)
 
-        xi = self._previous.section(i).pivot
-        Ni = self._previous.section(i).particles
+        xi = self._previous[i].pivot
+        Ni = self._previous[i].particles
 
         num = self._gro_rate(xi) * Ni / self._x0
         vol = num * (xi + self._x0)
@@ -682,8 +700,8 @@ class CellAverage(Method):
         assert i >= 0
         assert i < len(self._previous)
 
-        xi = self._previous.section(i).pivot
-        Ni = self._previous.section(i).particles
+        xi = self._previous[i].pivot
+        Ni = self._previous[i].particles
 
         num = self._gro_rate(xi) * Ni / self._x0
 
@@ -698,8 +716,8 @@ class CellAverage(Method):
         assert i >= 0
         assert i < len(self._previous)
 
-        vi = self._previous.section(i).start
-        vip1 = self._previous.section(i).end
+        vi = self._previous[i].start
+        vip1 = self._previous[i].end
 
         num = quad(self._nuc_rate, vi, vip1)[0]
 

@@ -30,7 +30,7 @@ def main():
     FACTOR = 1.25
 
     initial_ndf = Grid.create_geometric_end(
-        start=START, end=END, sections=SECTIONS, factor=FACTOR, func=f
+        start=START, end=END, sec=SECTIONS, fact=FACTOR, func=f
     )
 
     # Growth function:

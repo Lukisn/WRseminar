@@ -97,66 +97,67 @@ class TestGrid(unittest.TestCase):
             Grid(start=0, end=1, particles=-1)  # particles < 0
 
     def test_section(self):
-        g = Grid.create_uniform(start=0, end=1, sections=10)
+        g = Grid.create_uniform(start=0, end=1, sec=10)
+        g._info()
         if not g._is_seamless():
             raise RuntimeError("found seams!")
         self.assertEquals(len(g), 10)
-        g.section(0)  # first section
-        g.section(len(g)-1)  # last section
+        _ = g[0]  # first section
+        _ = g[-1]  # last section
         with self.assertRaises(IndexError):
-            g.section(-1)  # left outside index range
-        with self.assertRaises(IndexError):
-            g.section(len(g))  # right outside index range
+            _ = g[len(g)]  # right outside index range
 
     def test_creation_uniform(self):
-        u = Grid.create_uniform(start=0, end=10, sections=3)
+        u = Grid.create_uniform(start=0, end=10, sec=3)
         if not u._is_seamless():
             raise RuntimeError("found seams!")
         self.assertEquals(u.start, 0)
         self.assertEquals(u.end, 10)
+        self.assertEquals(len(u), 3)
         with self.assertRaises(ValueError):
-            Grid.create_uniform(start=0, end=-10, sections=1)  # start > end
+            Grid.create_uniform(start=0, end=-10, sec=1)  # start > end
         with self.assertRaises(ValueError):
-            Grid.create_uniform(start=0, end=1, sections=-1)  # sections < 0
+            Grid.create_uniform(start=0, end=1, sec=-1)  # sections < 0
 
     def test_creation_geometric(self):
-        g = Grid.create_geometric(start=0, end=10, initial_step=1, factor=1.1)
+        g = Grid.create_geometric(start=0, end=10, ini_sec=1, fact=1.1)
         if not g._is_seamless():
             raise RuntimeError("found seams!")
         self.assertEqual(g.start, 0)
         self.assertEqual(g.end, 10)
         with self.assertRaises(ValueError):
-            Grid.create_geometric(start=0, end=-10, initial_step=1, factor=1)  # start > end
+            Grid.create_geometric(start=0, end=-10, ini_sec=1, fact=1)  # start > end
         with self.assertRaises(ValueError):
-            Grid.create_geometric(start=0, end=1, initial_step=-1, factor=1)  # initial_step < 0
+            Grid.create_geometric(start=0, end=1, ini_sec=-1, fact=1)  # initial_step < 0
         with self.assertRaises(ValueError):
-            Grid.create_geometric(start=0, end=1, initial_step=1, factor=0.1)  # factor < 1
+            Grid.create_geometric(start=0, end=1, ini_sec=1, fact=0.1)  # factor < 1
 
     def test_creation_geometric_step(self):
-        g = Grid.create_geometric_step(start=0, end=10, factor=1, uniform_sections=3)
+        g = Grid.create_geometric_step(start=0, end=10, fact=1, uni_sec=3)
         if not g._is_seamless():
             raise RuntimeError("found seams!")
         self.assertEquals(g.start, 0)
         self.assertEquals(g.end, 10)
         with self.assertRaises(ValueError):  # start > end
-            Grid.create_geometric_step(start=0, end=-10, factor=1, uniform_sections=10)
+            Grid.create_geometric_step(start=0, end=-10, fact=1, uni_sec=10)
         with self.assertRaises(ValueError):  # negative factor
-            Grid.create_geometric_step(start=0, end=10, factor=-1, uniform_sections=10)
+            Grid.create_geometric_step(start=0, end=10, fact=-1, uni_sec=10)
         with self.assertRaises(ValueError):  # negative sections
-            Grid.create_geometric_step(start=0, end=10, factor=1, uniform_sections=-10)
+            Grid.create_geometric_step(start=0, end=10, fact=1, uni_sec=-10)
 
     def test_creation_geometric_end(self):
-        g = Grid.create_geometric_end(start=0, end=10, factor=1.1, sections=3)
+        g = Grid.create_geometric_end(start=0, end=10, fact=1.1, sec=3)
         if not g._is_seamless():
             raise RuntimeError("found seams!")
         self.assertEquals(g.start, 0)
         self.assertEquals(g.end, 10)
+        self.assertEqual(len(g), 3)
         with self.assertRaises(ValueError):  # start > end
-            Grid.create_geometric_end(start=0, end=-10, factor=1, sections=10)
+            Grid.create_geometric_end(start=0, end=-10, fact=1, sec=10)
         with self.assertRaises(ValueError):  # negative factor
-            Grid.create_geometric_end(start=0, end=10, factor=-1, sections=10)
+            Grid.create_geometric_end(start=0, end=10, fact=-1, sec=10)
         with self.assertRaises(ValueError):  # negative sections
-            Grid.create_geometric_end(start=0, end=10, factor=1, sections=-10)
+            Grid.create_geometric_end(start=0, end=10, fact=1, sec=-10)
 
     def test_manipulation(self):
         g = Grid(start=4, end=5)
@@ -199,12 +200,12 @@ class TestGrid(unittest.TestCase):
             g.remove_right()  # last section
 
     def test_moment(self):
-        u = Grid.create_uniform(start=0, end=1, sections=10)  # default zero
+        u = Grid.create_uniform(start=0, end=1, sec=10)  # default zero
         if not u._is_seamless():
             raise RuntimeError("found seams!")
         for order in range(10):
             self.assertEqual(u.moment(order=order), 0)
-        g = Grid.create_geometric_end(start=0, end=1, sections=10, factor=1.1)  # default zero
+        g = Grid.create_geometric_end(start=0, end=1, sec=10, fact=1.1)  # default zero
         if not g._is_seamless():
             raise RuntimeError("found seams!")
         for order in range(10):
@@ -213,7 +214,7 @@ class TestGrid(unittest.TestCase):
             u.moment(order=-1)  # oder < 0
 
     def test_lists(self):
-        g = Grid.create_uniform(start=0, end=1, sections=10)  # default zero
+        g = Grid.create_uniform(start=0, end=1, sec=10)  # default zero
         if not g._is_seamless():
             raise RuntimeError("found seams!")
         b = g.boundaries()
@@ -227,7 +228,7 @@ class TestGrid(unittest.TestCase):
         self.assertEqual(len(pi), len(d))
 
     def test_seams(self):
-        u = Grid.create_uniform(start=0, end=1, sections=10)
+        u = Grid.create_uniform(start=0, end=1, sec=10)
         u._sections[1].start += 0.01  # add a little offset to make a seam
         seams = u._find_seams()
         print(seams)
