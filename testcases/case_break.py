@@ -4,40 +4,23 @@
 Demo case for pure breakage.
 
 Taken from Yuan paper case 8.
-(Also possible but using source term are cases 6 and 7.)
 """
-
 import matplotlib.pyplot as plt
-from math import exp, sqrt, pi
-from WR.cmdline import step, hstep
+from math import exp
+from WR.functions import hstep, dirac_norm
 from WR.grid import Grid
 from WR.methods import FixedPivot, CellAverage
 
 
-# FIXME: discrepency according to numerical representation of the dirac delta!
-# TODO: do actual comparison!
-def num_delta(x, a=1e-3):
-    """Numeric representation of the dirac delta function.
-    """
-    assert a > 0
-    # TODO: try simple function with more stable integral behaviour.
-
-    return 1 / (a * sqrt(pi)) * exp(-x ** 2 / a ** 2)  # normal distribution
-
-
 def main():
+    """Main function.
+    """
+
+    # PROBLEM FUNCTIONS: ------------------------------------------------------
 
     # initial NDF:
     def f(x):
-        return num_delta(x - 1)
-
-    START, END = 0, 10
-    SECTIONS = 100
-    FACTOR = 1.1
-
-    initial_ndf = Grid.create_geometric_end(
-        start=START, end=END, sec=SECTIONS, fact=FACTOR, func=f
-    )
+        return dirac_norm(x - 1)
 
     # Breakage functions:
     def Gamma(v):
@@ -46,13 +29,36 @@ def main():
     def beta(v1, v2):
         return 2 / v2
 
+    # analytic solution:
+    def n(t, x):
+        brace = dirac_norm(x - 1) + 2 * t * hstep(1 - x)
+        return exp(-t * x ** 2) * brace
+
+    # CONSTANTS: --------------------------------------------------------------
+
+    # Grid:
+    START, END = 0, 10
+    SECTIONS = 100
+    FACTOR = 1.1
+
+    # Plotting:
+    XSCALE, YSCALE = "log", "log"
+    XMIN, XMAX = 1e-5, 1e1
+    YMIN, YMAX = 1e-5, 1e2
+
     # Simulation:
-    T0, TEND = 0, 1
+    T0, TEND = 0, 10
     STEPS = 10
     EVERY = 1
     ORDER = 1
 
-    # setup methods and do simulation:
+    # SIMULATION: -------------------------------------------------------------
+
+    # initial NDF:
+    initial_ndf = Grid.create_geometric_end(
+        start=START, end=END, sec=SECTIONS, fact=FACTOR, func=f
+    )
+
     # Fixed Pivot Method:
     fp = FixedPivot(
         initial=initial_ndf,
@@ -74,39 +80,53 @@ def main():
         write_every=EVERY, max_order=ORDER
     )
 
-    # analytic solution:
-    def n(t, x):
-        brace = num_delta(x - 1) + 2 * t * hstep(1 - x)
-        return exp(-t * x ** 2) * brace
+    # PLOTTING: ---------------------------------------------------------------
 
     # plot NDF comparison:
-    ana_x = initial_ndf.pivots()
-    ana_y = []
+    plt.subplot(211)
+    plt.ylabel("NDF")
+    ana_x, ana_y = initial_ndf.pivots(), []
     for x in ana_x:
         ana_y.append(n(TEND, x))
-    plt.plot(ana_x, ana_y, "-", label="analytic")
-
-    ini_x = initial_ndf.pivots()
-    ini_y = initial_ndf.densities()
+    plt.plot(ana_x, ana_y, "y-", lw=3, label="analytic")
+    ini_x, ini_y = initial_ndf.pivots(), initial_ndf.densities()
     plt.plot(ini_x, ini_y, ".-", label="initial")
-
-    fp_x = fp.result_ndfs[TEND].pivots()
-    fp_y = fp.result_ndfs[TEND].densities()
+    fp_x, fp_y = fp.result_ndfs[TEND].pivots(), fp.result_ndfs[TEND].densities()
     plt.plot(fp_x, fp_y, "x-", label="fixed pivot")
-
-    ca_x = ca.result_ndfs[TEND].pivots()
-    ca_y = ca.result_ndfs[TEND].densities()
+    ca_x, ca_y = ca.result_ndfs[TEND].pivots(), ca.result_ndfs[TEND].densities()
     plt.plot(ca_x, ca_y, ".-", label="cell average")
-
-    plt.xlim(1e-5, 1e1)
-    plt.ylim(1e-5, 1e2)
-    plt.xscale("log")
-    plt.yscale("log")
+    plt.xlim(XMIN, XMAX)
+    plt.ylim(YMIN, YMAX)
+    plt.xscale(XSCALE)
+    plt.yscale(YSCALE)
     plt.legend(loc="best", fontsize="small")
     plt.grid()
+
+    # calculate errors:
+    fp_err_y, ca_err_y = [], []
+    for i, x in enumerate(fp_x):
+        err = fp_y[i] - n(TEND, x)
+        fp_err_y.append(err)
+    for i, x in enumerate(ca_x):
+        err = ca_y[i] - n(TEND, x)
+        ca_err_y.append(err)
+
+    # plot errors:
+    plt.subplot(212)
+    plt.xlabel("size")
+    plt.ylabel("error")
+    plt.plot(fp_x, fp_err_y, "x-", label="fixed pivot")
+    plt.plot(ca_x, ca_err_y, ".-", label="cell average")
+    plt.xlim(XMIN, XMAX)
+    #plt.ylim(YMIN, YMAX)
+    plt.xscale(XSCALE)
+    #plt.yscale(YSCALE)
+    plt.legend(loc="best", fontsize="small")
+    plt.grid()
+
     plt.show()
 
-    # plot moments comparison:
+    # plot Moments comparison:
     times = sorted(fp.result_moments)
     moments = {"fp": {}, "ca": {}}
     for method in moments.keys():
