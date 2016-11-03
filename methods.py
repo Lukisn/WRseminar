@@ -99,6 +99,11 @@ class Method:
                 if counter == 0:
                     # "zeroth" time step -> save initial ndf:
                     self.result_ndfs[start_time] = deepcopy(self._initial)
+                    if max_order is not None:
+                        moments = {}
+                        for order in range(max_order + 1):
+                            moments[order] = self._current.moment(order)
+                        self.result_moments[start_time] = moments
                 else:
                     # calculate time step:
                     self.do_time_step(step)
@@ -126,6 +131,10 @@ class Method:
 
         :param step: time step.
         """
+        raise NotImplementedError
+
+    # TODO: implement for easier comparison and plotting
+    def write_results_to_file(self, filename):
         raise NotImplementedError
 
     def _plot_ndfs(self):

@@ -1,17 +1,17 @@
 #!/usr/bin/env python3
 
 """
-Demo case for pure aggregation (coagulation).
+Demo case for pure growth
 
-Taken from Yuan paper case 9.
+Taken from Yuan paper Case 4.
 """
 import matplotlib.pyplot as plt
-from math import exp, sqrt
-from scipy.special import iv  # modified bessel function
+from math import exp
 from WR.grid import Grid
 from WR.methods import FixedPivot, CellAverage
 
 
+# TODO: find problem in the calculation!
 def main():
     """Main function.
     """
@@ -20,35 +20,35 @@ def main():
 
     # initial NDF:
     def f(x):
-        return exp(-x)
+        return 6 * x**3 * exp(-x)
 
-    # Aggregation function:
-    def Q(v1, v2):
-        return v1 + v2
+    # Growth function:
+    def G(v):
+        return v / 2
 
-    # analytic solution
+    # analytic solution:
     def n(t, x):
-        ratio = (exp(-t - 2 * x + x * exp(-t))) / (x * sqrt(1 - exp(-t)))
-        bessel = iv(1, 2 * x * sqrt(1 - exp(-t)))
-        return ratio * bessel
+        num = (x * exp(-t / 2)) ** 3 * exp(-x * exp(-t / 2))
+        den = 6 * exp(t / 2)
+        return num / den
 
     # CONSTANTS: --------------------------------------------------------------
 
     # Grid:
-    START, END = 0, 1e5
+    START, END = 0, 2e1
     SECTIONS = 100
     FACTOR = 1.2
 
     # Simulation:
     T0, TEND = 0, 1
-    STEPS = 10
+    STEPS = 100
     EVERY = 1
     ORDER = 1
 
     # Plotting:
-    XSCALE, YSCALE = "log", "log"
-    XMIN, XMAX = 1e-5, 1e5
-    YMIN, YMAX = 1e-10, 1e5
+    XSCALE, YSCALE = "linear", "linear"
+    XMIN, XMAX = 0, 2e1
+    YMIN, YMAX = 0, 4
 
     # SIMULATION: -------------------------------------------------------------
 
@@ -60,8 +60,8 @@ def main():
     # Fixed Pivot Method:
     fp = FixedPivot(
         initial=initial_ndf,
-        agg=True, agg_freq=Q,
-        bre=False, gro=False, nuc=False
+        gro=True, gro_rate=G,
+        bre=False, agg=False, nuc=False
     )
     fp.simulate(
         start_time=T0, end_time=TEND, steps=STEPS,
@@ -70,8 +70,8 @@ def main():
     # Cell Average Technique:
     ca = CellAverage(
         initial=initial_ndf,
-        agg=True, agg_freq=Q,
-        bre=False, gro=False, nuc=False
+        gro=True, gro_rate=G,
+        bre=False, agg=False, nuc=False
     )
     ca.simulate(
         start_time=T0, end_time=TEND, steps=STEPS,
@@ -137,7 +137,7 @@ def main():
     plt.legend(loc="best", fontsize="small")
     plt.grid()
 
-    plt.savefig("agg_ndf.eps")
+    plt.savefig("growth4_ndf.eps")
     plt.show()
 
     # plot Moments comparison:
@@ -150,8 +150,9 @@ def main():
     plt.legend(loc="best", fontsize="small")
     plt.grid()
 
-    plt.savefig("agg_mom.eps")
+    plt.savefig("growth4_mom.eps")
     plt.show()
+
 
 if __name__ == "__main__":
     main()

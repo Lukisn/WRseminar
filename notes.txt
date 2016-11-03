@@ -1,10 +1,12 @@
-1) Ränder i=0, i=N?
-- anhand der Momente für beide Verfahren untersuchen!
+immernoch problematisch:
+- "Ränder" in Fixed Pivot
+    o Fokus auf Cell Average!
+- testcase pure growth?
+- no testcase pure nucleation?
 
-2) Testcases?
-- Test cases yuan paper 2012 eqmom
-
-4) sonstige Anregungen?
-- Stabilität "courant" zahl
-- nummerische diffusion
-- Gitter studie
+Anregungen vom letzten mal:
+- Stabilität "courant" zahl?
+- nummerische diffusion -> siehe "simple" growth
+- Gitterstudie
+    o Vergleich äquidistant/geometrisch?
+    o verfeinerung geometrisch?

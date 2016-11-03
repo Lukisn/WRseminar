@@ -82,25 +82,13 @@ def main():
 
     # PLOTTING: ---------------------------------------------------------------
 
-    # plot NDF comparison:
-    plt.subplot(211)
-    plt.ylabel("NDF")
+    # gather NDF data:
+    ini_x, ini_y = initial_ndf.pivots(), initial_ndf.densities()
     ana_x, ana_y = initial_ndf.pivots(), []
     for x in ana_x:
         ana_y.append(n(TEND, x))
-    plt.plot(ana_x, ana_y, "y-", lw=3, label="analytic")
-    ini_x, ini_y = initial_ndf.pivots(), initial_ndf.densities()
-    plt.plot(ini_x, ini_y, ".-", label="initial")
     fp_x, fp_y = fp.result_ndfs[TEND].pivots(), fp.result_ndfs[TEND].densities()
-    plt.plot(fp_x, fp_y, "x-", label="fixed pivot")
     ca_x, ca_y = ca.result_ndfs[TEND].pivots(), ca.result_ndfs[TEND].densities()
-    plt.plot(ca_x, ca_y, ".-", label="cell average")
-    plt.xlim(XMIN, XMAX)
-    plt.ylim(YMIN, YMAX)
-    plt.xscale(XSCALE)
-    plt.yscale(YSCALE)
-    plt.legend(loc="best", fontsize="small")
-    plt.grid()
 
     # calculate errors:
     fp_err_y, ca_err_y = [], []
@@ -111,43 +99,58 @@ def main():
         err = ca_y[i] - n(TEND, x)
         ca_err_y.append(err)
 
-    # plot errors:
+    # gather moment data:
+    times = sorted(fp.result_moments)  # == sorted(ca.result_moments)
+    fp_moment0, fp_moment1 = [], []
+    ca_moment0, ca_moment1 = [], []
+    for time in times:
+        fp_moment0.append(fp.result_moments[time][0])
+        fp_moment1.append(fp.result_moments[time][1])
+        ca_moment0.append(ca.result_moments[time][0])
+        ca_moment1.append(ca.result_moments[time][1])
+
+    # plot NDF comparison and errors:
+    # upper subplot: NDF:
+    plt.subplot(211)
+    #plt.xlabel("size")
+    plt.ylabel("NDF")
+    plt.plot(ana_x, ana_y, "y-", lw=3, label="analytic")
+    plt.plot(ini_x, ini_y, "g.-", lw=2, label="initial")
+    plt.plot(fp_x, fp_y, "bx-", label="fixed pivot")
+    plt.plot(ca_x, ca_y, "r.-", lw=2, label="cell average")
+    plt.xlim(XMIN, XMAX)
+    plt.ylim(YMIN, YMAX)
+    plt.xscale(XSCALE)
+    plt.yscale(YSCALE)
+    plt.legend(loc="best", fontsize="small")
+    plt.grid()
+    # lower subplot: errors:
     plt.subplot(212)
     plt.xlabel("size")
     plt.ylabel("error")
-    plt.plot(fp_x, fp_err_y, "x-", label="fixed pivot")
-    plt.plot(ca_x, ca_err_y, ".-", label="cell average")
+    plt.plot(fp_x, fp_err_y, "bx-", label="fixed pivot")
+    plt.plot(ca_x, ca_err_y, "r.-", lw=2, label="cell average")
     plt.xlim(XMIN, XMAX)
-    #plt.ylim(YMIN, YMAX)
+    # plt.ylim(YMIN, YMAX)  # comment out = auto
     plt.xscale(XSCALE)
-    #plt.yscale(YSCALE)
+    # plt.yscale(YSCALE)  # comment out  = auto
     plt.legend(loc="best", fontsize="small")
     plt.grid()
 
+    plt.savefig("break_ndf.eps")
     plt.show()
 
     # plot Moments comparison:
-    times = sorted(fp.result_moments)
-    moments = {"fp": {}, "ca": {}}
-    for method in moments.keys():
-        for order in range(ORDER + 1):
-            moments[method][order] = []
-            for time in times:
-                moments[method][order].append(fp.result_moments[time][order])
-    print(moments)
-
     plt.xlabel("time")
     plt.ylabel("moment")
-    for method in moments.keys():
-        if method == "ca":
-            symbol = ".-"
-        else:  # method == "fp"
-            symbol = "x-"
-        for order in range(ORDER + 1):
-            plt.plot(times, moments[method][order], symbol, label="{}-moment{}".format(method, order))
-
+    plt.plot(times, fp_moment0, "bx-", label="fp_m0")
+    plt.plot(times, fp_moment1, "b.-", label="fp_m1")
+    plt.plot(times, ca_moment0, "rx-", lw=2, label="ca_m0")
+    plt.plot(times, ca_moment1, "r.-", lw=2, label="ca_m1")
     plt.legend(loc="best", fontsize="small")
     plt.grid()
+
+    plt.savefig("break_mom.eps")
     plt.show()
 
 
