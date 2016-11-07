@@ -51,6 +51,7 @@ def main():
     initial_ndf = Grid.create_geometric_end(
         start=START, end=END, sec=SECTIONS, fact=FACTOR, func=f
     )
+    initial_ndf.to_file("results/growth_initial_ndf.dat")
 
     # Fixed Pivot Method:
     fp = FixedPivot(
@@ -58,20 +59,19 @@ def main():
         gro=True, gro_rate=G,
         bre=False, agg=False, nuc=False
     )
-    fp.simulate(
-        start_time=T0, end_time=TEND, steps=STEPS,
-        write_every=EVERY, max_order=ORDER
-    )
+    fp.simulate(start_time=T0, end_time=TEND, steps=STEPS, write_every=EVERY)
+    fp.moments_to_file("results/growth_fp_moments.dat", max_order=ORDER)
+    fp.ndf_to_files("results/growth_fp_ndf.dat")
+
     # Cell Average Technique:
     ca = CellAverage(
         initial=initial_ndf,
         gro=True, gro_rate=G,
         bre=False, agg=False, nuc=False
     )
-    ca.simulate(
-        start_time=T0, end_time=TEND, steps=STEPS,
-        write_every=EVERY, max_order=ORDER
-    )
+    ca.simulate(start_time=T0, end_time=TEND, steps=STEPS, write_every=EVERY)
+    ca.moments_to_file("results/growth_ca_moments.dat", max_order=ORDER)
+    ca.ndf_to_files("results/growth_ca_ndf.dat")
 
     # PLOTTING: ---------------------------------------------------------------
 
@@ -95,14 +95,14 @@ def main():
         ca_err_y.append(err)
 
     # gather moment data:
-    times = sorted(fp._result_moments)  # == sorted(ca.result_moments)
+    times = sorted(fp._result_ndfs.keys())
     fp_moment0, fp_moment1 = [], []
     ca_moment0, ca_moment1 = [], []
     for time in times:
-        fp_moment0.append(fp._result_moments[time][0])
-        fp_moment1.append(fp._result_moments[time][1])
-        ca_moment0.append(ca._result_moments[time][0])
-        ca_moment1.append(ca._result_moments[time][1])
+        fp_moment0.append(fp._result_ndfs[time].moment(0))
+        fp_moment1.append(fp._result_ndfs[time].moment(1))
+        ca_moment0.append(ca._result_ndfs[time].moment(0))
+        ca_moment1.append(ca._result_ndfs[time].moment(1))
 
     # plot NDF comparison and errors:
     # upper subplot: NDF:
@@ -132,7 +132,7 @@ def main():
     plt.legend(loc="best", fontsize="small")
     plt.grid()
 
-    plt.savefig("growth_ndf.eps")
+    plt.savefig("results/growth_ndf.eps")
     plt.show()
 
     # plot Moments comparison:
@@ -145,7 +145,7 @@ def main():
     plt.legend(loc="best", fontsize="small")
     plt.grid()
 
-    plt.savefig("growth_mom.eps")
+    plt.savefig("results/growth_mom.eps")
     plt.show()
 
 

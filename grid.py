@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# TODO: refactor for readability and
+# TODO: revisit documentation
 
 """
 module implementing the core classes used for representing a discrete NDF.
@@ -482,9 +484,8 @@ class Grid:
             moment += section_moment
         return moment
 
-    # TODO: staticmethod -> classmethod!?!?
-    @staticmethod
-    def create_uniform(start, end, sec, func=zero, corr=True):
+    @classmethod
+    def create_uniform(cls, start, end, sec, func=zero, corr=True):
         """Create a uniform grid.
 
         This method is based on the create_geometric() method.
@@ -503,12 +504,12 @@ class Grid:
             raise ValueError("sections '{}' <= 0!".format(sec))
 
         # create grid:
-        return Grid.create_geometric_step(
+        return cls.create_geometric_step(
             start, end, sec, fact=1, func=func, corr=corr
         )
 
-    @staticmethod
-    def create_geometric(start, end, ini_sec, fact, func=zero, corr=True):
+    @classmethod
+    def create_geometric(cls, start, end, ini_sec, fact, func=zero, corr=True):
         """Create a geometric grid.
 
         The grid is created using the given initial step size. By default the
@@ -536,7 +537,7 @@ class Grid:
         # create initial grid / first section:
         initial_max = start + ini_sec
         particles, _ = quad(func, start, initial_max)
-        grid = Grid(start, initial_max, particles)
+        grid = cls(start, initial_max, particles)
 
         # add sections to the grid:
         current_size = ini_sec
@@ -581,12 +582,13 @@ class Grid:
             lower = last_section.end
             upper = last_section.end + current_size
             particles, _ = quad(func, lower, upper)
-            last_section.particles = particles'''
+            last_section.particles = particles
+        '''
 
         return grid
 
-    @staticmethod
-    def create_geometric_step(start, end, uni_sec, fact, func=zero, corr=True):
+    @classmethod
+    def create_geometric_step(cls, start, end, uni_sec, fact, func=zero, corr=True):
         """Create a geometric grid.
 
         The grid is created by using the same initial step size as the
@@ -613,12 +615,12 @@ class Grid:
 
         # use uniform step size as initial step size and create grid:
         initial_step = (end - start) / uni_sec
-        return Grid.create_geometric(
+        return cls.create_geometric(
             start, end, initial_step, fact, func, corr
         )
 
-    @staticmethod
-    def create_geometric_end(start, end, sec, fact, func=zero, corr=True):
+    @classmethod
+    def create_geometric_end(cls, start, end, sec, fact, func=zero, corr=True):
         """Create a geometric grid.
 
         The grid is created by choosing an initial step size so the maximum
@@ -644,11 +646,11 @@ class Grid:
 
         # calculate initial step size for given parameters and create grid:
         initial_step = find_initial_step(start, end, sec, fact)
-        return Grid.create_geometric(
+        return cls.create_geometric(
             start, end, initial_step, fact, func, corr
         )
 
-    def to_file(self, filename):
+    def to_file(self, filename, info=None):
         """Write Grid to text file.
 
         The resulting text file is structured like this:
@@ -661,6 +663,8 @@ class Grid:
         """
         fmt = "{st:.5e}, {end:.5e}, {piv:.5e}, {part:.5e}, {dens:.5e}\n"
         with open(filename, "w") as fh:
+            if info is not None:
+                fh.write(str(info))
             fh.write("# start, end, pivot, particles, density\n")
             for section in self:
                 fh.write(fmt.format(

@@ -58,7 +58,7 @@ def main():
     initial_ndf = Grid.create_geometric_end(
         start=START, end=END, sec=SECTIONS, fact=FACTOR, func=f
     )
-    initial_ndf.to_file("break_initial_ndf.dat")
+    initial_ndf.to_file("results/break_initial_ndf.dat")
 
     # Fixed Pivot Method:
     fp = FixedPivot(
@@ -66,24 +66,19 @@ def main():
         bre=True, bre_freq=Gamma, child=beta,
         agg=False, gro=False, nuc=False
     )
-    fp.simulate(
-        start_time=T0, end_time=TEND, steps=STEPS,
-        write_every=EVERY, max_order=ORDER
-    )
-    fp.moments_to_file("break_fp_moments.dat", max_order=ORDER)
-    fp.ndf_to_files("break_fp_ndf.dat")
+    fp.simulate(start_time=T0, end_time=TEND, steps=STEPS, write_every=EVERY)
+    fp.moments_to_file("results/break_fp_moments.dat", max_order=ORDER)
+    fp.ndf_to_files("results/break_fp_ndf.dat")
+
     # Cell Average Technique:
     ca = CellAverage(
         initial=initial_ndf,
         bre=True, bre_freq=Gamma, child=beta,
         agg= False, gro=False, nuc=False
     )
-    ca.simulate(
-        start_time=T0, end_time=TEND, steps=STEPS,
-        write_every=EVERY, max_order=ORDER
-    )
-    ca.moments_to_file("break_ca_moments.dat", max_order=ORDER)
-    ca.ndf_to_files("break_ca_ndf.dat")
+    ca.simulate(start_time=T0, end_time=TEND, steps=STEPS, write_every=EVERY)
+    ca.moments_to_file("results/break_ca_moments.dat", max_order=ORDER)
+    ca.ndf_to_files("results/break_ca_ndf.dat")
 
     # PLOTTING: ---------------------------------------------------------------
 
@@ -105,14 +100,14 @@ def main():
         ca_err_y.append(err)
 
     # gather moment data:
-    times = sorted(fp._result_moments)  # == sorted(ca.result_moments)
+    times = sorted(fp._result_ndfs.keys())
     fp_moment0, fp_moment1 = [], []
     ca_moment0, ca_moment1 = [], []
     for time in times:
-        fp_moment0.append(fp._result_moments[time][0])
-        fp_moment1.append(fp._result_moments[time][1])
-        ca_moment0.append(ca._result_moments[time][0])
-        ca_moment1.append(ca._result_moments[time][1])
+        fp_moment0.append(fp._result_ndfs[time].moment(0))
+        fp_moment1.append(fp._result_ndfs[time].moment(1))
+        ca_moment0.append(ca._result_ndfs[time].moment(0))
+        ca_moment1.append(ca._result_ndfs[time].moment(1))
 
     # plot NDF comparison and errors:
     # upper subplot: NDF:
@@ -142,7 +137,7 @@ def main():
     plt.legend(loc="best", fontsize="small")
     plt.grid()
 
-    plt.savefig("break_ndf.eps")
+    plt.savefig("results/break_ndf.eps")
     plt.show()
 
     # plot Moments comparison:
@@ -155,7 +150,7 @@ def main():
     plt.legend(loc="best", fontsize="small")
     plt.grid()
 
-    plt.savefig("break_mom.eps")
+    plt.savefig("results/break_mom.eps")
     plt.show()
 
 

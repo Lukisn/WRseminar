@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# TODO: refactor for readability and
+# TODO: revisit documentation
 
 """
 module implementing the fixed pivot technique in a class.
@@ -69,11 +71,9 @@ class Method:
 
         # Results:
         self._result_ndfs = {}  # result dictionary {time: resulting NDF}
-        self._result_moments = {}  # result dictionary {time: resulting moments}
+        #self._result_moments = {}  # result dictionary {time: resulting moments}
 
-    # TODO: dont save moments but calculate on demand
-    def simulate(self, end_time, steps, start_time=0, write_every=None,
-                 max_order=None):
+    def simulate(self, end_time, steps, start_time=0, write_every=None):
         """Simulation driver method.
 
         :param end_time: end time of the simulation.
@@ -84,9 +84,6 @@ class Method:
         """
         assert start_time < end_time
         assert steps > 0
-        if max_order is not None:
-            assert max_order >= 0
-
         if write_every is None:  # don't write intermediate results
             write_every = steps
 
@@ -100,11 +97,6 @@ class Method:
                 if counter == 0:
                     # "zeroth" time step -> save initial ndf:
                     self._result_ndfs[start_time] = deepcopy(self._initial)
-                    if max_order is not None:
-                        moments = {}
-                        for order in range(max_order + 1):
-                            moments[order] = self._current.moment(order)
-                        self._result_moments[start_time] = moments
                 else:
                     # calculate time step:
                     self.do_time_step(step)
@@ -112,20 +104,9 @@ class Method:
                     # write intermediate result:
                     if counter % write_every == 0:
                         self._result_ndfs[time] = deepcopy(self._current)
-                        if max_order is not None:
-                            moments = {}
-                            for order in range(max_order + 1):
-                                moments[order] = self._current.moment(order)
-                            self._result_moments[time] = moments
-
             # write final result:
             if end_time not in self._result_ndfs:
                 self._result_ndfs[end_time] = deepcopy(self._current)
-                if max_order is not None:
-                    moments = {}
-                    for order in range(max_order + 1):
-                        moments[order] = self._current.moment(order)
-                    self._result_moments[end_time] = moments
 
     def do_time_step(self, step):
         """Place holder for the actual time stepping implementation.
@@ -134,7 +115,6 @@ class Method:
         """
         raise NotImplementedError
 
-    # TODO: implement for easier comparison and plotting
     def moments_to_file(self, filename, max_order=2):
         """Write result moments to file.
 
@@ -142,7 +122,7 @@ class Method:
         :return: None.
         """
         assert max_order >= 0
-        times = sorted(self._result_moments.keys())
+        times = sorted(self._result_ndfs.keys())
         with open(filename, "w") as fh:
             # write first info line:
             fh.write("# time, ")
@@ -161,7 +141,15 @@ class Method:
         :param basefilename: shared basic name of all files.
         :return: None.
         """
-        pass
+        basename, extension = basefilename.split(".")
+        times = self._result_ndfs.keys()
+        for time in times:
+            filename = "{base}_{time:.5e}.{ext}".format(
+                base=basename, time=time, ext=extension
+            )
+            ndf = self._result_ndfs[time]
+            ndf.to_file(filename, info="# time = {:.15e}".format(time))
+
 
     def _plot_ndfs(self):
         """Plot initial and current NDF.
@@ -190,14 +178,14 @@ class Method:
         :param max_order: maximum order moment to be plotted.
         """
         # get x-axis data (times):
-        times = sorted(self._result_moments)
+        times = sorted(self._result_ndfs)
 
         # collect y-axis data (moments):
         moments = {}
         for order in range(max_order + 1):
             moments[order] = []
             for time in times:
-                moments[order].append(self._result_moments[time][order])
+                moments[order].append(self._result_ndfs[time].moment(order))
 
         # plot data:
         for order in range(max_order + 1):
