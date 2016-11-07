@@ -482,6 +482,7 @@ class Grid:
             moment += section_moment
         return moment
 
+    # TODO: staticmethod -> classmethod!?!?
     @staticmethod
     def create_uniform(start, end, sec, func=zero, corr=True):
         """Create a uniform grid.
@@ -647,6 +648,29 @@ class Grid:
             start, end, initial_step, fact, func, corr
         )
 
+    def to_file(self, filename):
+        """Write Grid to text file.
+
+        The resulting text file is structured like this:
+
+        first line: info comment "# start, end, pivot, particles, density"
+        other lines: single bin info in ascending order.
+
+        :param filename: target file to write grid data to.
+        :return: None.
+        """
+        fmt = "{st:.5e}, {end:.5e}, {piv:.5e}, {part:.5e}, {dens:.5e}\n"
+        with open(filename, "w") as fh:
+            fh.write("# start, end, pivot, particles, density\n")
+            for section in self:
+                fh.write(fmt.format(
+                    st=section.start,
+                    end=section.end,
+                    piv=section.pivot,
+                    part=section.particles,
+                    dens=section.density
+                ))
+
     def _find_seams(self):
         """Find seams between sections by checking every pair in the grid.
 
@@ -735,6 +759,7 @@ class Grid:
         ax2.set_yscale(yscale)
         ax1.grid()
         plt.show()
+
 
     '''
     # FUTURE IDEAS:

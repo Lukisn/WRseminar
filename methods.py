@@ -68,9 +68,10 @@ class Method:
         self._nuc_rate = nuc_rate  # nucleation rate function
 
         # Results:
-        self.result_ndfs = {}  # result dictionary {time: resulting NDF}
-        self.result_moments = {}  # result dictionary {time: resulting moments}
+        self._result_ndfs = {}  # result dictionary {time: resulting NDF}
+        self._result_moments = {}  # result dictionary {time: resulting moments}
 
+    # TODO: dont save moments but calculate on demand
     def simulate(self, end_time, steps, start_time=0, write_every=None,
                  max_order=None):
         """Simulation driver method.
@@ -98,33 +99,33 @@ class Method:
 
                 if counter == 0:
                     # "zeroth" time step -> save initial ndf:
-                    self.result_ndfs[start_time] = deepcopy(self._initial)
+                    self._result_ndfs[start_time] = deepcopy(self._initial)
                     if max_order is not None:
                         moments = {}
                         for order in range(max_order + 1):
                             moments[order] = self._current.moment(order)
-                        self.result_moments[start_time] = moments
+                        self._result_moments[start_time] = moments
                 else:
                     # calculate time step:
                     self.do_time_step(step)
 
                     # write intermediate result:
                     if counter % write_every == 0:
-                        self.result_ndfs[time] = deepcopy(self._current)
+                        self._result_ndfs[time] = deepcopy(self._current)
                         if max_order is not None:
                             moments = {}
                             for order in range(max_order + 1):
                                 moments[order] = self._current.moment(order)
-                            self.result_moments[time] = moments
+                            self._result_moments[time] = moments
 
             # write final result:
-            if end_time not in self.result_ndfs:
-                self.result_ndfs[end_time] = deepcopy(self._current)
+            if end_time not in self._result_ndfs:
+                self._result_ndfs[end_time] = deepcopy(self._current)
                 if max_order is not None:
                     moments = {}
                     for order in range(max_order + 1):
                         moments[order] = self._current.moment(order)
-                    self.result_moments[end_time] = moments
+                    self._result_moments[end_time] = moments
 
     def do_time_step(self, step):
         """Place holder for the actual time stepping implementation.
@@ -134,19 +135,44 @@ class Method:
         raise NotImplementedError
 
     # TODO: implement for easier comparison and plotting
-    def write_results_to_file(self, filename):
-        raise NotImplementedError
+    def moments_to_file(self, filename, max_order=2):
+        """Write result moments to file.
+
+        :param filename: target file to write moment data to.
+        :return: None.
+        """
+        assert max_order >= 0
+        times = sorted(self._result_moments.keys())
+        with open(filename, "w") as fh:
+            # write first info line:
+            fh.write("# time, ")
+            fh.write(", ".join(str(s) for s in range(max_order+1)))
+            fh.write("\n")
+            # write other lines:
+            for time in times:
+                ndf = self._result_ndfs[time]
+                fh.write("{:.5e}, ".format(time))
+                fh.write(", ".join("{:.5e}".format(ndf.moment(order)) for order in range(max_order+1)))
+                fh.write("\n")
+
+    def ndf_to_files(self, basefilename):
+        """Write result ndfs to individual files.
+
+        :param basefilename: shared basic name of all files.
+        :return: None.
+        """
+        pass
 
     def _plot_ndfs(self):
         """Plot initial and current NDF.
         """
         # get parameter data (times)
-        times = sorted(self.result_ndfs)
+        times = sorted(self._result_ndfs)
 
         # plot data:
         for time in times:
-            pivots = self.result_ndfs[time].pivots()
-            densities = self.result_ndfs[time].densities()
+            pivots = self._result_ndfs[time].pivots()
+            densities = self._result_ndfs[time].densities()
             plt.plot(pivots, densities, ".-",
                      label="ndf t={}".format(time))
 
@@ -164,14 +190,14 @@ class Method:
         :param max_order: maximum order moment to be plotted.
         """
         # get x-axis data (times):
-        times = sorted(self.result_moments)
+        times = sorted(self._result_moments)
 
         # collect y-axis data (moments):
         moments = {}
         for order in range(max_order + 1):
             moments[order] = []
             for time in times:
-                moments[order].append(self.result_moments[time][order])
+                moments[order].append(self._result_moments[time][order])
 
         # plot data:
         for order in range(max_order + 1):

@@ -58,6 +58,7 @@ def main():
     initial_ndf = Grid.create_geometric_end(
         start=START, end=END, sec=SECTIONS, fact=FACTOR, func=f
     )
+    initial_ndf.to_file("break_initial_ndf.dat")
 
     # Fixed Pivot Method:
     fp = FixedPivot(
@@ -69,6 +70,8 @@ def main():
         start_time=T0, end_time=TEND, steps=STEPS,
         write_every=EVERY, max_order=ORDER
     )
+    fp.moments_to_file("break_fp_moments.dat", max_order=ORDER)
+    fp.ndf_to_files("break_fp_ndf.dat")
     # Cell Average Technique:
     ca = CellAverage(
         initial=initial_ndf,
@@ -79,6 +82,8 @@ def main():
         start_time=T0, end_time=TEND, steps=STEPS,
         write_every=EVERY, max_order=ORDER
     )
+    ca.moments_to_file("break_ca_moments.dat", max_order=ORDER)
+    ca.ndf_to_files("break_ca_ndf.dat")
 
     # PLOTTING: ---------------------------------------------------------------
 
@@ -87,8 +92,8 @@ def main():
     ana_x, ana_y = initial_ndf.pivots(), []
     for x in ana_x:
         ana_y.append(n(TEND, x))
-    fp_x, fp_y = fp.result_ndfs[TEND].pivots(), fp.result_ndfs[TEND].densities()
-    ca_x, ca_y = ca.result_ndfs[TEND].pivots(), ca.result_ndfs[TEND].densities()
+    fp_x, fp_y = fp._result_ndfs[TEND].pivots(), fp._result_ndfs[TEND].densities()
+    ca_x, ca_y = ca._result_ndfs[TEND].pivots(), ca._result_ndfs[TEND].densities()
 
     # calculate errors:
     fp_err_y, ca_err_y = [], []
@@ -100,14 +105,14 @@ def main():
         ca_err_y.append(err)
 
     # gather moment data:
-    times = sorted(fp.result_moments)  # == sorted(ca.result_moments)
+    times = sorted(fp._result_moments)  # == sorted(ca.result_moments)
     fp_moment0, fp_moment1 = [], []
     ca_moment0, ca_moment1 = [], []
     for time in times:
-        fp_moment0.append(fp.result_moments[time][0])
-        fp_moment1.append(fp.result_moments[time][1])
-        ca_moment0.append(ca.result_moments[time][0])
-        ca_moment1.append(ca.result_moments[time][1])
+        fp_moment0.append(fp._result_moments[time][0])
+        fp_moment1.append(fp._result_moments[time][1])
+        ca_moment0.append(ca._result_moments[time][0])
+        ca_moment1.append(ca._result_moments[time][1])
 
     # plot NDF comparison and errors:
     # upper subplot: NDF:

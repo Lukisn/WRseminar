@@ -1,3 +1,4 @@
+*.dat
 *.eps
 __pycache__
 /doc/_build/

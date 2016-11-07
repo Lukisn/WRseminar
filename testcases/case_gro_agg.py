@@ -94,10 +94,10 @@ def main():
     #plt.plot(ana_x, ana_y, "-", label="analytic")
     ini_x, ini_y = initial_ndf.pivots(), initial_ndf.densities()
     plt.plot(ini_x, ini_y, ".-", label="initial")
-    fp_x, fp_y = fp.result_ndfs[TEND].pivots(), fp.result_ndfs[
+    fp_x, fp_y = fp._result_ndfs[TEND].pivots(), fp._result_ndfs[
         TEND].densities()
     plt.plot(fp_x, fp_y, "x-", label="fixed pivot")
-    ca_x, ca_y = ca.result_ndfs[TEND].pivots(), ca.result_ndfs[
+    ca_x, ca_y = ca._result_ndfs[TEND].pivots(), ca._result_ndfs[
         TEND].densities()
     plt.plot(ca_x, ca_y, ".-", label="cell average")
     plt.xlim(XMIN, XMAX)
@@ -134,13 +134,13 @@ def main():
     plt.show()
 
     # plot moments comparison:
-    times = sorted(fp.result_moments)
+    times = sorted(fp._result_moments)
     moments = {"fp": {}, "ca": {}}
     for method in moments.keys():
         for order in range(ORDER + 1):
             moments[method][order] = []
             for time in times:
-                moments[method][order].append(fp.result_moments[time][order])
+                moments[method][order].append(fp._result_moments[time][order])
     print(moments)
 
     plt.xlabel("time")
