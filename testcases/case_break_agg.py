@@ -150,7 +150,7 @@ def main():
     plt.legend(loc="best", fontsize="small")
     plt.grid()
 
-    plt.savefig("breakagg_ndf.eps")
+    plt.savefig("results/breakagg_ndf.eps")
     plt.show()
 
     # plot Moments comparison:
@@ -163,7 +163,7 @@ def main():
     plt.legend(loc="best", fontsize="small")
     plt.grid()
 
-    plt.savefig("breakagg_mom.eps")
+    plt.savefig("results/breakagg_mom.eps")
     plt.show()
 
 
