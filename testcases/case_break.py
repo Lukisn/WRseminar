@@ -23,13 +23,13 @@ def main():
 
     # PROBLEM FUNCTIONS: ------------------------------------------------------
 
-    def f(x):   # initial NDF:
+    def f(x):   # initial NDF
         return dirac_norm(x - 1)
 
-    def Gamma(v):  # Breakage functions:
+    def Gamma(v):  # breakage frequency
         return v ** 2
 
-    def beta(v1, v2):
+    def beta(v1, v2):  # child distribution
         return 2 / v2
 
     def n(t, x):  # analytic solution:
