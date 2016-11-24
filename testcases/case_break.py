@@ -1,56 +1,63 @@
 #!/usr/bin/env python3
-
 """
 Demo case for pure breakage.
 
 Taken from Yuan paper case 8.
 """
-import matplotlib.pyplot as plt
+
+# standard library imports:
 from math import exp
+
+# third party imports:
+import matplotlib.pyplot as plt
+from scipy.integrate import quad
+
+# application imports:
 from WR.functions import hstep, dirac_norm
 from WR.grid import Grid
 from WR.methods import FixedPivot, CellAverage
 
 
 def main():
-    """Main function.
-    """
+    """Main function."""
 
     # PROBLEM FUNCTIONS: ------------------------------------------------------
 
-    # initial NDF:
-    def f(x):
+    def f(x):   # initial NDF:
         return dirac_norm(x - 1)
 
-    # Breakage functions:
-    def Gamma(v):
+    def Gamma(v):  # Breakage functions:
         return v ** 2
 
     def beta(v1, v2):
         return 2 / v2
 
-    # analytic solution:
-    def n(t, x):
+    def n(t, x):  # analytic solution:
         brace = dirac_norm(x - 1) + 2 * t * hstep(1 - x)
         return exp(-t * x ** 2) * brace
 
     # CONSTANTS: --------------------------------------------------------------
 
-    # Grid:
+    # NDF Grid:
     START, END = 0, 10
     SECTIONS = 100
     FACTOR = 1.1
 
+    # Simulation:
+    T0, TEND = 0, 10
+    STEPS = 10  # = (TEND - T0) / 1  # 1 = TIME_STEP
+    TIME_STEP = (TEND - T0) / STEPS
+    EVERY = 1
+    ORDER = 1
+
     # Plotting:
-    XSCALE, YSCALE = "log", "log"
+    XSCALE, YSCALE = "log", "log"  # or "linear"
     XMIN, XMAX = 1e-5, 1e1
     YMIN, YMAX = 1e-5, 1e2
 
-    # Simulation:
-    T0, TEND = 0, 10
-    STEPS = 10
-    EVERY = 1
-    ORDER = 1
+    # File output:
+    WRITE_DATA_FILES = False
+    WRITE_PLOT_FILES = True
 
     # SIMULATION: -------------------------------------------------------------
 
@@ -58,7 +65,8 @@ def main():
     initial_ndf = Grid.create_geometric_end(
         start=START, end=END, sec=SECTIONS, fact=FACTOR, func=f
     )
-    initial_ndf.to_file("results/break_initial_ndf.dat")
+    if WRITE_DATA_FILES:
+        initial_ndf.to_file("results/break_initial_ndf.dat")
 
     # Fixed Pivot Method:
     fp = FixedPivot(
@@ -67,20 +75,22 @@ def main():
         agg=False, gro=False, nuc=False
     )
     fp.simulate(start_time=T0, end_time=TEND, steps=STEPS, write_every=EVERY)
-    fp.moments_to_file("results/break_fp_moments.dat", max_order=ORDER)
-    fp.ndf_to_files("results/break_fp_ndf.dat")
+    if WRITE_DATA_FILES:
+        fp.moments_to_file("results/break_fp_moments.dat", max_order=ORDER)
+        fp.ndf_to_files("results/break_fp_ndf.dat")
 
     # Cell Average Technique:
     ca = CellAverage(
         initial=initial_ndf,
         bre=True, bre_freq=Gamma, child=beta,
-        agg= False, gro=False, nuc=False
+        agg=False, gro=False, nuc=False
     )
     ca.simulate(start_time=T0, end_time=TEND, steps=STEPS, write_every=EVERY)
-    ca.moments_to_file("results/break_ca_moments.dat", max_order=ORDER)
-    ca.ndf_to_files("results/break_ca_ndf.dat")
+    if WRITE_DATA_FILES:
+        ca.moments_to_file("results/break_ca_moments.dat", max_order=ORDER)
+        ca.ndf_to_files("results/break_ca_ndf.dat")
 
-    # PLOTTING: ---------------------------------------------------------------
+    # CALCULATIONS FOR PLOTTING: ----------------------------------------------
 
     # gather NDF data:
     ini_x, ini_y = initial_ndf.pivots(), initial_ndf.densities()
@@ -93,64 +103,189 @@ def main():
     # calculate errors:
     fp_err_y, ca_err_y = [], []
     for i, x in enumerate(fp_x):
-        err = fp_y[i] - n(TEND, x)
+        ana = n(TEND, x)
+        try:
+            err = (fp_y[i] - ana) / ana
+        except ZeroDivisionError:
+            err = None  # matplotlib handles this by not plotting anything
         fp_err_y.append(err)
     for i, x in enumerate(ca_x):
-        err = ca_y[i] - n(TEND, x)
+        ana = n(TEND, x)
+        try:
+            err = (ca_y[i] - ana) / ana
+        except ZeroDivisionError:
+            err = None  # matplotlib handles this by not plotting anything
         ca_err_y.append(err)
 
     # gather moment data:
+    def moment(order, time, end=END):
+        """Calculate analytical moment of `order` at `time` numerically.
+
+        :param order: order of analytic moment.
+        :param time: time of evaluation of the analytic solution.
+        :param end: upper integration boundary.
+        :return: analytical moment of `order` at `time`.
+        """
+        def integrand(v):
+            return v ** order * n(time, v)
+        if time == 0:
+            mom = 1
+        else:
+            mom, *_ = quad(integrand, 0, end)
+        return mom
+
     times = sorted(fp._result_ndfs.keys())
+    ana_moment0, ana_moment1 = [], []
     fp_moment0, fp_moment1 = [], []
     ca_moment0, ca_moment1 = [], []
     for time in times:
+        ana_moment0.append(moment(0, time))
+        ana_moment1.append(moment(1, time))
         fp_moment0.append(fp._result_ndfs[time].moment(0))
         fp_moment1.append(fp._result_ndfs[time].moment(1))
         ca_moment0.append(ca._result_ndfs[time].moment(0))
         ca_moment1.append(ca._result_ndfs[time].moment(1))
 
-    # plot NDF comparison and errors:
-    # upper subplot: NDF:
-    plt.subplot(211)
-    #plt.xlabel("size")
-    plt.ylabel("NDF")
-    plt.plot(ana_x, ana_y, "y-", lw=3, label="analytic")
-    plt.plot(ini_x, ini_y, "g.-", lw=2, label="initial")
-    plt.plot(fp_x, fp_y, "bx-", label="fixed pivot")
-    plt.plot(ca_x, ca_y, "r.-", lw=2, label="cell average")
-    plt.xlim(XMIN, XMAX)
-    plt.ylim(YMIN, YMAX)
-    plt.xscale(XSCALE)
-    plt.yscale(YSCALE)
-    plt.legend(loc="best", fontsize="small")
-    plt.grid()
-    # lower subplot: errors:
-    plt.subplot(212)
-    plt.xlabel("size")
-    plt.ylabel("error")
-    plt.plot(fp_x, fp_err_y, "bx-", label="fixed pivot")
-    plt.plot(ca_x, ca_err_y, "r.-", lw=2, label="cell average")
-    plt.xlim(XMIN, XMAX)
-    # plt.ylim(YMIN, YMAX)  # comment out = auto
-    plt.xscale(XSCALE)
-    # plt.yscale(YSCALE)  # comment out  = auto
-    plt.legend(loc="best", fontsize="small")
-    plt.grid()
+    # calculate moment errors:
+    fp_mom_err_y0, ca_mom_err_y0 = [], []
+    fp_mom_err_y1, ca_mom_err_y1 = [], []
+    for i, t in enumerate(times):
+        try:
+            err0 = (fp_moment0[i] - ana_moment0[i]) / ana_moment0[i]
+        except ZeroDivisionError:
+            err0 = None  # matplotlib handles this by not plotting anything
+        try:
+            err1 = (fp_moment1[i] - ana_moment1[i]) / ana_moment1[i]
+        except ZeroDivisionError:
+            err1 = None  # matplotlib handles this by not plotting anything
+        fp_mom_err_y0.append(err0)
+        fp_mom_err_y1.append(err1)
 
-    plt.savefig("results/break_ndf.eps")
+    for i, t in enumerate(times):
+        try:
+            err0 = (ca_moment0[i] - ana_moment0[i]) / ana_moment0[i]
+        except ZeroDivisionError:
+            err0 = None  # matplotlib handles this by not plotting anything
+        try:
+            err1 = (ca_moment1[i] - ana_moment1[i]) / ana_moment1[i]
+        except ZeroDivisionError:
+            err1 = None  # matplotlib handles this by not plotting anything
+        ca_mom_err_y0.append(err0)
+        ca_mom_err_y1.append(err1)
+
+    # PLOTTING: ---------------------------------------------------------------
+
+    MARKER_SIZE = 7
+    legend_style = {
+        "loc": "best", "fontsize": "small", "numpoints": 1,
+        "framealpha": 0.75, "fancybox": True
+    }
+
+    ana_style = {
+        "linewidth": 3, "linestyle": "solid", "color": "orange",
+        "marker": None
+    }
+    ana_style0 = {
+        "linewidth": 3, "linestyle": "solid", "color": "orange",
+        "marker": ".", "markersize": MARKER_SIZE
+    }
+    ana_style1 = {
+        "linewidth": 3, "linestyle": "solid", "color": "orange",
+        "marker": "x", "markersize": MARKER_SIZE
+    }
+
+    initial_style = {
+        "linestyle": "solid", "linewidth": 2, "color": "green",
+        "marker": "+", "markersize": MARKER_SIZE
+    }
+
+    ca_style = {
+        "linestyle": "solid", "linewidth": 2,  "color": "red",
+        "marker": ".", "markersize": MARKER_SIZE
+    }
+    ca_style0 = {
+        "linestyle": "solid", "linewidth": 2, "color": "red",
+        "marker": ".", "markersize": MARKER_SIZE
+    }
+    ca_style1 = {
+        "linestyle": "solid", "linewidth": 2, "color": "red",
+        "marker": "x", "markersize": MARKER_SIZE
+    }
+
+    fp_style = {
+        "linestyle": "solid", "linewidth": 1, "color": "blue",
+        "marker": "x", "markersize": MARKER_SIZE
+    }
+    fp_style0 = {
+        "linestyle": "solid", "linewidth": 1, "color": "blue",
+        "marker": ".", "markersize": MARKER_SIZE
+    }
+    fp_style1 = {
+        "linestyle": "solid", "linewidth": 1, "color": "blue",
+        "marker": "x", "markersize": MARKER_SIZE
+    }
+
+    # plot NDF comparison and errors:
+    fig, (upper, lower) = plt.subplots(2, 1, sharex=True)
+    # upper subplot - NDF:
+    upper.set_title(
+        "analytical and discrete NDFs at TEND = {} s, STEP = {} s".format(
+            TEND, TIME_STEP
+        )
+    )
+    upper.set_ylabel("NDF")
+    upper.plot(ana_x, ana_y, label="ana", **ana_style)
+    upper.plot(ini_x, ini_y, label="ini", **initial_style)
+    upper.plot(fp_x, fp_y, label="FP", **fp_style)
+    upper.plot(ca_x, ca_y, label="CA", **ca_style)
+    upper.set_xlim(XMIN, XMAX)
+    upper.set_ylim(YMIN, YMAX)
+    upper.set_xscale(XSCALE)
+    upper.set_yscale(YSCALE)
+    upper.legend(**legend_style)
+    upper.grid()
+    # lower subplot - errors:
+    lower.set_xlabel("particle size")
+    lower.set_ylabel("relative error")
+    lower.plot(fp_x, fp_err_y, label="FP", **fp_style)
+    lower.plot(ca_x, ca_err_y, label="CA", **ca_style)
+    lower.set_xlim(XMIN, XMAX)
+    lower.set_xscale(XSCALE)
+    lower.legend(**legend_style)
+    lower.grid()
+
+    # tighten layout and show:
+    fig.tight_layout()
+    if WRITE_PLOT_FILES:
+        plt.savefig("results/break_ndf.eps")
     plt.show()
 
-    # plot Moments comparison:
-    plt.xlabel("time")
-    plt.ylabel("moment")
-    plt.plot(times, fp_moment0, "bx-", label="fp_m0")
-    plt.plot(times, fp_moment1, "b.-", label="fp_m1")
-    plt.plot(times, ca_moment0, "rx-", lw=2, label="ca_m0")
-    plt.plot(times, ca_moment1, "r.-", lw=2, label="ca_m1")
-    plt.legend(loc="best", fontsize="small")
-    plt.grid()
-
-    plt.savefig("results/break_mom.eps")
+    # plot moment comparison and errors:
+    fig, (upper, lower) = plt.subplots(2, 1, sharex=True)
+    # upper subplot - moments:
+    upper.set_title("moments over time. STEP = {} s".format(TIME_STEP))
+    upper.set_ylabel("y label")
+    upper.plot(times, ana_moment0, label="ana 0", **ana_style0)
+    upper.plot(times, ana_moment1, label="ana 1", **ana_style1)
+    upper.plot(times, fp_moment0, label="FP 0", **fp_style0)
+    upper.plot(times, fp_moment1, label="FP 1", **fp_style1)
+    upper.plot(times, ca_moment0, label="CA 0", **ca_style0)
+    upper.plot(times, ca_moment1, label="CA 1", **ca_style1)
+    upper.legend(**legend_style)
+    upper.grid()
+    # lower subplot - errors:
+    lower.set_xlabel("time in s")
+    lower.set_ylabel("relative error")
+    lower.plot(times, fp_mom_err_y0, label="FP 0", **fp_style0)
+    lower.plot(times, fp_mom_err_y1, label="FP 1", **fp_style1)
+    lower.plot(times, ca_mom_err_y0, label="CA 0", **ca_style0)
+    lower.plot(times, ca_mom_err_y1, label="CA 1", **ca_style1)
+    lower.legend(**legend_style)
+    lower.grid()
+    # tighten layout and show:
+    fig.tight_layout()
+    if WRITE_PLOT_FILES:
+        fig.savefig("results/break_mom.eps")
     plt.show()
 
 

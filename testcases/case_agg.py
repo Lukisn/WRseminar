@@ -1,20 +1,24 @@
 #!/usr/bin/env python3
-
 """
 Demo case for pure aggregation (coagulation).
 
 Taken from Yuan paper case 9.
 """
-import matplotlib.pyplot as plt
+
+# standard library imports:
 from math import exp, sqrt
+
+# third party imports:
+import matplotlib.pyplot as plt
 from scipy.special import iv  # modified bessel function
+
+# application imports:
 from WR.grid import Grid
 from WR.methods import FixedPivot, CellAverage
 
 
 def main():
-    """Main function.
-    """
+    """Main function."""
 
     # PROBLEM FUNCTIONS: ------------------------------------------------------
 
@@ -34,14 +38,15 @@ def main():
 
     # CONSTANTS: --------------------------------------------------------------
 
-    # Grid:
+    # NDF Grid:
     START, END = 0, 1e5
     SECTIONS = 100
     FACTOR = 1.2
 
     # Simulation:
     T0, TEND = 0, 1
-    STEPS = 10
+    STEPS = 10  # = (TEND - T0) / 0.1  # 0.1 = TIME_STEP
+    TIME_STEP = (TEND - T0) / STEPS
     EVERY = 1
     ORDER = 1
 
@@ -49,6 +54,10 @@ def main():
     XSCALE, YSCALE = "log", "log"
     XMIN, XMAX = 1e-5, 1e5
     YMIN, YMAX = 1e-10, 1e5
+
+    # File output:
+    WRITE_DATA_FILES = False
+    WRITE_PLOT_FILES = True
 
     # SIMULATION: -------------------------------------------------------------
 

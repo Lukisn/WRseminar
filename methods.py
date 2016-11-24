@@ -150,7 +150,6 @@ class Method:
             ndf = self._result_ndfs[time]
             ndf.to_file(filename, info="# time = {:.15e}".format(time))
 
-
     def _plot_ndfs(self):
         """Plot initial and current NDF.
         """
@@ -291,11 +290,11 @@ class FixedPivot(Method):
                     else:
                         def integrand1(v):
                             return (xip1 - v) / (xip1 - xi) * beta(v, xk)
-                        first, _ = quad(integrand1, xi, xip1)
+                        first, *_ = quad(integrand1, xi, xip1)
 
                         def integrand2(v):
                             return (v - xim1) / (xi - xim1) * beta(v, xk)
-                        second, _ = quad(integrand2, xim1, xi)
+                        second, *_ = quad(integrand2, xim1, xi)
                     nik = first + second
 
                     # calculate actual birth:
