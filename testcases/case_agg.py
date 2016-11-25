@@ -10,6 +10,7 @@ from math import exp, sqrt
 
 # third party imports:
 import matplotlib.pyplot as plt
+from scipy import inf
 from scipy.integrate import quad
 from scipy.special import iv  # modified bessel function
 
@@ -30,9 +31,16 @@ def main():
         return v1 + v2
 
     def n(t, x):   # analytic solution
-        ratio = (exp(-t - 2 * x + x * exp(-t))) / (x * sqrt(1 - exp(-t)))
-        bessel = iv(1, 2 * x * sqrt(1 - exp(-t)))
-        return ratio * bessel
+        if t == 0 or x == 0:
+            return 0
+        else:
+            ratio = exp(-t - 2 * x + x * exp(-t)) / (x * sqrt(1 - exp(-t)))
+            if ratio == 0:
+                return 0
+            else:
+                bessel = iv(1, 2 * x * sqrt(1 - exp(-t)))
+                result = ratio * bessel
+                return result
 
     # CONSTANTS: --------------------------------------------------------------
 
@@ -118,8 +126,7 @@ def main():
         ca_err_y.append(err)
 
     # gather moment data:
-    # TODO: find error in calculating the analytic moments
-    def moment(order, time, end=END):
+    def moment(order, time):
         """Calculate analytical moment of `order` at `time` numerically.
 
         :param order: order of analytic moment.
@@ -132,9 +139,8 @@ def main():
         if time == 0:
             mom = 1
         else:
-            mom, *_ = quad(integrand, 0, end)
+            mom, *_ = quad(integrand, 0, inf)
         return mom
-
 
     times = sorted(fp._result_ndfs.keys())
     ana_moment0, ana_moment1 = [], []
@@ -220,11 +226,11 @@ def main():
     }
     fp_style0 = {
         "linestyle": "solid", "linewidth": 1, "color": "blue",
-        "marker": ".", "markersize": MARKER_SIZE * 2
+        "marker": ".", "markersize": MARKER_SIZE
     }
     fp_style1 = {
         "linestyle": "solid", "linewidth": 1, "color": "blue",
-        "marker": "x", "markersize": MARKER_SIZE * 2
+        "marker": "x", "markersize": MARKER_SIZE
     }
 
     # plot NDF comparison and errors:
