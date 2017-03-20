@@ -1,5 +1,9 @@
 language: python
 python:
   - "3.4"
-install: "pip install -r requirements.txt"
+#install: "pip install -r requirements.txt"
+install:
+  - pip install --only-binary numpy
+  - pip install --only-binary scipy
+  - pip install --only binary matplotlib
 script: "python -m unittest discover -v"
