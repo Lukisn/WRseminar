@@ -1,6 +1,6 @@
 language: python
 python:
-  - "2.7"
+#  - "2.7"  # the tests don't run in legacy python!
   - "3.4"
 install:
   - pip install --upgrade pip setuptools wheel
