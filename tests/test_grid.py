@@ -235,7 +235,3 @@ class TestGrid(unittest.TestCase):
         print(seams)
         if not seams:
             raise RuntimeError("no seams!")
-
-
-if __name__ == "__main__":
-    unittest.main()

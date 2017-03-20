@@ -7,12 +7,13 @@ Welcome to WR Seminar's documentation!
 ======================================
 
 .. toctree::
-    :maxdepth: 2
+    :maxdepth: 3
     :caption: Contents:
 
     intro
-    reference
     build
+
+    reference
 
 
 Indices and tables

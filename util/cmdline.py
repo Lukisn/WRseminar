@@ -4,7 +4,7 @@
 Module implementing some basic command line utilities.
 
 The module contains multiple functions encapsulating some general command line
-interactions with the user. Those functions are prefixed with 'prompt_'.
+interactions with the user. Those functions are prefixed with ``prompt_``.
 Also this module contains two classes for dynamic command line output on a
 single line. Those classes are designed to be used as context managers.
 """

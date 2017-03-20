@@ -3,12 +3,12 @@
 # TODO: revisit documentation
 
 """
-module implementing the core classes used for representing a discrete NDF.
+Module implementing the core classes used for representing a discrete NDF.
 
-These classes are the top level Grid class and the lower level Section class.
-A Grid is a connected amount of sections. The sections are defined by their
-lower and upper boundaries (minimum, maximum), the pivot point and the number
-of particles within the section.
+These classes are the top level ``Grid`` class and the lower level ``Section``
+class. A Grid is a connected amount of sections. The sections are defined by
+their lower and upper boundaries (minimum, maximum), the pivot point and the
+number of particles within the section.
 """
 from collections import deque
 
@@ -91,20 +91,24 @@ class Section:
     particles in the section and the derived value of the mean particle
     density.
 
-       start   pivot    end
-         |       |       |
-      ---[-------o-------)-->
-         |       |       |
-        v_i     x_i    v_i+1
+    .. code::
+
+         start   pivot    end
+           |       |       |
+        ---[-------o-------)-->
+           |       |       |
+          v_i     x_i    v_i+1
+
     """
+
     def __init__(self, start, end, particles=0):
         """Initializer.
 
         :param start: inclusive minimum of the section (v_i).
         :param end: exclusive maximum of the section (v_i+1).
         :param particles: total number of particles in the section (N_i).
-        :raises: AssertionError if minimum >= maximum.
-        :raises: AssertionError if particles < 0.
+        :raises AssertionError: if minimum >= maximum.
+        :raises AssertionError: if particles < 0.
         """
         # check parameters:
         if particles < 0:
@@ -287,13 +291,15 @@ class Grid:
     implementation of the classes methods. If changes are made to the Sections
     "by hand" the seamlessness has to be checked.
 
-    start                                          end
-      0     1     2       3  ...   N-1    N        N+1   <- boundaries
-      |  0  |  1  |   2   | 3 | ... | N-1 |    N    |    <- pivots
-      +--o--+--o--+---o---+-o-+--o--+--o--+----o----+->
+    .. code::
 
-      [--o--)     [---o---)   [--o--)     [----o----)    <- section objects
-    left    [--o--)       [-o-)     [--o--)       right
+        start                                          end
+          0     1     2       3  ...   N-1    N        N+1   <- boundaries
+          |  0  |  1  |   2   | 3 | ... | N-1 |    N    |    <- pivots
+          +--o--+--o--+---o---+-o-+--o--+--o--+----o----+->
+
+          [--o--)     [---o---)   [--o--)     [----o----)    <- section objects
+        left    [--o--)       [-o-)     [--o--)       right
 
     """
     def __init__(self, start=0, end=1, particles=0):

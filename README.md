@@ -9,9 +9,8 @@ Overview
 TODO
 ----
 
-* create api documentation
+* make testcases run again!!!
 * integrate silly demo code into tests
-* refactor project into package structure
 
 Notes
 -----
