@@ -1,3 +1,17 @@
+WR Seminar
+==========
+**Modellierung der Populationsbilanz von Aerosolen
+mittels der Sektionalmethode**
+
+Overview
+--------
+
+TODO
+----
+
+Notes
+-----
+
 immernoch problematisch:
 - "Ränder" in Fixed Pivot
     o Fokus auf Cell Average!

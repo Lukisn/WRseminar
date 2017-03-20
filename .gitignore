@@ -1,5 +1,6 @@
 *.dat
 *.eps
+.idea/
 __pycache__
 /doc/_build/
 /doc/_static/
