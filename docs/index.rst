@@ -12,6 +12,7 @@ Welcome to WR Seminar's documentation!
 
     intro
     reference
+    build
 
 
 Indices and tables
