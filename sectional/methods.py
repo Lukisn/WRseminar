@@ -10,13 +10,14 @@ breakage, aggregation, nucleation and growth. The different kernel functions
 can be arbitrarily defined by the user.
 """
 
-import sys  # for debugging output on sys.stderr
+from copy import deepcopy
+
 import matplotlib.pyplot as plt
 from numpy import linspace, zeros
-from copy import deepcopy
 from scipy.integrate import quad
-from WR.functions import zero, kronecker, hstep
-from WR.cmdline import Spinner
+
+from sectional.functions import zero, kronecker, hstep
+from util.cmdline import Spinner
 
 
 class Method:

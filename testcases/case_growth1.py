@@ -6,8 +6,8 @@ Demo case for pure growth
 Taken from Yuan paper Case 1.
 """
 import matplotlib.pyplot as plt
-from WR.grid import Grid
-from WR.methods import FixedPivot, CellAverage
+from sectional.grid import Grid
+from sectional.methods import FixedPivot, CellAverage
 
 
 def main():

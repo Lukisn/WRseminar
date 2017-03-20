@@ -9,6 +9,10 @@ Overview
 TODO
 ----
 
+* create api documentation
+* integrate silly demo code into tests
+* refactor project into package structure
+
 Notes
 -----
 

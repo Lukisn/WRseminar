@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 
 import unittest
-from WR.grid import find_initial_step, Section, Grid
+
+from sectional.grid import find_initial_step, Section, Grid
 
 
 class TestFunctions(unittest.TestCase):

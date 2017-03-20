@@ -13,9 +13,9 @@ import matplotlib.pyplot as plt
 from scipy.integrate import quad
 
 # application imports:
-from WR.functions import hstep, dirac_norm
-from WR.grid import Grid
-from WR.methods import FixedPivot, CellAverage
+from sectional.functions import hstep, dirac_norm
+from sectional.grid import Grid
+from sectional.methods import FixedPivot, CellAverage
 
 
 def main():

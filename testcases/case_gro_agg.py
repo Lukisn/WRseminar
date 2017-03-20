@@ -7,8 +7,8 @@ Taken from Yuan paper Case 13.
 """
 import matplotlib.pyplot as plt
 from math import exp
-from WR.grid import Grid
-from WR.methods import FixedPivot, CellAverage
+from sectional.grid import Grid
+from sectional.methods import FixedPivot, CellAverage
 
 
 # TODO: find problem in the calculation!

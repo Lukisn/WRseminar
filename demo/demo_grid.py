@@ -4,9 +4,11 @@
 Module demonstrating the basic usage of the Grid class.
 """
 from math import exp
-import numpy as np
+
 import matplotlib.pyplot as plt
-from WR.grid import Grid
+import numpy as np
+
+from sectional.grid import Grid
 
 
 def f(v, N0=1, v0=1):

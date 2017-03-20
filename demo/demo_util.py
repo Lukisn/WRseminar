@@ -3,10 +3,10 @@
 """
 Module demonstrating the basic usage of the command line utilities.
 """
-from WR.cmdline import prompt_continue, prompt_yes_no, YES, NO
-from WR.cmdline import prompt_input_str, prompt_input_int, prompt_input_float
-from WR.cmdline import prompt_sure, prompt_input_list
-from WR.cmdline import Spinner, Progress
+from util.cmdline import Spinner, Progress
+from util.cmdline import prompt_continue, prompt_yes_no, YES, NO
+from util.cmdline import prompt_input_str, prompt_input_int, prompt_input_float
+from util.cmdline import prompt_sure, prompt_input_list
 
 
 def demo_basic_prompts():

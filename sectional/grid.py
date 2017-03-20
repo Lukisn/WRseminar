@@ -11,9 +11,11 @@ lower and upper boundaries (minimum, maximum), the pivot point and the number
 of particles within the section.
 """
 from collections import deque
-from scipy.integrate import quad
+
 import matplotlib.pyplot as plt
-from WR.functions import zero
+from scipy.integrate import quad
+
+from sectional.functions import zero
 
 
 def find_initial_step(start, end, steps, factor, max_err=1e-14, max_iter=100):

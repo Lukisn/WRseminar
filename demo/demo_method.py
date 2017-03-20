@@ -1,15 +1,18 @@
 #!/usr/bin/env python3
+# TODO: find errors
+# this demo module uses old apis and fails!!!
 
 """
 Module demonstrating the basic usage of the provided classes for the
 calculation methods.
 """
-import matplotlib.pyplot as plt
-from math import exp
 from collections import Iterable
-from WR.grid import Grid
-from WR.methods import FixedPivot, CellAverage
+from math import exp
 
+import matplotlib.pyplot as plt
+
+from sectional.grid import Grid
+from sectional.methods import FixedPivot, CellAverage
 
 # CONSTANTS: ------------------------------------------------------------------
 
@@ -129,10 +132,10 @@ def demo_zero():
     fp = FixedPivot(initial=ini)
     ca = CellAverage(initial=ini)
     fp.simulate(
-        end_time=END_TIME, steps=STEPS, write_every=EVERY, max_order=ORDER
+        end_time=END_TIME, steps=STEPS, write_every=EVERY  #, max_order=ORDER
     )
     ca.simulate(
-        end_time=END_TIME, steps=STEPS, write_every=EVERY, max_order=ORDER
+        end_time=END_TIME, steps=STEPS, write_every=EVERY  #, max_order=ORDER
     )
     plot_initial_and_current([fp, ca])
     plot_moments_over_time([fp, ca], max_order=ORDER)
@@ -156,10 +159,10 @@ def demo_breakage():
         agg=False, gro=False, nuc=False
     )
     fp.simulate(
-        end_time=END_TIME, steps=STEPS, write_every=EVERY, max_order=ORDER
+        end_time=END_TIME, steps=STEPS, write_every=EVERY  #, max_order=ORDER
     )
     ca.simulate(
-        end_time=END_TIME, steps=STEPS, write_every=EVERY, max_order=ORDER
+        end_time=END_TIME, steps=STEPS, write_every=EVERY  #, max_order=ORDER
     )
     plot_initial_and_current([fp, ca])
     plot_moments_over_time([fp, ca], max_order=ORDER)
@@ -183,10 +186,10 @@ def demo_aggregation():
         bre=False, gro=False, nuc=False
     )
     fp.simulate(
-        end_time=END_TIME, steps=STEPS, write_every=EVERY, max_order=ORDER
+        end_time=END_TIME, steps=STEPS, write_every=EVERY  #, max_order=ORDER
     )
     ca.simulate(
-        end_time=END_TIME, steps=STEPS, write_every=EVERY, max_order=ORDER
+        end_time=END_TIME, steps=STEPS, write_every=EVERY  #, max_order=ORDER
     )
     plot_initial_and_current([fp, ca])
     plot_moments_over_time([fp, ca], max_order=ORDER)
@@ -212,10 +215,10 @@ def demo_breakage_aggregation():
         gro=False, nuc=False
     )
     fp.simulate(
-        end_time=END_TIME, steps=STEPS, write_every=EVERY, max_order=ORDER
+        end_time=END_TIME, steps=STEPS, write_every=EVERY  #, max_order=ORDER
     )
     ca.simulate(
-        end_time=END_TIME, steps=STEPS, write_every=EVERY, max_order=ORDER
+        end_time=END_TIME, steps=STEPS, write_every=EVERY  #, max_order=ORDER
     )
     plot_initial_and_current([fp, ca])
     plot_moments_over_time([fp, ca], max_order=ORDER)
@@ -239,10 +242,10 @@ def demo_growth():
         bre=False, agg=False, nuc=False
     )
     fp.simulate(
-        end_time=END_TIME, steps=STEPS, write_every=EVERY, max_order=ORDER
+        end_time=END_TIME, steps=STEPS, write_every=EVERY  #, max_order=ORDER
     )
     ca.simulate(
-        end_time=END_TIME, steps=STEPS, write_every=EVERY, max_order=ORDER
+        end_time=END_TIME, steps=STEPS, write_every=EVERY  #, max_order=ORDER
     )
     plot_initial_and_current([fp, ca])
     plot_moments_over_time([fp, ca], max_order=ORDER)
@@ -266,10 +269,10 @@ def demo_nucleation():
         bre=False, agg=False, gro=False
     )
     fp.simulate(
-        end_time=END_TIME, steps=STEPS, write_every=EVERY, max_order=ORDER
+        end_time=END_TIME, steps=STEPS, write_every=EVERY  #, max_order=ORDER
     )
     ca.simulate(
-        end_time=END_TIME, steps=STEPS, write_every=EVERY, max_order=ORDER
+        end_time=END_TIME, steps=STEPS, write_every=EVERY  #, max_order=ORDER
     )
     plot_initial_and_current([fp, ca])
     plot_moments_over_time([fp, ca], max_order=ORDER)
@@ -295,10 +298,10 @@ def demo_growth_nucleation():
         bre=False, agg=False
     )
     fp.simulate(
-        end_time=END_TIME, steps=STEPS, write_every=EVERY, max_order=ORDER
+        end_time=END_TIME, steps=STEPS, write_every=EVERY  #, max_order=ORDER
     )
     ca.simulate(
-        end_time=END_TIME, steps=STEPS, write_every=EVERY, max_order=ORDER
+        end_time=END_TIME, steps=STEPS, write_every=EVERY  #, max_order=ORDER
     )
     plot_initial_and_current([fp, ca])
     plot_moments_over_time([fp, ca], max_order=ORDER)
@@ -326,10 +329,10 @@ def demo_all():
         nuc=True, nuc_rate=S
     )
     fp.simulate(
-        end_time=END_TIME, steps=STEPS, write_every=EVERY, max_order=ORDER
+        end_time=END_TIME, steps=STEPS, write_every=EVERY  #, max_order=ORDER
     )
     ca.simulate(
-        end_time=END_TIME, steps=STEPS, write_every=EVERY, max_order=ORDER
+        end_time=END_TIME, steps=STEPS, write_every=EVERY  #, max_order=ORDER
     )
     plot_initial_and_current([fp, ca])
     plot_moments_over_time([fp, ca], max_order=ORDER)

@@ -3,13 +3,14 @@
 """
 Module demonstrating the basic usage of the predefined functions.
 """
+import matplotlib.pyplot as plt
 import numpy as np
 from scipy.integrate import quad
-import matplotlib.pyplot as plt
-from WR.functions import pairwise
-from WR.functions import kronecker, zero
-from WR.functions import step, hstep
-from WR.functions import dirac_norm, dirac_simple, dirac_rect
+
+from sectional.functions import dirac_norm, dirac_simple, dirac_rect
+from sectional.functions import kronecker, zero
+from sectional.functions import pairwise
+from sectional.functions import step, hstep
 
 
 def demo_utilities():

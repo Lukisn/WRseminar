@@ -15,8 +15,8 @@ from scipy.integrate import quad
 from scipy.special import iv  # modified bessel function
 
 # application imports:
-from WR.grid import Grid
-from WR.methods import FixedPivot, CellAverage
+from sectional.grid import Grid
+from sectional.methods import FixedPivot, CellAverage
 
 
 def main():

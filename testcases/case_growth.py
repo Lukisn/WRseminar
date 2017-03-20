@@ -4,9 +4,9 @@
 Demo case for pure growth
 """
 import matplotlib.pyplot as plt
-from WR.functions import hstep
-from WR.grid import Grid
-from WR.methods import FixedPivot, CellAverage
+from sectional.functions import hstep
+from sectional.grid import Grid
+from sectional.methods import FixedPivot, CellAverage
 
 
 def main():
