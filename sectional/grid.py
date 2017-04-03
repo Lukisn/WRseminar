@@ -1,7 +1,4 @@
 #!/usr/bin/env python3
-# TODO: refactor for readability and
-# TODO: revisit documentation
-
 """
 Module implementing the core classes used for representing a discrete NDF.
 
@@ -10,11 +7,12 @@ class. A Grid is a connected amount of sections. The sections are defined by
 their lower and upper boundaries (minimum, maximum), the pivot point and the
 number of particles within the section.
 """
+# standard library imports:
 from collections import deque
-
+# third party imports:
 import matplotlib.pyplot as plt
 from scipy.integrate import quad
-
+# application imports:
 from sectional.functions import zero
 
 
@@ -772,61 +770,31 @@ class Grid:
         ax1.grid()
         plt.show()
 
-
     '''
     # FUTURE IDEAS:
     @staticmethod
     def from_boundaries(boundaries):
-        """Create grid from list of range boundaries.
-        """
-        raise NotImplementedError  # TODO: maybe implement in the future
-
+        """Create grid from list of range boundaries."""
+    
     @staticmethod
     def create_adaptive(start, end, steps, func):
-        """Create a grid that adapts automatically to the given function.
-        """
-        raise NotImplementedError  # TODO: maybe implement in the future
-
+        """Create a grid that adapts automatically to the given function."""
+    
     def coarsen_range(self, start, end):
-        """Coarsen grid by combining sections in the index range.
-
-        :param start: inclusive start of index range.
-        :param end: inclusive end of index range.
-        """
-        raise NotImplementedError  # TODO: maybe implement in the future
-
+        """Coarsen grid by combining sections in the index range."""
+    
     def coarsen(self, times=1):
-        """Coarsen whole grid a specified number of times.
-
-        :param times: amount of coarsening steps.
-        """
-        raise NotImplementedError  # TODO: maybe implement in the future
-
+        """Coarsen whole grid a specified number of times."""
+    
     def refine_range(self, start, end):
-        """Refine the grid by splitting the sections in the index range.
-
-        :param start: inclusive start of index range.
-        :param end: inclusive end of index range.
-        """
-        raise NotImplementedError  # TODO: maybe implement in the future
-
+        """Refine the grid by splitting the sections in the index range."""
+    
     def refine(self, times=1):
-        """Refine whole grid a specified number of times
-
-        :param times: amount of refinement steps.
-        """
-        raise NotImplementedError  # TODO: maybe implement in the future
-
+        """Refine whole grid a specified number of times."""
+    
     def smooth_range(self, start, end):
-        """Smooth grid by averaging the section sizes in the index range.
-
-        :param start: inclusive start of the index range.
-        :param end: inclusive end of the index range.
-        """
-        raise NotImplementedError  # TODO: maybe implement in the future
-
+        """Smooth grid by averaging the section sizes in the index range."""
+    
     def smooth(self):
-        """Smooth entire grid.
-        """
-        raise NotImplementedError  # TODO: maybe implement in the future
+        """Smooth entire grid."""
     '''

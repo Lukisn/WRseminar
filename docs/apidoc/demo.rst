@@ -1,6 +1,11 @@
 demo package
 ============
 
+.. automodule:: demo
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 Submodules
 ----------
 
@@ -37,10 +42,3 @@ demo.demo_util module
     :show-inheritance:
 
 
-Module contents
----------------
-
-.. automodule:: demo
-    :members:
-    :undoc-members:
-    :show-inheritance:

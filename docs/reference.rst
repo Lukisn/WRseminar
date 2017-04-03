@@ -9,14 +9,7 @@ The API reference documentation is structured into the different packages:
 
 
 .. toctree::
-    :maxdepth: 1
-    :caption: Contents:
+    :maxdepth: 2
+    :glob:
 
-    apidoc/modules
-
-    apidoc/sectional
-    apidoc/testcases
-
-..    apidoc/util
-    apidoc/tests
-    apidoc/demo
+    apidoc/*

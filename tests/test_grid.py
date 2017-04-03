@@ -1,13 +1,18 @@
 #!/usr/bin/env python3
-
+"""
+Testing module for core classes representing a discrete NDF grid.
+"""
+# standard library imports:
 import unittest
-
+# application imports:
 from sectional.grid import find_initial_step, Section, Grid
 
 
 class TestFunctions(unittest.TestCase):
+    """Test case for all functions within the module."""
 
     def test_find_initial_step(self):
+        """Test method for ``find_initial_step()`` function."""
         with self.assertRaises(ValueError):
             find_initial_step(start=1, end=0, steps=1, factor=1)  # start > end
         with self.assertRaises(ValueError):
@@ -21,8 +26,10 @@ class TestFunctions(unittest.TestCase):
 
 
 class TestSection(unittest.TestCase):
+    """Test case for ``Section`` class."""
 
     def test_creation(self):
+        """Test method for section creation/initialization."""
         s = Section(start=0, end=1, particles=0)  # default section
         print(s)
         Section(start=-1.0, end=1, particles=10)  # section including zero
@@ -33,6 +40,7 @@ class TestSection(unittest.TestCase):
             Section(start=0, end=1, particles=-1)  # negative particle number
 
     def test_start_end(self):
+        """Test method for ``start`` and ``end`` properties."""
         s = Section(start=0, end=1)
         self.assertEquals(s.start, 0)
         self.assertEquals(s.end, 1)
@@ -46,6 +54,7 @@ class TestSection(unittest.TestCase):
             s.start = 4  # start > end
 
     def test_interval(self):
+        """Test method for ``interval`` property."""
         s = Section(start=0, end=1)  # default interval
         self.assertEquals(s.interval, (0, 1))
         s.interval = (-2, 3)  # interval including zero
@@ -59,6 +68,7 @@ class TestSection(unittest.TestCase):
             s.interval = (4, -2)  # start > end
 
     def test_pivot(self):
+        """Test method for ``pivot`` property."""
         s = Section(0, 1)
         self.assertEquals(s.pivot, (s.end + s.start) / 2)
         self.assertEquals(s.pivot, 0.5)
@@ -68,6 +78,7 @@ class TestSection(unittest.TestCase):
         self.assertEquals(s.pivot, 3)
 
     def test_particle(self):
+        """Test method for ``particle`` property."""
         s = Section(start=0, end=1, particles=100)
         self.assertEquals(s.particles, 100)
         self.assertEquals(s.density, 100 / s.size)
@@ -79,8 +90,10 @@ class TestSection(unittest.TestCase):
 
 
 class TestGrid(unittest.TestCase):
+    """Test case for ``Grid`` class."""
 
     def test_creation(self):
+        """Test method for grid creation/initialization."""
         g = Grid()  # default grid
         if not g._is_seamless():
             raise RuntimeError("found seams!")
@@ -98,6 +111,7 @@ class TestGrid(unittest.TestCase):
             Grid(start=0, end=1, particles=-1)  # particles < 0
 
     def test_section(self):
+        """Test method for accessing sections."""
         g = Grid.create_uniform(start=0, end=1, sec=10)
         g._info()
         if not g._is_seamless():
@@ -109,6 +123,7 @@ class TestGrid(unittest.TestCase):
             _ = g[len(g)]  # right outside index range
 
     def test_creation_uniform(self):
+        """Test method for ``create_uniform()`` factory class method."""
         u = Grid.create_uniform(start=0, end=10, sec=3)
         if not u._is_seamless():
             raise RuntimeError("found seams!")
@@ -121,6 +136,7 @@ class TestGrid(unittest.TestCase):
             Grid.create_uniform(start=0, end=1, sec=-1)  # sections < 0
 
     def test_creation_geometric(self):
+        """Test method for ``create_geometric()`` factory class method."""
         g = Grid.create_geometric(start=0, end=10, ini_sec=1, fact=1.1)
         if not g._is_seamless():
             raise RuntimeError("found seams!")
@@ -134,6 +150,7 @@ class TestGrid(unittest.TestCase):
             Grid.create_geometric(start=0, end=1, ini_sec=1, fact=0.1)  # factor < 1
 
     def test_creation_geometric_step(self):
+        """Test method for ``create_geometric_step()`` factory class method."""
         g = Grid.create_geometric_step(start=0, end=10, fact=1, uni_sec=3)
         if not g._is_seamless():
             raise RuntimeError("found seams!")
@@ -147,6 +164,7 @@ class TestGrid(unittest.TestCase):
             Grid.create_geometric_step(start=0, end=10, fact=1, uni_sec=-10)
 
     def test_creation_geometric_end(self):
+        """Test method for ``create_geometric_end()`` factory class method."""
         g = Grid.create_geometric_end(start=0, end=10, fact=1.1, sec=3)
         if not g._is_seamless():
             raise RuntimeError("found seams!")
@@ -161,6 +179,7 @@ class TestGrid(unittest.TestCase):
             Grid.create_geometric_end(start=0, end=10, fact=1, sec=-10)
 
     def test_manipulation(self):
+        """Test method for testing adding and removing sections."""
         g = Grid(start=4, end=5)
         if not g._is_seamless():
             raise RuntimeError("found seams!")
@@ -201,6 +220,7 @@ class TestGrid(unittest.TestCase):
             g.remove_right()  # last section
 
     def test_moment(self):
+        """Test method for moment calculation."""
         u = Grid.create_uniform(start=0, end=1, sec=10)  # default zero
         if not u._is_seamless():
             raise RuntimeError("found seams!")
@@ -212,9 +232,10 @@ class TestGrid(unittest.TestCase):
         for order in range(10):
             self.assertEqual(g.moment(order=order), 0)
         with self.assertRaises(ValueError):
-            u.moment(order=-1)  # oder < 0
+            u.moment(order=-1)  # order < 0
 
     def test_lists(self):
+        """Test method for different list accessors."""
         g = Grid.create_uniform(start=0, end=1, sec=10)  # default zero
         if not g._is_seamless():
             raise RuntimeError("found seams!")
@@ -229,6 +250,7 @@ class TestGrid(unittest.TestCase):
         self.assertEqual(len(pi), len(d))
 
     def test_seams(self):
+        """Test seam searching."""
         u = Grid.create_uniform(start=0, end=1, sec=10)
         u._sections[1].start += 0.01  # add a little offset to make a seam
         seams = u._find_seams()

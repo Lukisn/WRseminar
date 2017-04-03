@@ -1,8 +1,29 @@
 tests package
 =============
 
+.. automodule:: tests
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 Submodules
 ----------
+
+tests.test_cmdline module
+-------------------------
+
+.. automodule:: tests.test_cmdline
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+tests.test_functions module
+---------------------------
+
+.. automodule:: tests.test_functions
+    :members:
+    :undoc-members:
+    :show-inheritance:
 
 tests.test_grid module
 ----------------------
@@ -12,11 +33,12 @@ tests.test_grid module
     :undoc-members:
     :show-inheritance:
 
+tests.test_methods module
+-------------------------
 
-Module contents
----------------
-
-.. automodule:: tests
+.. automodule:: tests.test_methods
     :members:
     :undoc-members:
     :show-inheritance:
+
+

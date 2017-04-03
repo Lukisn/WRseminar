@@ -1,6 +1,11 @@
 sectional package
 =================
 
+.. automodule:: sectional
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 Submodules
 ----------
 
@@ -29,10 +34,3 @@ sectional.methods module
     :show-inheritance:
 
 
-Module contents
----------------
-
-.. automodule:: sectional
-    :members:
-    :undoc-members:
-    :show-inheritance:

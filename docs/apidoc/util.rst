@@ -1,6 +1,11 @@
 util package
 ============
 
+.. automodule:: util
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 Submodules
 ----------
 
@@ -12,11 +17,12 @@ util.cmdline module
     :undoc-members:
     :show-inheritance:
 
+util.plotting module
+--------------------
 
-Module contents
----------------
-
-.. automodule:: util
+.. automodule:: util.plotting
     :members:
     :undoc-members:
     :show-inheritance:
+
+
