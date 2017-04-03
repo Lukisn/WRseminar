@@ -5,16 +5,19 @@ Demo case for pure growth
 
 Taken from Yuan paper Case 4.
 """
-import matplotlib.pyplot as plt
+# standard library imports:
+import os
 from math import exp
+# third party imports:
+import matplotlib.pyplot as plt
+# application imports:
 from sectional.grid import Grid
 from sectional.methods import FixedPivot, CellAverage
 
 
 # TODO: find problem in the calculation!
 def main():
-    """Main function.
-    """
+    """Main function."""
 
     # PROBLEM FUNCTIONS: ------------------------------------------------------
 
@@ -50,13 +53,21 @@ def main():
     XMIN, XMAX = 0, 2e1
     YMIN, YMAX = 0, 4
 
+    # File output:
+    WRITE_DATA_FILES = False
+    WRITE_PLOT_FILES = True
+    FOLDER = os.path.abspath("./results/")
+    if not os.path.exists(FOLDER):
+        os.makedirs(FOLDER)
+
     # SIMULATION: -------------------------------------------------------------
 
     # initial NDF:
     initial_ndf = Grid.create_geometric_end(
         start=START, end=END, sec=SECTIONS, fact=FACTOR, func=f
     )
-    initial_ndf.to_file("results/growth4_initial_ndf.dat")
+    if WRITE_DATA_FILES:
+        initial_ndf.to_file(os.path.join(FOLDER, "growth4_initial_ndf.dat"))
 
     # Fixed Pivot Method:
     fp = FixedPivot(
@@ -65,8 +76,11 @@ def main():
         bre=False, agg=False, nuc=False
     )
     fp.simulate(start_time=T0, end_time=TEND, steps=STEPS, write_every=EVERY)
-    fp.moments_to_file("results/growth4_fp_moments.dat", max_order=ORDER)
-    fp.ndf_to_files("results/growth4_fp_ndf.dat")
+    if WRITE_DATA_FILES:
+        fp.moments_to_file(
+            os.path.join(FOLDER, "growth4_fp_moments.dat"), max_order=ORDER
+        )
+        fp.ndf_to_files(os.path.join(FOLDER, "growth4_fp_ndf.dat"))
 
     # Cell Average Technique:
     ca = CellAverage(
@@ -75,8 +89,11 @@ def main():
         bre=False, agg=False, nuc=False
     )
     ca.simulate(start_time=T0, end_time=TEND, steps=STEPS, write_every=EVERY)
-    ca.moments_to_file("results/growth4_ca_moments.dat", max_order=ORDER)
-    ca.ndf_to_files("results/growth4_ca_ndf.dat")
+    if WRITE_DATA_FILES:
+        ca.moments_to_file(
+            os.path.join(FOLDER, "growth4_ca_moments.dat"), max_order=ORDER
+        )
+        ca.ndf_to_files(os.path.join(FOLDER, "growth4_ca_ndf.dat"))
 
     # PLOTTING: ---------------------------------------------------------------
 
@@ -137,7 +154,8 @@ def main():
     plt.legend(loc="best", fontsize="small")
     plt.grid()
 
-    plt.savefig("results/growth4_ndf.eps")
+    if WRITE_PLOT_FILES:
+        plt.savefig(os.path.join(FOLDER, "growth4_ndf.eps"))
     plt.show()
 
     # plot Moments comparison:
@@ -150,7 +168,8 @@ def main():
     plt.legend(loc="best", fontsize="small")
     plt.grid()
 
-    plt.savefig("results/growth4_mom.eps")
+    if WRITE_PLOT_FILES:
+        plt.savefig(os.path.join(FOLDER, "growth4_mom.eps"))
     plt.show()
 
 

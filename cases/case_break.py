@@ -4,14 +4,12 @@ Demo case for pure breakage.
 
 Taken from Yuan paper case 8.
 """
-
 # standard library imports:
+import os
 from math import exp
-
 # third party imports:
 import matplotlib.pyplot as plt
 from scipy.integrate import quad
-
 # application imports:
 from sectional.functions import hstep, dirac_norm
 from sectional.grid import Grid
@@ -58,6 +56,9 @@ def main():
     # File output:
     WRITE_DATA_FILES = False
     WRITE_PLOT_FILES = True
+    FOLDER = os.path.abspath("./results/")
+    if not os.path.exists(FOLDER):
+        os.makedirs(FOLDER)
 
     # SIMULATION: -------------------------------------------------------------
 
@@ -66,7 +67,7 @@ def main():
         start=START, end=END, sec=SECTIONS, fact=FACTOR, func=f
     )
     if WRITE_DATA_FILES:
-        initial_ndf.to_file("results/break_initial_ndf.dat")
+        initial_ndf.to_file(os.path.join(FOLDER, "break_initial_ndf.dat"))
 
     # Fixed Pivot Method:
     fp = FixedPivot(
@@ -76,8 +77,10 @@ def main():
     )
     fp.simulate(start_time=T0, end_time=TEND, steps=STEPS, write_every=EVERY)
     if WRITE_DATA_FILES:
-        fp.moments_to_file("results/break_fp_moments.dat", max_order=ORDER)
-        fp.ndf_to_files("results/break_fp_ndf.dat")
+        fp.moments_to_file(
+            os.path.join(FOLDER, "break_fp_moments.dat"), max_order=ORDER
+        )
+        fp.ndf_to_files(os.path.join(FOLDER, "break_fp_ndf.dat"))
 
     # Cell Average Technique:
     ca = CellAverage(
@@ -87,8 +90,10 @@ def main():
     )
     ca.simulate(start_time=T0, end_time=TEND, steps=STEPS, write_every=EVERY)
     if WRITE_DATA_FILES:
-        ca.moments_to_file("results/break_ca_moments.dat", max_order=ORDER)
-        ca.ndf_to_files("results/break_ca_ndf.dat")
+        ca.moments_to_file(
+            os.path.join(FOLDER, "break_ca_moments.dat"), max_order=ORDER
+        )
+        ca.ndf_to_files(os.path.join(FOLDER, "break_ca_ndf.dat"))
 
     # CALCULATIONS FOR PLOTTING: ----------------------------------------------
 
@@ -257,7 +262,7 @@ def main():
     # tighten layout and show:
     fig.tight_layout()
     if WRITE_PLOT_FILES:
-        plt.savefig("results/break_ndf.eps")
+        plt.savefig(os.path.join(FOLDER, "break_ndf.eps"))
     plt.show()
 
     # plot moment comparison and errors:
@@ -285,7 +290,7 @@ def main():
     # tighten layout and show:
     fig.tight_layout()
     if WRITE_PLOT_FILES:
-        fig.savefig("results/break_mom.eps")
+        fig.savefig(os.path.join(FOLDER, "break_mom.eps"))
     plt.show()
 
 
