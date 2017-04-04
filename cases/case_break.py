@@ -14,6 +14,7 @@ from scipy.integrate import quad
 from sectional.functions import hstep, dirac_norm
 from sectional.grid import Grid
 from sectional.methods import FixedPivot, CellAverage
+from util.plotting import *  # plotting styles
 
 
 def main():
@@ -54,7 +55,7 @@ def main():
     YMIN, YMAX = 1e-5, 1e2
 
     # File output:
-    WRITE_DATA_FILES = False
+    WRITE_DATA_FILES = True
     WRITE_PLOT_FILES = True
     FOLDER = os.path.abspath("./results/")
     if not os.path.exists(FOLDER):
@@ -180,58 +181,8 @@ def main():
 
     # PLOTTING: ---------------------------------------------------------------
 
-    MARKER_SIZE = 7
-    legend_style = {
-        "loc": "best", "fontsize": "small", "numpoints": 1,
-        "framealpha": 0.75, "fancybox": True
-    }
-
-    ana_style = {
-        "linewidth": 3, "linestyle": "solid", "color": "orange",
-        "marker": None
-    }
-    ana_style0 = {
-        "linewidth": 3, "linestyle": "solid", "color": "orange",
-        "marker": ".", "markersize": MARKER_SIZE
-    }
-    ana_style1 = {
-        "linewidth": 3, "linestyle": "solid", "color": "orange",
-        "marker": "x", "markersize": MARKER_SIZE
-    }
-
-    initial_style = {
-        "linestyle": "solid", "linewidth": 2, "color": "green",
-        "marker": "+", "markersize": MARKER_SIZE
-    }
-
-    ca_style = {
-        "linestyle": "solid", "linewidth": 2,  "color": "red",
-        "marker": ".", "markersize": MARKER_SIZE
-    }
-    ca_style0 = {
-        "linestyle": "solid", "linewidth": 2, "color": "red",
-        "marker": ".", "markersize": MARKER_SIZE
-    }
-    ca_style1 = {
-        "linestyle": "solid", "linewidth": 2, "color": "red",
-        "marker": "x", "markersize": MARKER_SIZE
-    }
-
-    fp_style = {
-        "linestyle": "solid", "linewidth": 1, "color": "blue",
-        "marker": "x", "markersize": MARKER_SIZE
-    }
-    fp_style0 = {
-        "linestyle": "solid", "linewidth": 1, "color": "blue",
-        "marker": ".", "markersize": MARKER_SIZE
-    }
-    fp_style1 = {
-        "linestyle": "solid", "linewidth": 1, "color": "blue",
-        "marker": "x", "markersize": MARKER_SIZE
-    }
-
     # plot NDF comparison and errors:
-    fig, (upper, lower) = plt.subplots(2, 1, sharex=True)
+    fig, (upper, lower) = plt.subplots(2, 1, sharex="all")
     # upper subplot - NDF:
     upper.set_title(
         "analytical and discrete NDFs at TEND = {} s, STEP = {} s".format(
@@ -266,10 +217,10 @@ def main():
     plt.show()
 
     # plot moment comparison and errors:
-    fig, (upper, lower) = plt.subplots(2, 1, sharex=True)
+    fig, (upper, lower) = plt.subplots(2, 1, sharex="all")
     # upper subplot - moments:
     upper.set_title("moments over time. STEP = {} s".format(TIME_STEP))
-    upper.set_ylabel("y label")
+    upper.set_ylabel("moment")
     upper.plot(times, ana_moment0, label="ana 0", **ana_style0)
     upper.plot(times, ana_moment1, label="ana 1", **ana_style1)
     upper.plot(times, fp_moment0, label="FP 0", **fp_style0)

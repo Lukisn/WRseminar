@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-
 """
 Demo case for pure growth
 
@@ -13,6 +12,7 @@ import matplotlib.pyplot as plt
 # application imports:
 from sectional.grid import Grid
 from sectional.methods import FixedPivot, CellAverage
+from util.plotting import *  # plotting styles
 
 
 # TODO: find problem in the calculation!
@@ -21,16 +21,13 @@ def main():
 
     # PROBLEM FUNCTIONS: ------------------------------------------------------
 
-    # initial NDF:
-    def f(x):
+    def f(x):  # initial NDF
         return 6 * x**3 * exp(-x)
 
-    # Growth function:
-    def G(v):
+    def G(v):  # growth function
         return v / 2
 
-    # analytic solution:
-    def n(t, x):
+    def n(t, x):  # analytic solution
         num = (x * exp(-t / 2)) ** 3 * exp(-x * exp(-t / 2))
         den = 6 * exp(t / 2)
         return num / den
@@ -45,6 +42,7 @@ def main():
     # Simulation:
     T0, TEND = 0, 1
     STEPS = 100
+    TIME_STEP = (TEND - T0) / STEPS
     EVERY = 1
     ORDER = 1
 
@@ -54,7 +52,7 @@ def main():
     YMIN, YMAX = 0, 4
 
     # File output:
-    WRITE_DATA_FILES = False
+    WRITE_DATA_FILES = True
     WRITE_PLOT_FILES = True
     FOLDER = os.path.abspath("./results/")
     if not os.path.exists(FOLDER):
@@ -95,7 +93,7 @@ def main():
         )
         ca.ndf_to_files(os.path.join(FOLDER, "growth4_ca_ndf.dat"))
 
-    # PLOTTING: ---------------------------------------------------------------
+    # CALCULATIONS FOR PLOTTING: ----------------------------------------------
 
     # gather NDF data:
     ini_x, ini_y = initial_ndf.pivots(), initial_ndf.densities()
@@ -126,46 +124,51 @@ def main():
         ca_moment0.append(ca._result_ndfs[time].moment(0))
         ca_moment1.append(ca._result_ndfs[time].moment(1))
 
-    # plot NDF comparison and errors:
-    # upper subplot: NDF:
-    plt.subplot(211)
-    # plt.xlabel("size")
-    plt.ylabel("NDF")
-    plt.plot(ana_x, ana_y, "y-", lw=3, label="analytic")
-    plt.plot(ini_x, ini_y, "g.-", lw=2, label="initial")
-    plt.plot(fp_x, fp_y, "bx-", label="fixed pivot")
-    plt.plot(ca_x, ca_y, "r.-", lw=2, label="cell average")
-    plt.xlim(XMIN, XMAX)
-    plt.ylim(YMIN, YMAX)
-    plt.xscale(XSCALE)
-    plt.yscale(YSCALE)
-    plt.legend(loc="best", fontsize="small")
-    plt.grid()
-    # lower subplot: errors:
-    plt.subplot(212)
-    plt.xlabel("size")
-    plt.ylabel("error")
-    plt.plot(fp_x, fp_err_y, "bx-", label="fixed pivot")
-    plt.plot(ca_x, ca_err_y, "r.-", lw=2, label="cell average")
-    plt.xlim(XMIN, XMAX)
-    # plt.ylim(YMIN, YMAX)  # comment out = auto
-    plt.xscale(XSCALE)
-    # plt.yscale(YSCALE)  # comment out  = auto
-    plt.legend(loc="best", fontsize="small")
-    plt.grid()
+    # PLOTTING: ---------------------------------------------------------------
 
+    # plot NDF comparison and errors:
+    fig, (upper, lower) = plt.subplots(2, 1, sharex="all")
+    # upper subplot - NDF:
+    upper.set_title(
+        "analytical and discrete NDFs at TEND = {} s, STEP = {} s".format(
+            TEND, TIME_STEP
+        )
+    )
+    upper.set_ylabel("NDF")
+    upper.plot(ana_x, ana_y, label="ana", **ana_style)
+    upper.plot(ini_x, ini_y, label="ini", **initial_style)
+    upper.plot(fp_x, fp_y, label="FP", **fp_style)
+    upper.plot(ca_x, ca_y, label="CA", **ca_style)
+    upper.set_xlim(XMIN, XMAX)
+    upper.set_ylim(YMIN, YMAX)
+    upper.set_xscale(XSCALE)
+    upper.set_yscale(YSCALE)
+    upper.legend(**legend_style)
+    upper.grid()
+    # lower subplot: errors:
+    lower.set_xlabel("particle size")
+    lower.set_ylabel("relative error")
+    lower.plot(fp_x, fp_err_y, label="FP", **fp_style)
+    lower.plot(ca_x, ca_err_y, label="CA", **ca_style)
+    lower.set_xlim(XMIN, XMAX)
+    lower.set_xscale(XSCALE)
+    lower.legend(**legend_style)
+    lower.grid()
+
+    # tighten layout and show:
+    fig.tight_layout()
     if WRITE_PLOT_FILES:
-        plt.savefig(os.path.join(FOLDER, "growth4_ndf.eps"))
+        plt.savefig(os.path.join(FOLDER, "growth_ndf.eps"))
     plt.show()
 
     # plot Moments comparison:
-    plt.xlabel("time")
+    plt.xlabel("time in s")
     plt.ylabel("moment")
-    plt.plot(times, fp_moment0, "bx-", label="fp_m0")
-    plt.plot(times, fp_moment1, "b.-", label="fp_m1")
-    plt.plot(times, ca_moment0, "rx-", lw=2, label="ca_m0")
-    plt.plot(times, ca_moment1, "r.-", lw=2, label="ca_m1")
-    plt.legend(loc="best", fontsize="small")
+    plt.plot(times, fp_moment0, label="FP 0", **fp_style0)
+    plt.plot(times, fp_moment1, label="FP 1", **fp_style1)
+    plt.plot(times, ca_moment0, label="CA 0", **ca_style0)
+    plt.plot(times, ca_moment1, label="CA_1", **ca_style1)
+    plt.legend(**legend_style)
     plt.grid()
 
     if WRITE_PLOT_FILES:

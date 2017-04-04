@@ -44,8 +44,10 @@ Overview
 TODO
 ----
 
-* integrate silly demo code into tests
-* refactor testcases -> extract commom plotting code
+* refactor testcases -> extract commom plotting code???
+    * add styles to growth cases
+    * add moment calculation to growth cases
+* Gitterverhalten untersuchen
 
 
 Old Notes
