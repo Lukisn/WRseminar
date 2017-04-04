@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-
 """
 Module implementing useful functions for use in the entire project.
 
@@ -18,7 +17,9 @@ def pairwise(iterable):
     taken from: https://docs.python.org/3/library/itertools.html
 
     :param iterable: iterable object.
+    :raises TypeError: if object is not iterable.
     :return: chained pairs of iterable objects elements.
+    :rtype: zip object. Use list() or tuple() on it to build a list or tuple.
     """
     a, b = tee(iterable)
     next(b, None)
@@ -30,7 +31,8 @@ def kronecker(i, j):
 
     :param i: first argument.
     :param j: second argument.
-    :return: 0 if i == j, 1 otherwise.
+    :return: 1 if i == j, 0 otherwise.
+    :rtype: int.
     """
     if i == j:
         return 1
@@ -50,6 +52,13 @@ def zero(*args, **kwargs):
 
 def step(x):
     """Simple step function.
+    
+    This is the simple step function where the return value is
+    0 for x < 0 and 1 for x >= 0.
+    
+    This function can also be used to shift the step and reverse the edge:
+    - rising step:  ``step(x - POS)``
+    - falling step: ``1 - step(x - POS)``
 
     :param x: function argument.
     :return: result.
@@ -62,6 +71,13 @@ def step(x):
 
 def hstep(x):
     """Heavyside step function.
+    
+    This is the heavyside step function whe the return value is
+    0 for x < 0, 0.5 for x = 0 and 1 for x > 0.
+    
+    This function can also be used to shift the step and reverse the edge:
+    - rising step:  hstep(x - POS)
+    - falling step: 1 - hstep(x - POS)
 
     :param x: function argument.
     :return: result.
@@ -84,16 +100,6 @@ def dirac_norm(x, a=1e-3):
     return 1 / (a * sqrt(pi)) * exp(-x**2 / a**2)
 
 
-def dirac_simple(x, a=1e-3):
-    """Numeric Dirac delta function using a simple fraction approach.
-
-    :param x: function argument.
-    :param a: function parameter.
-    :return: numeric approximation of the Dirac delta function.
-    """
-    return a / (pi * (x**2 + a**2))
-
-
 def dirac_rect(x, a=1e-3):
     """Numeric Dirac delta function using a rectangle function (two steps).
 
@@ -110,6 +116,16 @@ def dirac_rect(x, a=1e-3):
         return 0
 
 
+def dirac_simple(x, a=1e-3):
+    """Numeric Dirac delta function using a simple fraction approach.
+
+    :param x: function argument.
+    :param a: function parameter.
+    :return: numeric approximation of the Dirac delta function.
+    """
+    return a / (pi * (x**2 + a**2))
+
+
 def dirac_sin(x, a=1e-3):
     """Numeric Dirac delta function using a sinus approach.
 
@@ -119,4 +135,4 @@ def dirac_sin(x, a=1e-3):
     :param a: function parameter.
     :return: numeric approximation of the Dirac delta function.
     """
-    return sin(x / a) / (pi * x)  # ! singularity at x = 0 !
+    return sin(x / a) / (pi * x)

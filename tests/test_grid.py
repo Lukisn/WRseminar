@@ -1,18 +1,16 @@
 #!/usr/bin/env python3
-"""
-Testing module for core classes representing a discrete NDF grid.
-"""
+"""Testing module for core classes representing a discrete NDF grid."""
 # standard library imports:
 import unittest
 # application imports:
 from sectional.grid import find_initial_step, Section, Grid
 
 
-class TestFunctions(unittest.TestCase):
+class TestFindInitialStepFunction(unittest.TestCase):
     """Test case for all functions within the module."""
 
-    def test_find_initial_step(self):
-        """Test method for ``find_initial_step()`` function."""
+    def test_raises_error_on_faulty_input(self):
+        """Check if ``find_initial_step()`` raises errors on faulty inputs."""
         with self.assertRaises(ValueError):
             find_initial_step(start=1, end=0, steps=1, factor=1)  # start > end
         with self.assertRaises(ValueError):

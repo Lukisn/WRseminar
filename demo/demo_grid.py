@@ -1,27 +1,20 @@
 #!/usr/bin/env python3
-
-"""
-Module demonstrating the basic usage of the Grid class.
-"""
+"""Module demonstrating the basic usage of the Grid class."""
 from math import exp
-
 import matplotlib.pyplot as plt
 import numpy as np
-
 from sectional.grid import Grid
 
 
 def f(v, N0=1, v0=1):
-    """initial number density function.
-    """
+    """initial number density function."""
     return (N0/v0) * (v/v0) * exp(-v/v0)
     # return 1 * v ** 2
 vf = np.vectorize(f)
 
 
 def demo_creation():
-    """Demo creation of discrete NDFs from a given function.
-    """
+    """Demo creation of discrete NDFs from a given function."""
     # constants:
     START, END = 1e-2, 1e1  # discrete size range
     SECTIONS = 10  # number of sections

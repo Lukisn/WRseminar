@@ -45,11 +45,6 @@ def find_initial_step(start, end, steps, factor, max_err=1e-14, max_iter=100):
         raise ValueError("max_err '{}' <= 0!".format(max_err))
     if max_iter <= 0:
         raise ValueError("max_iter '{}' <= 0!".format(max_iter))
-    #assert start < end
-    #assert steps > 0
-    #assert factor >= 1
-    #assert max_err > 0
-    #assert max_iter > 0
 
     length = end - start  # total length of the range
     step = length / steps  # uniform step size for number of steps

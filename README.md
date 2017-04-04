@@ -44,8 +44,8 @@ Overview
 TODO
 ----
 
-* make testcases run again!!!
 * integrate silly demo code into tests
+* refactor testcases -> extract commom plotting code
 
 
 Old Notes
