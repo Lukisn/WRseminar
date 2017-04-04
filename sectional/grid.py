@@ -537,7 +537,7 @@ class Grid:
 
         # create initial grid / first section:
         initial_max = start + ini_sec
-        particles, _ = quad(func, start, initial_max)
+        particles, *_ = quad(func, start, initial_max)
         grid = cls(start, initial_max, particles)
 
         # add sections to the grid:
@@ -551,7 +551,7 @@ class Grid:
             current_section = grid[-1]
             lower = current_section.start
             upper = current_section.end
-            particles, _ = quad(func, lower, upper)
+            particles, *_ = quad(func, lower, upper)
             current_section.particles = particles
 
         # clean up last section(s):
@@ -560,31 +560,15 @@ class Grid:
             last_min = last_section.start
             last_max = last_section.end
             inside = end - last_min  # left side of the last section
-            outside = last_max - end  # rigth side of the last section
+            outside = last_max - end  # right side of the last section
             if inside < outside:  # last section pushing outward
                 grid.remove_right()
                 last_section = grid[-1]
             last_section.end = end
             lower = last_section.end
             upper = last_section.end + current_size
-            particles, _ = quad(func, lower, upper)
+            particles, *_ = quad(func, lower, upper)
             last_section.particles = particles
-        '''
-        if corr:
-            last_section = grid._sections[-1]
-            last_min = last_section.start
-            last_max = last_section.end
-            inside = end - last_min  # left side of the last section
-            outside = last_max - end  # rigth side of the last section
-            if inside < outside:  # last section pushing outward
-                grid.remove_right()
-                last_section = grid._sections[-1]
-            last_section.end = end
-            lower = last_section.end
-            upper = last_section.end + current_size
-            particles, _ = quad(func, lower, upper)
-            last_section.particles = particles
-        '''
 
         return grid
 

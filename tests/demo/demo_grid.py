@@ -6,9 +6,9 @@ import numpy as np
 from sectional.grid import Grid
 
 
-def f(v, N0=1, v0=1):
+def f(v, n_0=1, v_0=1):
     """initial number density function."""
-    return (N0/v0) * (v/v0) * exp(-v/v0)
+    return (n_0 / v_0) * (v / v_0) * exp(-v / v_0)
     # return 1 * v ** 2
 vf = np.vectorize(f)
 
@@ -17,8 +17,8 @@ def demo_creation():
     """Demo creation of discrete NDFs from a given function."""
     # constants:
     START, END = 1e-2, 1e1  # discrete size range
-    SECTIONS = 10  # number of sections
-    FACTOR = 1.5  # factor for neighboring sections sizes (geometric grid)
+    SECTIONS = 11  # number of sections
+    FACTOR = 1.25  # factor for neighboring sections sizes (geometric grid)
     CORR = True  # flag for correction of last section
     XSCALE = "log"  # log/linear - for all x scales
     YSCALE = "log"  # log/linear - for NDF y scale
@@ -30,9 +30,16 @@ def demo_creation():
 
     # generate grids:
     grids = {
-        "uni": Grid.create_uniform(start=START, end=END, sec=SECTIONS, func=f, corr=CORR),
-        #"step": Grid.create_geometric_step(start=START, end=END, uni_sec=SECTIONS, fact=FACTOR, func=f, corr=CORR),
-        "end": Grid.create_geometric_end(start=START, end=END, sec=SECTIONS, fact=FACTOR, func=f, corr=CORR)
+        "uni": Grid.create_uniform(
+            start=START, end=END, sec=SECTIONS, func=f, corr=CORR
+        ),
+        "step": Grid.create_geometric_step(
+            start=START, end=END, uni_sec=SECTIONS, fact=FACTOR, func=f,
+            corr=CORR
+        ),
+        "end": Grid.create_geometric_end(
+            start=START, end=END, sec=SECTIONS, fact=FACTOR, func=f, corr=CORR
+        )
     }
 
     # calculate errors:
@@ -50,10 +57,10 @@ def demo_creation():
 
     # plot data:
     plt.subplot(311)
-    plt.plot(pivots, densities, "y.-", label="analytic")
+    plt.plot(pivots, densities, "y-", label="analytic")
     for key, grid in grids.items():
         plt.plot(grids[key].pivots(), grids[key].densities(), ".", label=key)
-        #plt.plot(grids[key].pivots(), grids[key].particles(), "x", label="{} particles".format(key))
+        plt.plot(grids[key].pivots(), grids[key].particles(), "x", label="{} particles".format(key))
     plt.xlim(START / SCALEFACTOR, END * SCALEFACTOR)
     plt.xscale(XSCALE)
     plt.yscale(YSCALE)

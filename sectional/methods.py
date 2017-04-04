@@ -1,21 +1,20 @@
 #!/usr/bin/env python3
 # TODO: refactor for readability and
 # TODO: revisit documentation
-
 """
-module implementing the fixed pivot technique in a class.
+Module implementing the fixed pivot technique in a class.
 
 The class handles the main calculation using the fixed pivot technique for
 breakage, aggregation, nucleation and growth. The different kernel functions
 can be arbitrarily defined by the user.
 """
-
+# standard library imports:
 from copy import deepcopy
-
+# third party imports:
 import matplotlib.pyplot as plt
 from numpy import linspace, zeros
 from scipy.integrate import quad
-
+# application imports:
 from sectional.functions import zero, kronecker, hstep
 from util.cmdline import Spinner
 
@@ -36,8 +35,6 @@ class Method:
         """Initializer.
 
         :param initial: initial discrete number density function.
-        :param primary: primary preserved moment (default: 0 = numbers).
-        :param secondary: secondary preserved moment (default: 1 = mass).
         :param bre: flag for breakage.
         :param bre_freq: breakage frequency function.
         :param child: child number function.
@@ -72,7 +69,6 @@ class Method:
 
         # Results:
         self._result_ndfs = {}  # result dictionary {time: resulting NDF}
-        #self._result_moments = {}  # result dictionary {time: resulting moments}
 
     def simulate(self, end_time, steps, start_time=0, write_every=None):
         """Simulation driver method.
@@ -81,7 +77,6 @@ class Method:
         :param steps: number of steps to take for the simulation.
         :param start_time: start time of the simulation (default: 0).
         :param write_every: number of stept between result output.
-        :param max_order: maximum order of moments to be calculated.
         """
         assert start_time < end_time
         assert steps > 0
@@ -200,15 +195,13 @@ class Method:
 
 
 class FixedPivot(Method):
-    """Fixed Pivot Method by S. Kumar and D. Ramkrishna
-    """
+    """Fixed Pivot Method by S. Kumar and D. Ramkrishna."""
     def __init__(self, initial,
                  bre=True, bre_freq=zero, child=zero,
                  agg=True, agg_freq=zero,
                  gro=True, gro_rate=zero,
                  nuc=True, nuc_rate=zero):
-        """Initializer.
-        """
+        """Initializer."""
         super().__init__(initial,
                          bre, bre_freq, child,
                          agg, agg_freq,
@@ -234,8 +227,7 @@ class FixedPivot(Method):
             self._calc_nucleation(step)
 
     def _calc_breakage(self, step):
-        """calculate breakage.
-        """
+        """calculate breakage."""
         beta = self._child
 
         for i, section_i in enumerate(self._previous):
@@ -249,17 +241,16 @@ class FixedPivot(Method):
 
             xip1 = self._previous[i + 1].pivot
             xim1 = self._previous[i - 1].pivot
-            '''# possible handling of boundary sections:
-            if i == 0:
-                xip1 = self._previous[i + 1].pivot
-                xim1 = self._previous[i].start  # ???
-            elif i == len(self._previous) - 1:
-                xip1 = self._previous[i].end  # ???
-                xim1 = self._previous[i - 1].pivot
-            else:
-                xip1 = self._previous[i + 1].pivot
-                xim1 = self._previous[i - 1].pivot
-            '''
+            # # possible handling of boundary sections:
+            # if i == 0:
+            #     xip1 = self._previous[i + 1].pivot
+            #     xim1 = self._previous[i].start  # ???
+            # elif i == len(self._previous) - 1:
+            #     xip1 = self._previous[i].end  # ???
+            #     xim1 = self._previous[i - 1].pivot
+            # else:
+            #     xip1 = self._previous[i + 1].pivot
+            #     xim1 = self._previous[i - 1].pivot
 
             # calculate birth:
             birthi = 0
@@ -270,21 +261,20 @@ class FixedPivot(Method):
                     Gammak = self._bre_freq(xk)
 
                     # calculate n_i,k:
-                    '''# possible handling of boundary sections:
-                    if xip1 is None:
-                        first = 0
-                    else:
-                        def func(v):
-                            return (xip1 - v) / (xip1 - xi) * beta(v, xk)
-                        first = quad(func, xi, xip1)[0]
-
-                    if xim1 is None:
-                        second = 0
-                    else:
-                        def func(v):
-                            return (v - xim1) / (xi - xim1) * beta(v, xk)
-                        second = quad(func, xim1, xi)[0]
-                    '''
+                    # # possible handling of boundary sections:
+                    # if xip1 is None:
+                    #     first = 0
+                    # else:
+                    #     def func(v):
+                    #         return (xip1 - v) / (xip1 - xi) * beta(v, xk)
+                    #     first = quad(func, xi, xip1)[0]
+                    #
+                    # if xim1 is None:
+                    #     second = 0
+                    # else:
+                    #     def func(v):
+                    #         return (v - xim1) / (xi - xim1) * beta(v, xk)
+                    #     second = quad(func, xim1, xi)[0]
                     if i == k:
                         first = 0
                         second = 0
@@ -313,8 +303,7 @@ class FixedPivot(Method):
                 self._current[i].particles = new_particles
 
     def _calc_aggregation(self, step):
-        """calculate aggregation.
-        """
+        """calculate aggregation."""
         for i, section_i in enumerate(self._previous):
             # FIXME: method is unclear about handling the boundary sections!
             if i == 0 or i == len(self._previous) - 1:
@@ -325,17 +314,16 @@ class FixedPivot(Method):
 
             xip1 = self._previous[i + 1].pivot
             xim1 = self._previous[i - 1].pivot
-            '''# possible handling of boundary sections:
-            if i == 0:
-                xip1 = self._previous[i + 1].pivot
-                xim1 = self._previous[i].start  # ???
-            elif i == len(self._previous) - 1:
-                xip1 = self._previous[i].end  # ???
-                xim1 = self._previous[i - 1].pivot
-            else:
-                xip1 = self._previous[i + 1].pivot
-                xim1 = self._previous[i - 1].pivot
-            '''
+            # # possible handling of boundary sections:
+            # if i == 0:
+            #     xip1 = self._previous[i + 1].pivot
+            #     xim1 = self._previous[i].start  # ???
+            # elif i == len(self._previous) - 1:
+            #     xip1 = self._previous[i].end  # ???
+            #     xim1 = self._previous[i - 1].pivot
+            # else:
+            #     xip1 = self._previous[i + 1].pivot
+            #     xim1 = self._previous[i - 1].pivot
 
             # calculate birth:
             birthi = 0
@@ -380,8 +368,7 @@ class FixedPivot(Method):
                 self._current[i].particles = new_particles
 
     def _calc_growth(self, step):
-        """calculate growth.
-        """
+        """calculate growth."""
         for i, section_i in enumerate(self._previous):
             # FIXME: method is unclear about handling the boundary sections!
             if i == 0 or i == len(self._previous) - 1:
@@ -395,20 +382,19 @@ class FixedPivot(Method):
             ni = section_i.pivot
             nim1 = self._previous[i - 1].density
             nip1 = self._previous[i + 1].density
-            '''# possible handling of boundary sections:
-            if i == 0:
-                nim1 = None  # ???
-                nip1 = self._previous[i + 1].density
-            elif i == len(self._previous) - 1:
-                nim1 = self._previous[i - 1].density
-                nip1 = None  # ???
-            else:
-                nim1 = self._previous[i - 1].density
-                nip1 = self._previous[i + 1].density
-
-            # if nim1 is None: ...
-            # if nip1 is None: ...
-            '''
+            # # possible handling of boundary sections:
+            # if i == 0:
+            #     nim1 = None  # ???
+            #     nip1 = self._previous[i + 1].density
+            # elif i == len(self._previous) - 1:
+            #     nim1 = self._previous[i - 1].density
+            #     nip1 = None  # ???
+            # else:
+            #     nim1 = self._previous[i - 1].density
+            #     nip1 = self._previous[i + 1].density
+            #
+            # # if nim1 is None: ...
+            # # if nip1 is None: ...
 
             # MARCHAL calculation of n(vi) and n(vi+1):
             nvi = 0.5 * (nim1 + ni)
@@ -430,14 +416,13 @@ class FixedPivot(Method):
                 self._current[i].particles = new_particles
 
     def _calc_nucleation(self, step):
-        """calculate nucleation.
-        """
+        """calculate nucleation."""
         for i, section_i in enumerate(self._previous):
             vi = section_i.start
             vip1 = section_i.end
 
             # calculate birth:
-            birthi, _ = quad(self._nuc_rate, vi, vip1)
+            birthi, *_ = quad(self._nuc_rate, vi, vip1)
 
             # calculate new NDF:
             current_particles = self._current[i].particles
@@ -449,15 +434,13 @@ class FixedPivot(Method):
 
 
 class CellAverage(Method):
-    """Cell Average Technique by J. Kumar et. al.
-    """
+    """Cell Average Technique by J. Kumar et. al."""
     def __init__(self, initial,
                  bre=True, bre_freq=zero, child=zero,
                  agg=True, agg_freq=zero,
                  gro=True, gro_rate=zero,
                  nuc=True, nuc_rate=zero):
-        """Initializer.
-        """
+        """Initializer."""
         super().__init__(initial,
                          bre, bre_freq, child,
                          agg, agg_freq,

@@ -156,8 +156,7 @@ def prompt_input_list(msg, length=None, verbose=True):
 # CONTEXT MANAGERS: -----------------------------------------------------------
 
 class Spinner:
-    """Context manager class implementing a command line spinner.
-    """
+    """Context manager class implementing a command line spinner."""
     def __init__(self, task, msg="", end_msg="done.",
                  interval=0.25, timing=True):
         """Initializer.
@@ -191,8 +190,7 @@ class Spinner:
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        """Exit context manager.
-        """
+        """Exit context manager."""
         self._timer.cancel()
         end_time = perf_counter()
         time_taken = (end_time - self._start_time) * 1000  # in ms
@@ -218,8 +216,7 @@ class Spinner:
         self._stdout.flush()
 
     def spin(self):
-        """Triggering printing of the spinner and restart the timer.
-        """
+        """Triggering printing of the spinner and restart the timer."""
         self._print_spinner()
         self._timer = threading.Timer(self._interval, self.spin)
         self._timer.start()
@@ -241,8 +238,7 @@ class Spinner:
 
 
 class Progress:
-    """Context manager implementing a command line progress bar.
-    """
+    """Context manager implementing a command line progress bar."""
     def __init__(self, task, msg="", end_msg="done.",
                  percentage=0, length=25, interval=0.25, timing=True):
         """Initializer.
@@ -269,8 +265,7 @@ class Progress:
         self._remaining_char = "_"
 
     def __enter__(self):
-        """Enter context manager.
-        """
+        """Enter context manager."""
         self._stdout = sys.stdout
         sys.stdout = self._buffer
         self._print_progress()
@@ -279,8 +274,7 @@ class Progress:
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        """Exit context manager.
-        """
+        """Exit context manager."""
         self._timer.cancel()
         end_time = perf_counter()
         time_taken = (end_time - self._start_time) * 1000  # in ms
@@ -295,8 +289,7 @@ class Progress:
         sys.stdout = sys.__stdout__
 
     def _print_progress(self):
-        """Print progress bar to command line.
-        """
+        """Print progress bar to command line."""
         completed = int(self._percentage * self._length)
         remaining = self._length - completed
         if self._percentage < 1:
@@ -313,8 +306,7 @@ class Progress:
         self._stdout.flush()
 
     def update(self):
-        """Triggering printing of the progress bar  and restart the timer.
-        """
+        """Triggering printing of the progress bar  and restart the timer."""
         self._print_progress()
         self._timer = threading.Timer(self._interval, self.update)
         self._timer.start()
