@@ -78,17 +78,25 @@ class TestHStep(unittest.TestCase):
 class TestDirac(unittest.TestCase):
 
     def test_dirac_norm(self):
-        result, *rest = quad(lambda x: dirac_norm(x), -1, 1, points=[0, 0-1e-3, 0+1e-3])
+        result, *rest = quad(
+            lambda x: dirac_norm(x), -1, 1, points=[0, 0-1e-3, 0+1e-3]
+        )
         self.assertAlmostEqual(1, result, places=15)
 
     def test_dirac_rect(self):
-        result, *rest = quad(lambda x: dirac_rect(x), -1, 1, points=[0, 0-1e-3, 0+1e-3])
+        result, *rest = quad(
+            lambda x: dirac_rect(x), -1, 1, points=[0, 0-1e-3, 0+1e-3]
+        )
         self.assertAlmostEqual(1, result, places=15)
 
     def test_dirac_simple(self):
-        result, *rest = quad(lambda x: dirac_simple(x), -1, 1, points=[0])
+        result, *rest = quad(
+            lambda x: dirac_simple(x), -1, 1, points=[0]
+        )
         self.assertAlmostEqual(1, result, places=2)
 
     def test_dirac_sin(self):
-        result, *rest = quad(lambda x: dirac_sin(x), -1, 1, points=[0])
+        result, *rest = quad(
+            lambda x: dirac_sin(x), -1, 1, points=[0]
+        )
         self.assertAlmostEqual(1, result, places=2)
