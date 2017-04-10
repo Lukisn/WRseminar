@@ -1,8 +1,9 @@
 *.pyc
-*.dat
-*.eps
+#*.dat
+#*.eps
 .idea/
 __pycache__
 /docs/_build/
 /docs/_static/
 /docs/_templates/
+/cases/results/
