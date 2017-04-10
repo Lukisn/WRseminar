@@ -98,13 +98,13 @@ def moment_end(n, order, time, end):
     if time == 0:
         mom = 1
     else:
-        mom, *_ = quad(integrand, 0, end)
+        mom, *_ = quad(integrand, 0, end, maxp1=100)
     return mom
 
 
 def plot_results(initial_ndf, n, fp, ca,
                  END, TEND, TIME_STEP, XMIN, XMAX, YMIN, YMAX, XSCALE, YSCALE,
-                 WRITE_PLOT_FILES, FOLDER):
+                 WRITE_PLOT_FILES, FOLDER, mom_type):
     """Plot resulting NDFs and Moments and compare with analytic solution."""
     # CALCULATIONS FOR PLOTTING: ----------------------------------------------
 
@@ -142,10 +142,15 @@ def plot_results(initial_ndf, n, fp, ca,
     fp_moment0, fp_moment1 = [], []
     ca_moment0, ca_moment1 = [], []
     for time in times:
-        ana_moment0.append(moment_inf(n, 0, time))
-        ana_moment1.append(moment_inf(n, 1, time))
-        #ana_moment0.append(moment_end(n, 0, time, END))
-        #ana_moment1.append(moment_end(n, 1, time, END))
+        if mom_type == "inf":
+            ana_moment0.append(moment_inf(n, 0, time))
+            ana_moment1.append(moment_inf(n, 1, time))
+        elif mom_type == "end":
+            ana_moment0.append(moment_end(n, 0, time, END))
+            ana_moment1.append(moment_end(n, 1, time, END))
+        else:
+            msg = "Unknown mom_type '{}'. Use mom_type 'inf' or 'end'!"
+            raise ValueError(msg.format(mom_type))
         fp_moment0.append(fp._result_ndfs[time].moment(0))
         fp_moment1.append(fp._result_ndfs[time].moment(1))
         ca_moment0.append(ca._result_ndfs[time].moment(0))

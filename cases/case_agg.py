@@ -45,8 +45,8 @@ def main():
 
     # NDF Grid:
     START, END = 0, 1e5
-    SECTIONS = 100
-    FACTOR = 1.2
+    SECTIONS = 25
+    FACTOR = 1.8
 
     # Simulation:
     T0, TEND = 0, 1
@@ -106,7 +106,7 @@ def main():
     plot_results(initial_ndf, n, fp, ca,
                  END, TEND, TIME_STEP, XMIN, XMAX, YMIN, YMAX, XSCALE,
                  YSCALE,
-                 WRITE_PLOT_FILES, FOLDER)
+                 WRITE_PLOT_FILES, FOLDER, mom_type="inf")
 
     # # CALCULATIONS FOR PLOTTING: ----------------------------------------------
     #

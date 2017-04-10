@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-
 """
+DEPRECATED CASE
 Demo case for negative growth (evaporation) and aggregation (coalescence).
 
 Taken from Yuan paper Case 13.

@@ -47,12 +47,12 @@ def main():
 
     # NDF Grid:
     START, END = 0, 1e2
-    SECTIONS = 100
-    FACTOR = 1.1
+    SECTIONS = 25
+    FACTOR = 1.4
 
     # Simulation:
     T0, TEND = 0, 1
-    STEPS = 10  # = (TEND - T0) / 0.1  # 0.1 = TIME_STEP
+    STEPS = 100  # = (TEND - T0) / 0.1  # 0.1 = TIME_STEP
     TIME_STEP = (TEND - T0) / STEPS
     EVERY = 1
     ORDER = 1
@@ -110,7 +110,7 @@ def main():
     plot_results(initial_ndf, n, fp, ca,
                  END, TEND, TIME_STEP, XMIN, XMAX, YMIN, YMAX, XSCALE,
                  YSCALE,
-                 WRITE_PLOT_FILES, FOLDER)
+                 WRITE_PLOT_FILES, FOLDER, mom_type="end")
 
     # # CALCULATIONS FOR PLOTTING: ----------------------------------------------
     #
