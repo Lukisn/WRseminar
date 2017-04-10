@@ -20,13 +20,13 @@ def main():
     # PROBLEM FUNCTIONS: ------------------------------------------------------
 
     def f(x):  # initial NDF
-        return hstep(x - 0.1) - hstep(x - 0.6)
+        return 0.0 + 2.0 * (hstep(x - 0.1) - hstep(x - 0.6))
 
     def G(v):  # growth function
         return 1
 
     def n(t, x):  # analytic solution
-        return hstep(x - (0.1 + t)) - hstep(x - (0.6 + t))
+        return 0.0 + 2.0 * (hstep(x - (0.1 + t)) - hstep(x - (0.6 + t)))
 
     # CONSTANTS: --------------------------------------------------------------
 
@@ -45,7 +45,7 @@ def main():
     # Plotting:
     XSCALE, YSCALE = "linear", "linear"
     XMIN, XMAX = 0, 2
-    YMIN, YMAX = 0, 1.5
+    YMIN, YMAX = 0, 2.5
 
     # File output:
     WRITE_DATA_FILES = True
@@ -93,7 +93,7 @@ def main():
     plot_results(initial_ndf, n, fp, ca,
                  END, TEND, TIME_STEP, XMIN, XMAX, YMIN, YMAX, XSCALE,
                  YSCALE,
-                 WRITE_PLOT_FILES, FOLDER)
+                 WRITE_PLOT_FILES, FOLDER, mom_type="end")
 
     # # CALCULATIONS FOR PLOTTING: ----------------------------------------------
     #
