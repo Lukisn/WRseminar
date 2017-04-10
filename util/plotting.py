@@ -104,7 +104,7 @@ def moment_end(n, order, time, end):
 
 def plot_results(initial_ndf, n, fp, ca,
                  END, TEND, TIME_STEP, XMIN, XMAX, YMIN, YMAX, XSCALE, YSCALE,
-                 WRITE_PLOT_FILES, FOLDER, mom_type):
+                 WRITE_PLOT_FILES, FOLDER, mom_type, prefix):
     """Plot resulting NDFs and Moments and compare with analytic solution."""
     # CALCULATIONS FOR PLOTTING: ----------------------------------------------
 
@@ -217,7 +217,7 @@ def plot_results(initial_ndf, n, fp, ca,
     # tighten layout and show:
     fig.tight_layout()
     if WRITE_PLOT_FILES:
-        plt.savefig(os.path.join(FOLDER, "agg_ndf.eps"))
+        plt.savefig(os.path.join(FOLDER, "{}_ndf.eps".format(prefix)))
     plt.show()
 
     # plot moment comparison and errors:
@@ -245,5 +245,5 @@ def plot_results(initial_ndf, n, fp, ca,
     # tighten layout and show:
     fig.tight_layout()
     if WRITE_PLOT_FILES:
-        fig.savefig(os.path.join(FOLDER, "agg_mom.eps"))
+        fig.savefig(os.path.join(FOLDER, "{}_mom.eps".format(prefix)))
     plt.show()

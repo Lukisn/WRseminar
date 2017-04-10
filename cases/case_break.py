@@ -99,7 +99,7 @@ def main():
     # PLOTTING: ---------------------------------------------------------------
     plot_results(initial_ndf, n, fp, ca,
                  END, TEND, TIME_STEP, XMIN, XMAX, YMIN, YMAX, XSCALE, YSCALE,
-                 WRITE_PLOT_FILES, FOLDER, mom_type="end")
+                 WRITE_PLOT_FILES, FOLDER, mom_type="end", prefix="break")
 
 
     # # CALCULATIONS FOR PLOTTING: ----------------------------------------------
