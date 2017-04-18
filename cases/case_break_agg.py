@@ -47,12 +47,12 @@ def main():
 
     # NDF Grid:
     START, END = 0, 1e2
-    SECTIONS = 25
-    FACTOR = 1.4
+    SECTIONS = 100  # A/B: 100, C1/C2: 50, D1/D2: 25
+    FACTOR = 1.1  # A/B: 1.1, C1/C2: 1.2, D1/D2: 1.4
 
     # Simulation:
     T0, TEND = 0, 1
-    STEPS = 100  # = (TEND - T0) / 0.1  # 0.1 = TIME_STEP
+    STEPS = 100  # A/C1/D1: 100, B/C2/D2: 10
     TIME_STEP = (TEND - T0) / STEPS
     EVERY = 1
     ORDER = 1
@@ -61,6 +61,9 @@ def main():
     XSCALE, YSCALE = "log", "linear"  # "log" or "linear"
     XMIN, XMAX = 1e-5, 1e3
     YMIN, YMAX = 1e-5, 5
+
+    YMIN_ERR, YMAX_ERR = -1.1, 1.1
+    YMIN_MOM_ERR, YMAX_MOM_ERR = -0.55, 0.15
 
     # File output:
     WRITE_DATA_FILES = True
@@ -109,6 +112,7 @@ def main():
     # PLOTTING: ---------------------------------------------------------------
     plot_results(initial_ndf, n, fp, ca,
                  END, TEND, TIME_STEP, XMIN, XMAX, YMIN, YMAX, XSCALE, YSCALE,
+                 YMIN_ERR, YMAX_ERR, YMIN_MOM_ERR, YMAX_MOM_ERR,
                  WRITE_PLOT_FILES, FOLDER, mom_type="end", prefix="break_agg")
 
     # # CALCULATIONS FOR PLOTTING: ----------------------------------------------
@@ -228,7 +232,7 @@ def main():
     # # tighten layout and show:
     # fig.tight_layout()
     # if WRITE_PLOT_FILES:
-    #     plt.savefig(os.path.join(FOLDER, "break_agg_ndf.eps"))
+    #     plt.savefig(os.path.join(FOLDER, "break_agg_ndf_D2.eps"))
     # plt.show()
     #
     # # plot moment comparison and errors:
@@ -256,7 +260,7 @@ def main():
     # # tighten layout and show:
     # fig.tight_layout()
     # if WRITE_PLOT_FILES:
-    #     fig.savefig(os.path.join(FOLDER, "break_agg_mom.eps"))
+    #     fig.savefig(os.path.join(FOLDER, "break_agg_mom_D2.eps"))
     # plt.show()
 
 
