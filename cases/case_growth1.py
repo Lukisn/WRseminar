@@ -28,8 +28,11 @@ def main():
         return 1 / 2
 
     def n(t, x):  # analytic solution
-        #return max(60 * (x + t/2)**2 * (1 - (x + t/2))**3, 0)
-        return max(60 * (x - t / 2)**2 * (1 - (x - t / 2))**3, 0)
+        # return max(60 * (x - t / 2) ** 2 * (1 - (x - t / 2)) ** 3, 0)
+        if x > t/2:
+            return max(60 * (x - t / 2)**2 * (1 - (x - t / 2))**3, 0)
+        else:
+            return 0
 
     # CONSTANTS: --------------------------------------------------------------
 
@@ -49,6 +52,9 @@ def main():
     XSCALE, YSCALE = "linear", "linear"
     XMIN, XMAX = 0, 2
     YMIN, YMAX = 0, 2.5
+
+    YMIN_ERR, YMAX_ERR = -1.1, 1.1
+    YMIN_MOM_ERR, YMAX_MOM_ERR = -0.005, 0.005
 
     # File output:
     WRITE_DATA_FILES = True
@@ -95,6 +101,7 @@ def main():
     # PLOTTING: ---------------------------------------------------------------
     plot_results(initial_ndf, n, fp, ca,
                  END, TEND, TIME_STEP, XMIN, XMAX, YMIN, YMAX, XSCALE, YSCALE,
+                 YMIN_ERR, YMAX_ERR, YMIN_MOM_ERR, YMAX_MOM_ERR,
                  WRITE_PLOT_FILES, FOLDER, mom_type="inf", prefix="growth1")
 
     # # CALCULATION FOR PLOTTING: -----------------------------------------------
@@ -249,7 +256,7 @@ def main():
     # # # tighten layout and show:
     # # fig.tight_layout()
     # # if WRITE_PLOT_FILES:
-    # #     plt.savefig(os.path.join(FOLDER, "growth_ndf.eps"))
+    # #     plt.savefig(os.path.join(FOLDER, "growth_ndf_A.eps"))
     # # plt.show()
     # #
     # # # plot Moments comparison:
@@ -263,7 +270,7 @@ def main():
     # # plt.grid()
     # #
     # # if WRITE_PLOT_FILES:
-    # #     plt.savefig(os.path.join(FOLDER, "growth1_mom.eps"))
+    # #     plt.savefig(os.path.join(FOLDER, "growth1_mom_NEW.eps"))
     # # plt.show()
     #
     # # PLOTTING: ---------------------------------------------------------------

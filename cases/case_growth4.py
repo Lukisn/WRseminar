@@ -16,21 +16,20 @@ from sectional.methods import FixedPivot, CellAverage
 from util.plotting import *  # plotting styles
 
 
-# TODO: find problem in the calculation!
 def main():
     """Main function."""
 
     # PROBLEM FUNCTIONS: ------------------------------------------------------
 
     def f(x):  # initial NDF
-        return 6 * x**3 * exp(-x)
+        return x ** 3 * exp(-x)
 
     def G(v):  # growth function
         return v / 2
 
     def n(t, x):  # analytic solution
-        num = (x * exp(-t / 2)) ** 3 * exp(-x * exp(-t / 2))
-        den = 6 * exp(t / 2)
+        num = ((x * exp(-t / 2)) ** 3) * exp(-x * exp(-t / 2))
+        den = exp(t / 2)
         return num / den
 
     # CONSTANTS: --------------------------------------------------------------
@@ -41,8 +40,8 @@ def main():
     FACTOR = 1.2
 
     # Simulation:
-    T0, TEND = 0, 1
-    STEPS = 100
+    T0, TEND = 0, 0.01  # A: 0 - 0.01, B: 0 - 0.1, C: 0 - 1
+    STEPS = 1  # A: 1, B: 10, C: 100
     TIME_STEP = (TEND - T0) / STEPS
     EVERY = 1
     ORDER = 1
@@ -50,7 +49,10 @@ def main():
     # Plotting:
     XSCALE, YSCALE = "linear", "linear"
     XMIN, XMAX = 0, 2e1
-    YMIN, YMAX = 0, 10
+    YMIN, YMAX = 0, 2
+
+    YMIN_ERR, YMAX_ERR = -1.1, 1.1
+    YMIN_MOM_ERR, YMAX_MOM_ERR = -1.1, 1.1
 
     # File output:
     WRITE_DATA_FILES = True
@@ -97,6 +99,7 @@ def main():
     # PLOTTING: ---------------------------------------------------------------
     plot_results(initial_ndf, n, fp, ca,
                  END, TEND, TIME_STEP, XMIN, XMAX, YMIN, YMAX, XSCALE, YSCALE,
+                 YMIN_ERR, YMAX_ERR, YMIN_MOM_ERR, YMAX_MOM_ERR,
                  WRITE_PLOT_FILES, FOLDER, mom_type="inf", prefix="growth4")
 
     # # CALCULATIONS FOR PLOTTING: ----------------------------------------------
@@ -251,7 +254,7 @@ def main():
     # # # tighten layout and show:
     # # fig.tight_layout()
     # # if WRITE_PLOT_FILES:
-    # #     plt.savefig(os.path.join(FOLDER, "growth_ndf.eps"))
+    # #     plt.savefig(os.path.join(FOLDER, "growth_ndf_A.eps"))
     # # plt.show()
     # #
     # # # plot Moments comparison:
@@ -265,7 +268,7 @@ def main():
     # # plt.grid()
     # #
     # # if WRITE_PLOT_FILES:
-    # #     plt.savefig(os.path.join(FOLDER, "growth4_mom.eps"))
+    # #     plt.savefig(os.path.join(FOLDER, "growth4_mom_C.eps"))
     # # plt.show()
     #
     # # PLOTTING: ---------------------------------------------------------------

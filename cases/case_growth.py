@@ -37,7 +37,7 @@ def main():
 
     # Simulation:
     T0, TEND = 0, 1
-    STEPS = 100
+    STEPS = 50  # A: 100, B: 55, C: 50
     TIME_STEP = (TEND - T0) / STEPS
     EVERY = 1
     ORDER = 1
@@ -46,6 +46,9 @@ def main():
     XSCALE, YSCALE = "linear", "linear"
     XMIN, XMAX = 0, 2
     YMIN, YMAX = 0, 2.5
+
+    YMIN_ERR, YMAX_ERR = -1.1, 1.1
+    YMIN_MOM_ERR, YMAX_MOM_ERR = -1.1, 1.1
 
     # File output:
     WRITE_DATA_FILES = True
@@ -92,6 +95,7 @@ def main():
     # PLOTTING: ---------------------------------------------------------------
     plot_results(initial_ndf, n, fp, ca,
                  END, TEND, TIME_STEP, XMIN, XMAX, YMIN, YMAX, XSCALE, YSCALE,
+                 YMIN_ERR, YMAX_ERR, YMIN_MOM_ERR, YMAX_MOM_ERR,
                  WRITE_PLOT_FILES, FOLDER, mom_type="end", prefix="growth")
 
     # # CALCULATIONS FOR PLOTTING: ----------------------------------------------
@@ -246,7 +250,7 @@ def main():
     # # # tighten layout and show:
     # # fig.tight_layout()
     # # if WRITE_PLOT_FILES:
-    # #     plt.savefig(os.path.join(FOLDER, "growth_ndf.eps"))
+    # #     plt.savefig(os.path.join(FOLDER, "growth_ndf_A.eps"))
     # # plt.show()
     # #
     # # # plot Moments comparison:
@@ -260,7 +264,7 @@ def main():
     # # plt.grid()
     # #
     # # if WRITE_PLOT_FILES:
-    # #     plt.savefig(os.path.join(FOLDER, "growth_mom.eps"))
+    # #     plt.savefig(os.path.join(FOLDER, "growth_mom_A.eps"))
     # # plt.show()
     #
     # # PLOTTING: ---------------------------------------------------------------
