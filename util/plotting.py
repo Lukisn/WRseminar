@@ -184,6 +184,13 @@ def plot_results(initial_ndf, n, fp, ca,
         ca_mom_err_y0.append(err0)
         ca_mom_err_y1.append(err1)
 
+    # don't plot moment and errors for t = 0:
+    # ana_moment0[0], ana_moment1[0] = None, None
+    # fp_moment0[0], fp_moment1[0] = None, None
+    # ca_moment0[0], ca_moment1[0] = None, None
+    # fp_mom_err_y0[0], fp_mom_err_y1[0] = None, None
+    # ca_mom_err_y0[0], ca_mom_err_y1[0] = None, None
+
     # PLOTTING: ---------------------------------------------------------------
 
     # plot NDF comparison and errors:

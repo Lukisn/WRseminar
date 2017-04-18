@@ -52,7 +52,7 @@ def main():
 
     # Simulation:
     T0, TEND = 0, 1
-    STEPS = 100  # A/C1/D1: 100, B/C2/D2: 10
+    STEPS = 10  # A/C1/D1: 100, B/C2/D2: 10
     TIME_STEP = (TEND - T0) / STEPS
     EVERY = 1
     ORDER = 1

@@ -40,8 +40,8 @@ def main():
     FACTOR = 1.2
 
     # Simulation:
-    T0, TEND = 0, 0.01  # A: 0 - 0.01, B: 0 - 0.1, C: 0 - 1
-    STEPS = 1  # A: 1, B: 10, C: 100
+    T0, TEND = 0, 1  # A: 0 - 0.01, B: 0 - 0.1, C: 0 - 1
+    STEPS = 100  # A: 1, B: 10, C: 100
     TIME_STEP = (TEND - T0) / STEPS
     EVERY = 1
     ORDER = 1
