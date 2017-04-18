@@ -104,6 +104,7 @@ def moment_end(n, order, time, end):
 
 def plot_results(initial_ndf, n, fp, ca,
                  END, TEND, TIME_STEP, XMIN, XMAX, YMIN, YMAX, XSCALE, YSCALE,
+                 YMIN_ERR, YMAX_ERR, YMIN_MOM_ERR, YMAX_MOM_ERR,
                  WRITE_PLOT_FILES, FOLDER, mom_type, prefix):
     """Plot resulting NDFs and Moments and compare with analytic solution."""
     # CALCULATIONS FOR PLOTTING: ----------------------------------------------
@@ -135,7 +136,7 @@ def plot_results(initial_ndf, n, fp, ca,
             err = None  # matplotlib handles this by not plotting anything
         ca_err_y.append(err)
 
-    # TODO: find reason fro end/inf diversity
+    # TODO: find reason for end/inf diversity
     # gather moment data:
     times = sorted(fp._result_ndfs.keys())
     ana_moment0, ana_moment1 = [], []
@@ -210,6 +211,7 @@ def plot_results(initial_ndf, n, fp, ca,
     lower.plot(fp_x, fp_err_y, label="FP", **fp_style)
     lower.plot(ca_x, ca_err_y, label="CA", **ca_style)
     lower.set_xlim(XMIN, XMAX)
+    lower.set_ylim(YMIN_ERR, YMAX_ERR)
     lower.set_xscale(XSCALE)
     lower.legend(**legend_style)
     lower.grid()
@@ -240,6 +242,7 @@ def plot_results(initial_ndf, n, fp, ca,
     lower.plot(times, fp_mom_err_y1, label="FP 1", **fp_style1)
     lower.plot(times, ca_mom_err_y0, label="CA 0", **ca_style0)
     lower.plot(times, ca_mom_err_y1, label="CA 1", **ca_style1)
+    lower.set_ylim(YMIN_MOM_ERR, YMAX_MOM_ERR)
     lower.legend(**legend_style)
     lower.grid()
     # tighten layout and show:
