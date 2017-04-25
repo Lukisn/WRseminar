@@ -102,18 +102,23 @@ def moment_end(n, order, time, end):
     return mom
 
 
-def plot_results(initial_ndf, n, fp, ca,
-                 END, TEND, TIME_STEP, XMIN, XMAX, YMIN, YMAX, XSCALE, YSCALE,
-                 YMIN_ERR, YMAX_ERR, YMIN_MOM_ERR, YMAX_MOM_ERR,
+def plot_results(initial, solution, fp, ca,
+                 END, TEND, TIME_STEP,
+                 XSCALE, YSCALE,
+                 XLIM,
+                 YLIM_NDF,
+                 YLIM_NDF_ERR,
+                 YLIM_MOM,
+                 YLIM_MOM_ERR,
                  WRITE_PLOT_FILES, FOLDER, mom_type, prefix, show_plots=True):
     """Plot resulting NDFs and Moments and compare with analytic solution."""
     # CALCULATIONS FOR PLOTTING: ----------------------------------------------
 
     # gather NDF data:
-    ini_x, ini_y = initial_ndf.pivots(), initial_ndf.densities()
-    ana_x, ana_y = initial_ndf.pivots(), []
+    ini_x, ini_y = initial.pivots(), initial.densities()
+    ana_x, ana_y = initial.pivots(), []
     for x in ana_x:
-        ana_y.append(n(TEND, x))
+        ana_y.append(solution(TEND, x))
     fp_x, fp_y = fp._result_ndfs[TEND].pivots(), fp._result_ndfs[
         TEND].densities()
     ca_x, ca_y = ca._result_ndfs[TEND].pivots(), ca._result_ndfs[
@@ -122,14 +127,14 @@ def plot_results(initial_ndf, n, fp, ca,
     # calculate errors:
     fp_err_y, ca_err_y = [], []
     for i, x in enumerate(fp_x):
-        ana = n(TEND, x)
+        ana = solution(TEND, x)
         try:
             err = (fp_y[i] - ana) / ana
         except ZeroDivisionError:
             err = None  # matplotlib handles this by not plotting anything
         fp_err_y.append(err)
     for i, x in enumerate(ca_x):
-        ana = n(TEND, x)
+        ana = solution(TEND, x)
         try:
             err = (ca_y[i] - ana) / ana
         except ZeroDivisionError:
@@ -144,11 +149,11 @@ def plot_results(initial_ndf, n, fp, ca,
     ca_moment0, ca_moment1 = [], []
     for time in times:
         if mom_type == "inf":
-            ana_moment0.append(moment_inf(n, 0, time))
-            ana_moment1.append(moment_inf(n, 1, time))
+            ana_moment0.append(moment_inf(solution, 0, time))
+            ana_moment1.append(moment_inf(solution, 1, time))
         elif mom_type == "end":
-            ana_moment0.append(moment_end(n, 0, time, END))
-            ana_moment1.append(moment_end(n, 1, time, END))
+            ana_moment0.append(moment_end(solution, 0, time, END))
+            ana_moment1.append(moment_end(solution, 1, time, END))
         else:
             msg = "Unknown mom_type '{}'. Use mom_type 'inf' or 'end'!"
             raise ValueError(msg.format(mom_type))
@@ -206,8 +211,8 @@ def plot_results(initial_ndf, n, fp, ca,
     upper.plot(ini_x, ini_y, label="ini", **initial_style)
     upper.plot(fp_x, fp_y, label="FP", **fp_style)
     upper.plot(ca_x, ca_y, label="CA", **ca_style)
-    upper.set_xlim(XMIN, XMAX)
-    upper.set_ylim(YMIN, YMAX)
+    # upper.set_xlim(XMIN, XMAX)  # not needed for shared x-axis!?
+    upper.set_ylim(YLIM_NDF)
     upper.set_xscale(XSCALE)
     upper.set_yscale(YSCALE)
     upper.legend(**legend_style)
@@ -217,8 +222,8 @@ def plot_results(initial_ndf, n, fp, ca,
     lower.set_ylabel("Relativer Fehler")
     lower.plot(fp_x, fp_err_y, label="FP", **fp_style)
     lower.plot(ca_x, ca_err_y, label="CA", **ca_style)
-    lower.set_xlim(XMIN, XMAX)
-    lower.set_ylim(YMIN_ERR, YMAX_ERR)
+    lower.set_xlim(XLIM)
+    lower.set_ylim(YLIM_NDF_ERR)
     lower.set_xscale(XSCALE)
     lower.legend(**legend_style)
     lower.grid()
@@ -236,23 +241,26 @@ def plot_results(initial_ndf, n, fp, ca,
     upper.set_title("Zeitverlauf der Momente, $\Delta t = {}$ s".format(
         TIME_STEP
     ))
+    # plot 0th moment on primary y axis:
     upper.set_ylabel("0. Moment $\mu_0$ (Anzahl)")
     upper.plot(times, ana_moment0, label="ana 0", **ana_style0)
-    #upper.plot(times, ana_moment1, label="ana 1", **ana_style1)
     upper.plot(times, fp_moment0, label="FP 0", **fp_style0)
-    #upper.plot(times, fp_moment1, label="FP 1", **fp_style1)
     upper.plot(times, ca_moment0, label="CA 0", **ca_style0)
-    #upper.plot(times, ca_moment1, label="CA 1", **ca_style1)
-
-    upper2 = upper.twinx()
-    upper2.set_ylabel("1. Moment $\mu_1$ (Masse)")
-    upper2.plot(times, ana_moment1, label="ana 1", **ana_style1)
-    upper2.plot(times, fp_moment1, label="FP 1", **fp_style1)
-    upper2.plot(times, ca_moment1, label="CA 1", **ca_style1)
-    upper2.legend(**legend_style)
-
-    upper.legend(**legend_style)
+    upper.set_ylim(YLIM_MOM)
+    # plot 1st moment on second y axis:
+    upper1 = upper.twinx()
+    upper1.set_ylabel("1. Moment $\mu_1$ (Masse)")
+    upper1.plot(times, ana_moment1, label="ana 1", **ana_style1)
+    upper1.plot(times, fp_moment1, label="FP 1", **fp_style1)
+    upper1.plot(times, ca_moment1, label="CA 1", **ca_style1)
+    upper1.set_ylim(YLIM_MOM)
+    # plot common legend:
+    lines0, labels0 = upper.get_legend_handles_labels()
+    lines1, labels1 = upper1.get_legend_handles_labels()
+    lines, labels = lines0 + lines1, labels0 + labels1
+    upper.legend(lines, labels, **legend_style)
     upper.grid()
+
     # lower subplot - errors:
     lower.set_xlabel("Zeit $t$ in s")
     lower.set_ylabel("Relativer Fehler")
@@ -260,7 +268,7 @@ def plot_results(initial_ndf, n, fp, ca,
     lower.plot(times, fp_mom_err_y1, label="FP 1", **fp_style1)
     lower.plot(times, ca_mom_err_y0, label="CA 0", **ca_style0)
     lower.plot(times, ca_mom_err_y1, label="CA 1", **ca_style1)
-    lower.set_ylim(YMIN_MOM_ERR, YMAX_MOM_ERR)
+    lower.set_ylim(YLIM_MOM_ERR)
     lower.legend(**legend_style)
     lower.grid()
     # tighten layout and show:

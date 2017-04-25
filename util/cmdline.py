@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-
 """
 Module implementing some basic command line utilities.
 

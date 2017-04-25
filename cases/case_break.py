@@ -51,11 +51,11 @@ def main(show_plots=True):
 
     # Plotting:
     XSCALE, YSCALE = "log", "log"  # or "linear"
-    XMIN, XMAX = 1e-5, 1e1
-    YMIN, YMAX = 1e-5, 1e2
-
-    YMIN_ERR, YMAX_ERR = -1.1, 0.2
-    YMIN_MOM_ERR, YMAX_MOM_ERR = -0.65, 0.25
+    XLIM = 1e-5, 1e1  # (x_min, x_max)
+    YLIM_NDF = 1e-5, 1e2
+    YLIM_NDF_ERR = -1.1, 0.2
+    YLIM_MOM = 0, 6
+    YLIM_MOM_ERR = -0.65, 0.25
 
     # File output:
     WRITE_DATA_FILES = True
@@ -101,8 +101,13 @@ def main(show_plots=True):
 
     # PLOTTING: ---------------------------------------------------------------
     plot_results(initial_ndf, n, fp, ca,
-                 END, TEND, TIME_STEP, XMIN, XMAX, YMIN, YMAX, XSCALE, YSCALE,
-                 YMIN_ERR, YMAX_ERR, YMIN_MOM_ERR, YMAX_MOM_ERR,
+                 END, TEND, TIME_STEP,
+                 XSCALE, YSCALE,
+                 XLIM,
+                 YLIM_NDF,
+                 YLIM_NDF_ERR,
+                 YLIM_MOM,
+                 YLIM_MOM_ERR,
                  WRITE_PLOT_FILES, FOLDER, mom_type="end", prefix="break",
                  show_plots=show_plots)
 
