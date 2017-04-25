@@ -118,7 +118,8 @@ def main(show_plots=True):
                  ylim_ndf=YLIM_NDF, ylim_ndf_err=YLIM_NDF_ERR,
                  ylim_mom=YLIM_MOM, ylim_mom_err=YLIM_MOM_ERR,
                  write_plot_files=WRITE_PLOT_FILES, output_folder=FOLDER,
-                 mom_type="end", prefix="break_agg", show_plots=show_plots)
+                 prefix="break_agg", mom_type="inf", zero_default=None,
+                 show_plots=show_plots)
 
 
 if __name__ == "__main__":

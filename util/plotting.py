@@ -2,10 +2,13 @@
 """Utility functions and style definitions for plotting the results."""
 import os
 import matplotlib.pyplot as plt
-from scipy.integrate import quad
+import numpy as np
+from scipy.integrate import quad, quadrature
 from scipy import inf
 
+
 MARKER_SIZE = 5
+ANALYTIC_MARKER_SIZE = MARKER_SIZE + 2
 
 NO_LINE = 0
 SMALL_LINE = 0.75
@@ -24,15 +27,17 @@ legend_style = {
 
 ana_style = {
     "linewidth": THICK_LINE, "linestyle": "solid", "color": ANALYTIC_COLOR,
-    "marker": None, "markersize": MARKER_SIZE
+    "marker": None, "markersize": ANALYTIC_MARKER_SIZE
 }
 ana_style0 = {
     "linewidth": THICK_LINE, "linestyle": "solid", "color": ANALYTIC_COLOR,
-    "marker": "o", "markersize": MARKER_SIZE, "markerfacecolor": "None"
+    "marker": "o", "markersize": ANALYTIC_MARKER_SIZE,
+    "markerfacecolor": "None"
 }
 ana_style1 = {
     "linewidth": THICK_LINE, "linestyle": "solid", "color": ANALYTIC_COLOR,
-    "marker": "s", "markersize": MARKER_SIZE, "markerfacecolor": "None"
+    "marker": "s", "markersize": ANALYTIC_MARKER_SIZE,
+    "markerfacecolor": "None"
 }
 
 initial_style = {
@@ -67,25 +72,22 @@ fp_style1 = {
 }
 
 
-def moment_inf(n, order, time):
+def moment_inf(n, order, time, zero_default=None):
     """Calculate analytical moment of `order` at `time` numerically.
 
     :param order: order of analytic moment.
     :param time: time of evaluation of the analytic solution.
     :return: analytical moment of `order` at `time`.
     """
-
     def integrand(v):
         return v ** order * n(time, v)
-
-    if time == 0:
-        mom = 1
-    else:
-        mom, *_ = quad(integrand, 0, inf)
+    if time == 0 and zero_default is not None:
+        return zero_default
+    mom, *_ = quad(integrand, 0, inf)  # , maxp1=100)
     return mom
 
 
-def moment_end(n, order, time, end):
+def moment_end(n, order, time, end, zero_default=None):
     """Calculate analytical moment of `order` at `time` numerically.
 
     :param order: order of analytic moment.
@@ -95,10 +97,9 @@ def moment_end(n, order, time, end):
     """
     def integrand(v):
         return v ** order * n(time, v)
-    if time == 0:
-        mom = 1
-    else:
-        mom, *_ = quad(integrand, 0, end, maxp1=100)
+    if time == 0 and zero_default is not None:
+        return zero_default
+    mom, *_ = quad(integrand, 0, end)  # , maxp1=100
     return mom
 
 
@@ -107,8 +108,8 @@ def plot_results(initial, solution, fp, ca,
                  xscale, yscale,
                  xlim_ndf, ylim_ndf, ylim_ndf_err,
                  ylim_mom, ylim_mom_err,
-                 write_plot_files, output_folder,
-                 mom_type, prefix, show_plots=True):
+                 write_plot_files, output_folder, prefix,
+                 mom_type="inf", zero_default=None, show_plots=True):
     """Plot resulting NDFs and Moments and compare with analytic solution.
     
     :param initial: initial NDF
@@ -169,11 +170,11 @@ def plot_results(initial, solution, fp, ca,
     ca_moment0, ca_moment1 = [], []
     for time in times:
         if mom_type == "inf":
-            ana_moment0.append(moment_inf(solution, 0, time))
-            ana_moment1.append(moment_inf(solution, 1, time))
+            ana_moment0.append(moment_inf(solution, 0, time, zero_default))
+            ana_moment1.append(moment_inf(solution, 1, time, zero_default))
         elif mom_type == "end":
-            ana_moment0.append(moment_end(solution, 0, time, ndf_end))
-            ana_moment1.append(moment_end(solution, 1, time, ndf_end))
+            ana_moment0.append(moment_end(solution, 0, time, ndf_end, zero_default))
+            ana_moment1.append(moment_end(solution, 1, time, ndf_end, zero_default))
         else:
             msg = "Unknown mom_type '{}'. Use mom_type 'inf' or 'end'!"
             raise ValueError(msg.format(mom_type))
@@ -281,7 +282,7 @@ def plot_results(initial, solution, fp, ca,
     lines0, labels0 = upper.get_legend_handles_labels()
     lines1, labels1 = upper1.get_legend_handles_labels()
     lines, labels = lines0 + lines1, labels0 + labels1
-    upper.legend(lines, labels, **legend_style)
+    upper1.legend(lines, labels, **legend_style)
     upper.grid()
     # lower subplot - errors:
     lower.set_xlabel("Zeit $t$ in s")

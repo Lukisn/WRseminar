@@ -100,11 +100,6 @@ def main(show_plots=True):
         ca.ndf_to_files(os.path.join(FOLDER, "growth4_ca_ndf.dat"))
 
     # PLOTTING: ---------------------------------------------------------------
-    # plot_results(initial_ndf, n, fp, ca,
-    #              END, TEND, TIME_STEP, XMIN, XMAX, YMIN, YMAX, XSCALE, YSCALE,
-    #              YMIN_ERR, YMAX_ERR, YMIN_MOM_ERR, YMAX_MOM_ERR,
-    #              WRITE_PLOT_FILES, FOLDER, mom_type="inf", prefix="growth4",
-    #              show_plots=show_plots)
 
     plot_results(initial=initial_ndf, solution=n, fp=fp, ca=ca,
                  ndf_end=END, t_end=TEND, time_step=TIME_STEP,
@@ -113,7 +108,8 @@ def main(show_plots=True):
                  ylim_ndf=YLIM_NDF, ylim_ndf_err=YLIM_NDF_ERR,
                  ylim_mom=YLIM_MOM, ylim_mom_err=YLIM_MOM_ERR,
                  write_plot_files=WRITE_PLOT_FILES, output_folder=FOLDER,
-                 mom_type="inf", prefix="growth4", show_plots=show_plots)
+                 prefix="growth4", mom_type="inf", zero_default=None,
+                 show_plots=show_plots)
 
 
 if __name__ == "__main__":
