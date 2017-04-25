@@ -21,7 +21,7 @@ def main(show_plots=True):
     # PROBLEM FUNCTIONS: ------------------------------------------------------
 
     def f(x):  # initial NDF
-        return max(60 * x**2 * (1 - x)**3, 0)
+        return max(60 * x ** 2 * (1 - x) ** 3, 0)
 
     def G(v):  # growth function
         #return -1 / 2
@@ -29,8 +29,8 @@ def main(show_plots=True):
 
     def n(t, x):  # analytic solution
         # return max(60 * (x - t / 2) ** 2 * (1 - (x - t / 2)) ** 3, 0)
-        if x > t/2:
-            return max(60 * (x - t / 2)**2 * (1 - (x - t / 2))**3, 0)
+        if x > t / 2:
+            return max(60 * (x - t / 2) ** 2 * (1 - (x - t / 2)) ** 3, 0)
         else:
             return 0
 

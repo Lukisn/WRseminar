@@ -20,19 +20,21 @@ def main(show_plots=True):
     # PROBLEM FUNCTIONS: ------------------------------------------------------
 
     def f(x):  # initial NDF
-        return 0.0 + 2.0 * (hstep(x - 0.1) - hstep(x - 0.6))
+        #return 0.0 + 2.0 * (hstep(x - 0.1) - hstep(x - 0.6))
+        return 0.0 + 2.0 * (hstep(x - 0.75) - hstep(x - 1.25))
 
     def G(v):  # growth function
         return 1
 
     def n(t, x):  # analytic solution
-        return 0.0 + 2.0 * (hstep(x - (0.1 + t)) - hstep(x - (0.6 + t)))
+        #return 0.0 + 2.0 * (hstep(x - (0.1 + t)) - hstep(x - (0.6 + t)))
+        return 0.0 + 2.0 * (hstep(x - (0.75 + G(x) * t)) - hstep(x - (1.25 + G(x) * t)))
 
     # CONSTANTS: --------------------------------------------------------------
 
     # Grid:
-    START, END = 0, 2
-    SECTIONS = 100
+    START, END = 0, 4
+    SECTIONS = 200
     FACTOR = 1.0
 
     # Simulation:
@@ -44,11 +46,11 @@ def main(show_plots=True):
 
     # Plotting:
     XSCALE, YSCALE = "linear", "linear"
-    XLIM_NDF = 0, 2
-    YLIM_NDF = 0, 2.5
+    XLIM_NDF = 0, 3
+    YLIM_NDF = -0.1, 2.6
     YLIM_NDF_ERR = -1.1, 1.1
-    YLIM_MOM = -0.1, 2.1
-    YLIM_MOM_ERR = -0.1, 0.1
+    YLIM_MOM = -0.1, 2.6
+    YLIM_MOM_ERR = -1.1, 1.1
 
     # File output:
     WRITE_DATA_FILES = True

@@ -45,12 +45,12 @@ def main(show_plots=True):
 
     # NDF Grid:
     START, END = 0, 1e5
-    SECTIONS = 100  # A: 100, B: 100, C: 50, D: 25
-    FACTOR = 1.2  # A: 1.2, B: 1.2, C: 1.4, D: 1.8
+    SECTIONS = 25  # A: 100, B: 50, C: 25, D: 100
+    FACTOR = 1.8  # A: 1.2, B: 1.4, C: 1.8, D: 1.2
 
     # Simulation:
     T0, TEND = 0, 1
-    STEPS = 10  # A: 100, B-D: 10
+    STEPS = 10  # A-C: 10, D: 100
     TIME_STEP = (TEND - T0) / STEPS
     EVERY = 1
     ORDER = 1

@@ -2,8 +2,7 @@
 """Utility functions and style definitions for plotting the results."""
 import os
 import matplotlib.pyplot as plt
-import numpy as np
-from scipy.integrate import quad, quadrature
+from scipy.integrate import quad
 from scipy import inf
 
 
@@ -22,7 +21,7 @@ CELL_AVERAGE_COLOR = "red"
 
 legend_style = {
     "loc": "best", "fontsize": "small", "numpoints": 1,
-    "framealpha": 0.75, "fancybox": True
+    "framealpha": 0.5, "fancybox": True
 }
 
 ana_style = {
@@ -262,7 +261,7 @@ def plot_results(initial, solution, fp, ca,
     # plot moment comparison and errors:
     fig, (upper, lower) = plt.subplots(2, 1, sharex="all")
     # upper subplot - moments:
-    upper.set_title("Zeitverlauf der Momente, $\Delta t = {}$ s".format(
+    upper.set_title("Zeitverlauf der Momente, $\Delta t = {:.2f}$ s".format(
         time_step
     ))
     # plot 0th moment on primary y axis:

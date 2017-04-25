@@ -39,12 +39,12 @@ def main(show_plots=True):
 
     # NDF Grid:
     START, END = 0, 10
-    SECTIONS = 100  # A: 100, B: 100, C: 50, D: 25
-    FACTOR = 1.1  # A-D: 1.1
+    SECTIONS = 25  # A: 100, B: 50, C: 25, D: 100
+    FACTOR = 1.5  # A-D: 1.1
 
     # Simulation:
     T0, TEND = 0, 10
-    STEPS = 10  # A: 100, B-D: 10
+    STEPS = 10  # A-C: 10, D: 100
     TIME_STEP = (TEND - T0) / STEPS
     EVERY = 1
     ORDER = 1
@@ -52,8 +52,8 @@ def main(show_plots=True):
     # Plotting:
     XSCALE, YSCALE = "log", "log"  # or "linear"
     XLIM_NDF = 1e-5, 1e1  # (x_min, x_max)
-    YLIM_NDF = 1e-5, 1e2
-    YLIM_NDF_ERR = -1.1, 0.2
+    YLIM_NDF = 1e-5, 1e3
+    YLIM_NDF_ERR = -1.1, 0.25
     YLIM_MOM = 0.5, 6.5
     YLIM_MOM_ERR = -0.65, 0.25
 
