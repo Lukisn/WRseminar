@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Utility function and style definitions for plotting the results."""
+"""Utility functions and style definitions for plotting the results."""
 import os
 import matplotlib.pyplot as plt
 from scipy.integrate import quad
@@ -105,7 +105,7 @@ def moment_end(n, order, time, end):
 def plot_results(initial_ndf, n, fp, ca,
                  END, TEND, TIME_STEP, XMIN, XMAX, YMIN, YMAX, XSCALE, YSCALE,
                  YMIN_ERR, YMAX_ERR, YMIN_MOM_ERR, YMAX_MOM_ERR,
-                 WRITE_PLOT_FILES, FOLDER, mom_type, prefix):
+                 WRITE_PLOT_FILES, FOLDER, mom_type, prefix, show_plots=True):
     """Plot resulting NDFs and Moments and compare with analytic solution."""
     # CALCULATIONS FOR PLOTTING: ----------------------------------------------
 
@@ -201,7 +201,7 @@ def plot_results(initial_ndf, n, fp, ca,
             TEND, TIME_STEP
         )
     )
-    upper.set_ylabel("NDF $n(v)$")
+    upper.set_ylabel("NDF $n(t_{end}, v)$")
     upper.plot(ana_x, ana_y, label="ana", **ana_style)
     upper.plot(ini_x, ini_y, label="ini", **initial_style)
     upper.plot(fp_x, fp_y, label="FP", **fp_style)
@@ -227,7 +227,8 @@ def plot_results(initial_ndf, n, fp, ca,
     fig.tight_layout()
     if WRITE_PLOT_FILES:
         plt.savefig(os.path.join(FOLDER, "{}_ndf.eps".format(prefix)))
-    plt.show()
+    if show_plots:
+        plt.show()
 
     # plot moment comparison and errors:
     fig, (upper, lower) = plt.subplots(2, 1, sharex="all")
@@ -235,13 +236,21 @@ def plot_results(initial_ndf, n, fp, ca,
     upper.set_title("Zeitverlauf der Momente, $\Delta t = {}$ s".format(
         TIME_STEP
     ))
-    upper.set_ylabel("Wert des Moments der Orndung ...")
+    upper.set_ylabel("0. Moment $\mu_0$ (Anzahl)")
     upper.plot(times, ana_moment0, label="ana 0", **ana_style0)
-    upper.plot(times, ana_moment1, label="ana 1", **ana_style1)
+    #upper.plot(times, ana_moment1, label="ana 1", **ana_style1)
     upper.plot(times, fp_moment0, label="FP 0", **fp_style0)
-    upper.plot(times, fp_moment1, label="FP 1", **fp_style1)
+    #upper.plot(times, fp_moment1, label="FP 1", **fp_style1)
     upper.plot(times, ca_moment0, label="CA 0", **ca_style0)
-    upper.plot(times, ca_moment1, label="CA 1", **ca_style1)
+    #upper.plot(times, ca_moment1, label="CA 1", **ca_style1)
+
+    upper2 = upper.twinx()
+    upper2.set_ylabel("1. Moment $\mu_1$ (Masse)")
+    upper2.plot(times, ana_moment1, label="ana 1", **ana_style1)
+    upper2.plot(times, fp_moment1, label="FP 1", **fp_style1)
+    upper2.plot(times, ca_moment1, label="CA 1", **ca_style1)
+    upper2.legend(**legend_style)
+
     upper.legend(**legend_style)
     upper.grid()
     # lower subplot - errors:
@@ -258,4 +267,5 @@ def plot_results(initial_ndf, n, fp, ca,
     fig.tight_layout()
     if WRITE_PLOT_FILES:
         fig.savefig(os.path.join(FOLDER, "{}_mom.eps".format(prefix)))
-    plt.show()
+    if show_plots:
+        plt.show()
