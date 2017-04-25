@@ -192,16 +192,16 @@ def plot_results(initial_ndf, n, fp, ca,
     # ca_mom_err_y0[0], ca_mom_err_y1[0] = None, None
 
     # PLOTTING: ---------------------------------------------------------------
-
+    plt.rc("text", usetex=True)
     # plot NDF comparison and errors:
     fig, (upper, lower) = plt.subplots(2, 1, sharex="all")
     # upper subplot - NDF:
     upper.set_title(
-        "analytical and discrete NDFs at TEND = {} s, STEP = {} s".format(
+        "NDFs bei $t_{{end}} = {:.2f}$ s, $\Delta t = {:.2f}$ s".format(
             TEND, TIME_STEP
         )
     )
-    upper.set_ylabel("NDF")
+    upper.set_ylabel("NDF $n(v)$")
     upper.plot(ana_x, ana_y, label="ana", **ana_style)
     upper.plot(ini_x, ini_y, label="ini", **initial_style)
     upper.plot(fp_x, fp_y, label="FP", **fp_style)
@@ -213,8 +213,8 @@ def plot_results(initial_ndf, n, fp, ca,
     upper.legend(**legend_style)
     upper.grid()
     # lower subplot - errors:
-    lower.set_xlabel("particle size")
-    lower.set_ylabel("relative error")
+    lower.set_xlabel("Interne Koordinate $v$")
+    lower.set_ylabel("Relativer Fehler")
     lower.plot(fp_x, fp_err_y, label="FP", **fp_style)
     lower.plot(ca_x, ca_err_y, label="CA", **ca_style)
     lower.set_xlim(XMIN, XMAX)
@@ -232,8 +232,10 @@ def plot_results(initial_ndf, n, fp, ca,
     # plot moment comparison and errors:
     fig, (upper, lower) = plt.subplots(2, 1, sharex="all")
     # upper subplot - moments:
-    upper.set_title("moments over time. STEP = {} s".format(TIME_STEP))
-    upper.set_ylabel("moment")
+    upper.set_title("Zeitverlauf der Momente, $\Delta t = {}$ s".format(
+        TIME_STEP
+    ))
+    upper.set_ylabel("Wert des Moments der Orndung ...")
     upper.plot(times, ana_moment0, label="ana 0", **ana_style0)
     upper.plot(times, ana_moment1, label="ana 1", **ana_style1)
     upper.plot(times, fp_moment0, label="FP 0", **fp_style0)
@@ -243,8 +245,8 @@ def plot_results(initial_ndf, n, fp, ca,
     upper.legend(**legend_style)
     upper.grid()
     # lower subplot - errors:
-    lower.set_xlabel("time in s")
-    lower.set_ylabel("relative error")
+    lower.set_xlabel("Zeit $t$ in s")
+    lower.set_ylabel("Relativer Fehler")
     lower.plot(times, fp_mom_err_y0, label="FP 0", **fp_style0)
     lower.plot(times, fp_mom_err_y1, label="FP 1", **fp_style1)
     lower.plot(times, ca_mom_err_y0, label="CA 0", **ca_style0)
