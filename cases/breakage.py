@@ -51,10 +51,10 @@ def main(show_plots=True):
 
     # Plotting:
     XSCALE, YSCALE = "log", "log"  # or "linear"
-    XLIM = 1e-5, 1e1  # (x_min, x_max)
+    XLIM_NDF = 1e-5, 1e1  # (x_min, x_max)
     YLIM_NDF = 1e-5, 1e2
     YLIM_NDF_ERR = -1.1, 0.2
-    YLIM_MOM = 0, 6
+    YLIM_MOM = 0.5, 6.5
     YLIM_MOM_ERR = -0.65, 0.25
 
     # File output:
@@ -100,16 +100,14 @@ def main(show_plots=True):
         ca.ndf_to_files(os.path.join(FOLDER, "break_ca_ndf.dat"))
 
     # PLOTTING: ---------------------------------------------------------------
-    plot_results(initial_ndf, n, fp, ca,
-                 END, TEND, TIME_STEP,
-                 XSCALE, YSCALE,
-                 XLIM,
-                 YLIM_NDF,
-                 YLIM_NDF_ERR,
-                 YLIM_MOM,
-                 YLIM_MOM_ERR,
-                 WRITE_PLOT_FILES, FOLDER, mom_type="end", prefix="break",
-                 show_plots=show_plots)
+    plot_results(initial=initial_ndf, solution=n, fp=fp, ca=ca,
+                 ndf_end=END, t_end=TEND, time_step=TIME_STEP,
+                 xscale=XSCALE, yscale=YSCALE,
+                 xlim_ndf=XLIM_NDF,
+                 ylim_ndf=YLIM_NDF, ylim_ndf_err=YLIM_NDF_ERR,
+                 ylim_mom=YLIM_MOM, ylim_mom_err=YLIM_MOM_ERR,
+                 write_plot_files=WRITE_PLOT_FILES, output_folder=FOLDER,
+                 mom_type="end", prefix="break", show_plots=show_plots)
 
 
 if __name__ == "__main__":

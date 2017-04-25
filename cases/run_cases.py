@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-import cases.case_break as breakage
-import cases.case_agg as aggregation
-import cases.case_break_agg as break_agg
-import cases.case_growth as growth
-import cases.case_growth1 as growth1
-import cases.case_growth4 as growth4
+import cases.breakage as breakage
+import cases.aggregation as aggregation
+import cases.break_agg as break_agg
+import cases.growth as growth
+import cases.growth1 as growth1
+import cases.growth4 as growth4
 from util.filesystem import remove
 
 

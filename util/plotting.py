@@ -46,11 +46,11 @@ ca_style = {
 }
 ca_style0 = {
     "linewidth": SMALL_LINE, "linestyle": "dotted", "color": CELL_AVERAGE_COLOR,
-    "marker": "^", "markersize": MARKER_SIZE, "markerfacecolor": "None"
+    "marker": "o", "markersize": MARKER_SIZE, "markerfacecolor": "None"
 }
 ca_style1 = {
     "linewidth": SMALL_LINE, "linestyle": "dotted", "color": CELL_AVERAGE_COLOR,
-    "marker": "v", "markersize": MARKER_SIZE, "markerfacecolor": "None"
+    "marker": "s", "markersize": MARKER_SIZE, "markerfacecolor": "None"
 }
 
 fp_style = {
@@ -59,11 +59,11 @@ fp_style = {
 }
 fp_style0 = {
     "linewidth": SMALL_LINE, "linestyle": "dotted",  "color": FIXED_PIVOT_COLOR,
-    "marker": "v", "markersize": MARKER_SIZE, "markerfacecolor": "None"
+    "marker": "h", "markersize": MARKER_SIZE, "markerfacecolor": "None"
 }
 fp_style1 = {
     "linewidth": SMALL_LINE, "linestyle": "dotted", "color": FIXED_PIVOT_COLOR,
-    "marker": "^", "markersize": MARKER_SIZE, "markerfacecolor": "None"
+    "marker": "D", "markersize": MARKER_SIZE, "markerfacecolor": "None"
 }
 
 
@@ -103,38 +103,58 @@ def moment_end(n, order, time, end):
 
 
 def plot_results(initial, solution, fp, ca,
-                 END, TEND, TIME_STEP,
-                 XSCALE, YSCALE,
-                 XLIM,
-                 YLIM_NDF,
-                 YLIM_NDF_ERR,
-                 YLIM_MOM,
-                 YLIM_MOM_ERR,
-                 WRITE_PLOT_FILES, FOLDER, mom_type, prefix, show_plots=True):
-    """Plot resulting NDFs and Moments and compare with analytic solution."""
+                 ndf_end, t_end, time_step,
+                 xscale, yscale,
+                 xlim_ndf, ylim_ndf, ylim_ndf_err,
+                 ylim_mom, ylim_mom_err,
+                 write_plot_files, output_folder,
+                 mom_type, prefix, show_plots=True):
+    """Plot resulting NDFs and Moments and compare with analytic solution.
+    
+    :param initial: initial NDF
+    :param solution: analytic solution function
+    :param fp: parameterized fixed pivot method object
+    :param ca: parameterized cell average method object
+    :param ndf_end: upper end value of the discrete NDF
+    :param t_end: end time of the simulation
+    :param time_step: time step used in the simulation
+    :param xscale: x-axis scale to use ("linear" / "log")
+    :param yscale: y-axis scale to use ("linear" / "log")
+    :param xlim_ndf: x-axis limits for NDF plots (x_min, x_max)
+    :param ylim_ndf: y-axis limits for NDF plot (y_min, y_max)
+    :param ylim_ndf_err: y-axis limits for NDF error plot
+    :param ylim_mom: y-axis limits for moment plot
+    :param ylim_mom_err: y-axis limits for moment error plot
+    :param write_plot_files: boolean flag for toggling output of plot files
+    :param output_folder: directory to write output files to
+    :param mom_type: type of moment calculation method to use ("inf" / "end")
+    :param prefix: file name prefix for saving files
+    :param show_plots: boolean flag for toggling plt.show() calls on and off
+    :return: None
+    """
     # CALCULATIONS FOR PLOTTING: ----------------------------------------------
 
     # gather NDF data:
     ini_x, ini_y = initial.pivots(), initial.densities()
     ana_x, ana_y = initial.pivots(), []
     for x in ana_x:
-        ana_y.append(solution(TEND, x))
-    fp_x, fp_y = fp._result_ndfs[TEND].pivots(), fp._result_ndfs[
-        TEND].densities()
-    ca_x, ca_y = ca._result_ndfs[TEND].pivots(), ca._result_ndfs[
-        TEND].densities()
+        ana_y.append(solution(t_end, x))
+    fp_x, fp_y = fp._result_ndfs[t_end].pivots(), fp._result_ndfs[
+        t_end].densities()
+    ca_x, ca_y = ca._result_ndfs[t_end].pivots(), ca._result_ndfs[
+        t_end].densities()
 
     # calculate errors:
     fp_err_y, ca_err_y = [], []
     for i, x in enumerate(fp_x):
-        ana = solution(TEND, x)
+        ana = solution(t_end, x)
         try:
             err = (fp_y[i] - ana) / ana
         except ZeroDivisionError:
             err = None  # matplotlib handles this by not plotting anything
         fp_err_y.append(err)
     for i, x in enumerate(ca_x):
-        ana = solution(TEND, x)
+        ana = solution(t_end, x)
         try:
             err = (ca_y[i] - ana) / ana
         except ZeroDivisionError:
@@ -152,8 +172,8 @@ def plot_results(initial, solution, fp, ca,
             ana_moment0.append(moment_inf(solution, 0, time))
             ana_moment1.append(moment_inf(solution, 1, time))
         elif mom_type == "end":
-            ana_moment0.append(moment_end(solution, 0, time, END))
-            ana_moment1.append(moment_end(solution, 1, time, END))
+            ana_moment0.append(moment_end(solution, 0, time, ndf_end))
+            ana_moment1.append(moment_end(solution, 1, time, ndf_end))
         else:
             msg = "Unknown mom_type '{}'. Use mom_type 'inf' or 'end'!"
             raise ValueError(msg.format(mom_type))
@@ -197,13 +217,16 @@ def plot_results(initial, solution, fp, ca,
     # ca_mom_err_y0[0], ca_mom_err_y1[0] = None, None
 
     # PLOTTING: ---------------------------------------------------------------
+
+    # configure matplotlib to use latex rendering:
     plt.rc("text", usetex=True)
+
     # plot NDF comparison and errors:
     fig, (upper, lower) = plt.subplots(2, 1, sharex="all")
     # upper subplot - NDF:
     upper.set_title(
         "NDFs bei $t_{{end}} = {:.2f}$ s, $\Delta t = {:.2f}$ s".format(
-            TEND, TIME_STEP
+            t_end, time_step
         )
     )
     upper.set_ylabel("NDF $n(t_{end}, v)$")
@@ -212,9 +235,9 @@ def plot_results(initial, solution, fp, ca,
     upper.plot(fp_x, fp_y, label="FP", **fp_style)
     upper.plot(ca_x, ca_y, label="CA", **ca_style)
     # upper.set_xlim(XMIN, XMAX)  # not needed for shared x-axis!?
-    upper.set_ylim(YLIM_NDF)
-    upper.set_xscale(XSCALE)
-    upper.set_yscale(YSCALE)
+    upper.set_ylim(ylim_ndf)
+    upper.set_xscale(xscale)
+    upper.set_yscale(yscale)
     upper.legend(**legend_style)
     upper.grid()
     # lower subplot - errors:
@@ -222,16 +245,16 @@ def plot_results(initial, solution, fp, ca,
     lower.set_ylabel("Relativer Fehler")
     lower.plot(fp_x, fp_err_y, label="FP", **fp_style)
     lower.plot(ca_x, ca_err_y, label="CA", **ca_style)
-    lower.set_xlim(XLIM)
-    lower.set_ylim(YLIM_NDF_ERR)
-    lower.set_xscale(XSCALE)
+    lower.set_xlim(xlim_ndf)
+    lower.set_ylim(ylim_ndf_err)
+    lower.set_xscale(xscale)
     lower.legend(**legend_style)
     lower.grid()
 
     # tighten layout and show:
     fig.tight_layout()
-    if WRITE_PLOT_FILES:
-        plt.savefig(os.path.join(FOLDER, "{}_ndf.eps".format(prefix)))
+    if write_plot_files:
+        plt.savefig(os.path.join(output_folder, "{}_ndf.eps".format(prefix)))
     if show_plots:
         plt.show()
 
@@ -239,28 +262,27 @@ def plot_results(initial, solution, fp, ca,
     fig, (upper, lower) = plt.subplots(2, 1, sharex="all")
     # upper subplot - moments:
     upper.set_title("Zeitverlauf der Momente, $\Delta t = {}$ s".format(
-        TIME_STEP
+        time_step
     ))
     # plot 0th moment on primary y axis:
     upper.set_ylabel("0. Moment $\mu_0$ (Anzahl)")
     upper.plot(times, ana_moment0, label="ana 0", **ana_style0)
     upper.plot(times, fp_moment0, label="FP 0", **fp_style0)
     upper.plot(times, ca_moment0, label="CA 0", **ca_style0)
-    upper.set_ylim(YLIM_MOM)
+    upper.set_ylim(ylim_mom)
     # plot 1st moment on second y axis:
     upper1 = upper.twinx()
     upper1.set_ylabel("1. Moment $\mu_1$ (Masse)")
     upper1.plot(times, ana_moment1, label="ana 1", **ana_style1)
     upper1.plot(times, fp_moment1, label="FP 1", **fp_style1)
     upper1.plot(times, ca_moment1, label="CA 1", **ca_style1)
-    upper1.set_ylim(YLIM_MOM)
+    upper1.set_ylim(ylim_mom)
     # plot common legend:
     lines0, labels0 = upper.get_legend_handles_labels()
     lines1, labels1 = upper1.get_legend_handles_labels()
     lines, labels = lines0 + lines1, labels0 + labels1
     upper.legend(lines, labels, **legend_style)
     upper.grid()
-
     # lower subplot - errors:
     lower.set_xlabel("Zeit $t$ in s")
     lower.set_ylabel("Relativer Fehler")
@@ -268,12 +290,13 @@ def plot_results(initial, solution, fp, ca,
     lower.plot(times, fp_mom_err_y1, label="FP 1", **fp_style1)
     lower.plot(times, ca_mom_err_y0, label="CA 0", **ca_style0)
     lower.plot(times, ca_mom_err_y1, label="CA 1", **ca_style1)
-    lower.set_ylim(YLIM_MOM_ERR)
+    lower.set_ylim(ylim_mom_err)
     lower.legend(**legend_style)
     lower.grid()
+
     # tighten layout and show:
     fig.tight_layout()
-    if WRITE_PLOT_FILES:
-        fig.savefig(os.path.join(FOLDER, "{}_mom.eps".format(prefix)))
+    if write_plot_files:
+        fig.savefig(os.path.join(output_folder, "{}_mom.eps".format(prefix)))
     if show_plots:
         plt.show()
