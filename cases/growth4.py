@@ -43,8 +43,8 @@ def main(show_plots=True):
     FACTOR = 1.2
 
     # Simulation:
-    T0, TEND = 0, 0.1  # A: 0 - 0.01, B: 0 - 0.1, C: 0 - 1
-    STEPS = 10  # A: 1, B: 10, C: 100
+    T0, TEND = 0, 0.01  # A: 0 - 0.01, B: 0 - 0.1, C: 0 - 1
+    STEPS = 1  # A: 1, B: 10, C: 100
     TIME_STEP = (TEND - T0) / STEPS
     EVERY = 1
     ORDER = 1
@@ -54,7 +54,7 @@ def main(show_plots=True):
     XLIM_NDF = 0, 2e1
     YLIM_NDF = -0.01, 0.3
     YLIM_NDF_ERR = -1.1, 1.1
-    YLIM_MOM = 0, 5
+    YLIM_MOM = 0, 7
     YLIM_MOM_ERR = -1.1, 1.1
 
     # File output:

@@ -23,6 +23,10 @@ legend_style = {
     "loc": "best", "fontsize": "small", "numpoints": 1,
     "framealpha": 0.5, "fancybox": True
 }
+legend_style_loc = {
+    "loc": 2, "fontsize": "small", "numpoints": 1,
+    "framealpha": 0.5, "fancybox": True
+}
 
 ana_style = {
     "linewidth": THICK_LINE, "linestyle": "solid", "color": ANALYTIC_COLOR,
@@ -232,7 +236,7 @@ def plot_results(initial, solution, fp, ca,
     upper.set_ylabel("NDF $n(t_{end}, v)$")
     upper.plot(ana_x, ana_y, label="ana", **ana_style)
     upper.plot(ini_x, ini_y, label="ini", **initial_style)
-    upper.plot(fp_x, fp_y, label="FP", **fp_style)
+    #upper.plot(fp_x, fp_y, label="FP", **fp_style)
     upper.plot(ca_x, ca_y, label="CA", **ca_style)
     # upper.set_xlim(XMIN, XMAX)  # not needed for shared x-axis!?
     upper.set_ylim(ylim_ndf)
@@ -243,7 +247,7 @@ def plot_results(initial, solution, fp, ca,
     # lower subplot - errors:
     lower.set_xlabel("Interne Koordinate $v$")
     lower.set_ylabel("Relativer Fehler")
-    lower.plot(fp_x, fp_err_y, label="FP", **fp_style)
+    #lower.plot(fp_x, fp_err_y, label="FP", **fp_style)
     lower.plot(ca_x, ca_err_y, label="CA", **ca_style)
     lower.set_xlim(xlim_ndf)
     lower.set_ylim(ylim_ndf_err)
@@ -267,14 +271,14 @@ def plot_results(initial, solution, fp, ca,
     # plot 0th moment on primary y axis:
     upper.set_ylabel("0. Moment $\mu_0$ (Anzahl)")
     upper.plot(times, ana_moment0, label="ana 0", **ana_style0)
-    upper.plot(times, fp_moment0, label="FP 0", **fp_style0)
+    #upper.plot(times, fp_moment0, label="FP 0", **fp_style0)
     upper.plot(times, ca_moment0, label="CA 0", **ca_style0)
     upper.set_ylim(ylim_mom)
     # plot 1st moment on second y axis:
     upper1 = upper.twinx()
     upper1.set_ylabel("1. Moment $\mu_1$ (Masse)")
     upper1.plot(times, ana_moment1, label="ana 1", **ana_style1)
-    upper1.plot(times, fp_moment1, label="FP 1", **fp_style1)
+    #upper1.plot(times, fp_moment1, label="FP 1", **fp_style1)
     upper1.plot(times, ca_moment1, label="CA 1", **ca_style1)
     upper1.set_ylim(ylim_mom)
     # plot common legend:
@@ -286,8 +290,8 @@ def plot_results(initial, solution, fp, ca,
     # lower subplot - errors:
     lower.set_xlabel("Zeit $t$ in s")
     lower.set_ylabel("Relativer Fehler")
-    lower.plot(times, fp_mom_err_y0, label="FP 0", **fp_style0)
-    lower.plot(times, fp_mom_err_y1, label="FP 1", **fp_style1)
+    #lower.plot(times, fp_mom_err_y0, label="FP 0", **fp_style0)
+    #lower.plot(times, fp_mom_err_y1, label="FP 1", **fp_style1)
     lower.plot(times, ca_mom_err_y0, label="CA 0", **ca_style0)
     lower.plot(times, ca_mom_err_y1, label="CA 1", **ca_style1)
     lower.set_ylim(ylim_mom_err)

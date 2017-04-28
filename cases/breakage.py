@@ -39,8 +39,8 @@ def main(show_plots=True):
 
     # NDF Grid:
     START, END = 0, 10
-    SECTIONS = 25  # A: 100, B: 50, C: 25, D: 100
-    FACTOR = 1.5  # A-D: 1.1
+    SECTIONS = 100  # A: 100, B: 50, C: 25, D: 100
+    FACTOR = 1.1  # A-D: 1.1
 
     # Simulation:
     T0, TEND = 0, 10
