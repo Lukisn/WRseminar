@@ -572,7 +572,7 @@ class Grid:
 
         return grid
 
-    @classmethod
+    @classmethod  # TODO: deprecated: remove usages (use create_geometric)
     def create_geometric_step(cls, start, end, uni_sec, fact, func=zero, corr=True):
         """Create a geometric grid.
 

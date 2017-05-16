@@ -29,7 +29,7 @@ def main(show_plots=True):
         return v ** 2
 
     def beta(v1, v2):  # child distribution
-        return 2 / v2
+        return 2 / v2 * hstep(v2 - v1)
 
     def n(t, x):  # analytic solution:
         brace = dirac_norm(x - 1) + 2 * t * hstep(1 - x)
